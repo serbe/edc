@@ -97,7 +97,7 @@ func (e *EDc) DeleteCompany(id int64) (err error) {
 }
 
 func (e *EDc) companyCreateTable() (err error) {
-	str := `CREATE TABLE IF NOT EXISTS companies (id bigserial primary key, name text, address text, scope_id bigint, notes text)`
+	str := `CREATE TABLE IF NOT EXISTS companies (id BIGSERIAL PRIMARY KEY, name TEXT, address TEXT, scope_id BIGINT, notes TEXT, UNIQUE(name, scope_id))`
 	_, err = e.db.Exec(str)
 	if err != nil {
 		log.Println("companyCreateTable e.db.Exec ", err)

@@ -15,7 +15,8 @@ type EDc struct {
 }
 
 // InitDB initialize database
-func InitDB(dbname string, user string, password string, sslmode bool, logsql bool) (e *EDc, err error) {
+func InitDB(dbname string, user string, password string, sslmode bool, logsql bool) (*EDc, error) {
+	e := new(EDc)
 	opt := pg.Options{
 		User:     user,
 		Password: password,
@@ -25,10 +26,9 @@ func InitDB(dbname string, user string, password string, sslmode bool, logsql bo
 	if logsql == true {
 		pg.SetQueryLogger(log.New(os.Stdout, "", log.LstdFlags))
 	}
-	db := pg.Connect(&opt)
-	e.db = db
-	err = e.createTables()
-	return
+	e.db = pg.Connect(&opt)
+	err := e.createTables()
+	return e, err
 }
 
 func (e *EDc) createTables() (err error) {
