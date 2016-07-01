@@ -1,0 +1,1 @@
+CREATE TABLE IF NOT EXISTS emails (id bigserial primary key, company_id bigint, people_id bigint, email text, notes text);

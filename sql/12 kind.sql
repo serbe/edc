@@ -1,0 +1,1 @@
+CREATE TABLE IF NOT EXISTS kinds (id bigserial primary key, name text, notes text);

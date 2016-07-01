@@ -80,7 +80,7 @@ func (e *EDc) DeletePost(id int64) error {
 }
 
 func (e *EDc) postCreateTable() (err error) {
-	str := `CREATE TABLE IF NOT EXISTS posts (id bigserial primary key, name text, go bool NOT NULL DEFAULT false, notes text)`
+	str := `CREATE TABLE IF NOT EXISTS posts (id BIGSERIAL PRIMARI KEY, name TEXT, go BOOL NOT NULL DEFAULT FALSE, notes TEXT, UNIQUE (name, go))`
 	_, err = e.db.Exec(str)
 	if err != nil {
 		return fmt.Errorf("postCreateTable e.db.Exec: %s", err)

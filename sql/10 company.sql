@@ -1,0 +1,1 @@
+CREATE TABLE IF NOT EXISTS companies (id bigserial primary key, name text, address text, scope_id bigint, notes text);
