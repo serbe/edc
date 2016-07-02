@@ -1,1 +1,1 @@
-CREATE TABLE IF NOT EXISTS scopes (id bigserial primary key, name text, notes text);
+CREATE TABLE IF NOT EXISTS scopes (id bigserial PRIMARY KEY, name text, notes text);

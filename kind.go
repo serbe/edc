@@ -4,9 +4,10 @@ import "log"
 
 // Kind - struct for kind
 type Kind struct {
-	ID    int64  `sql:"id" json:"id"`
-	Name  string `sql:"name" json:"name"`
-	Notes string `sql:"notes, null" json:"notes"`
+	TableName struct{} `sql:"kinds"`
+	ID        int64    `sql:"id" json:"id"`
+	Name      string   `sql:"name" json:"name"`
+	Notes     string   `sql:"notes, null" json:"notes"`
 }
 
 // GetKind - get one kind by id

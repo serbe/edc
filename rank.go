@@ -4,9 +4,10 @@ import "fmt"
 
 // Rank - struct for rank
 type Rank struct {
-	ID    int64  `sql:"id" json:"id"`
-	Name  string `sql:"name" json:"name"`
-	Notes string `sql:"notes, null" json:"notes"`
+	TableName struct{} `sql:"ranks"`
+	ID        int64    `sql:"id" json:"id"`
+	Name      string   `sql:"name" json:"name"`
+	Notes     string   `sql:"notes, null" json:"notes"`
 }
 
 // GetRank - get one rank dy id

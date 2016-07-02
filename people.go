@@ -7,6 +7,7 @@ import (
 
 // People is struct for people
 type People struct {
+	TableName struct{}   `sql:"peoples"`
 	ID        int64      `sql:"id" json:"id"`
 	Name      string     `sql:"name" json:"name"`
 	Company   Company    `sql:"-"`

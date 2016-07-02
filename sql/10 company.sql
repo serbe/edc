@@ -1,1 +1,1 @@
-CREATE TABLE IF NOT EXISTS companies (id BIGSERIAL PRIMARY KEY, name TEXT, address TEXT, scope_id BIGINT, notes TEXT, UNIQUE(name, scope_id));
+CREATE TABLE IF NOT EXISTS companies (id bigserial PRIMARY KEY, name text, address text, scope_id bigint, notes text, UNIQUE(name, scope_id));

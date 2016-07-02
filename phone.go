@@ -4,12 +4,13 @@ import "log"
 
 // Phone - struct for phone
 type Phone struct {
-	ID        int64  `sql:"id" json:"id"`
-	PeopleID  int64  `sql:"people_id, pk, null" json:"people-id"`
-	CompanyID int64  `sql:"company_id, pk, null" json:"company-id"`
-	Phone     int64  `sql:"phone, null" json:"phone"`
-	Fax       bool   `sql:"fax, null" json:"fax"`
-	Notes     string `sql:"notes, null" json:"notes"`
+	TableName struct{} `sql:"phones"`
+	ID        int64    `sql:"id" json:"id"`
+	PeopleID  int64    `sql:"people_id, pk, null" json:"people-id"`
+	CompanyID int64    `sql:"company_id, pk, null" json:"company-id"`
+	Phone     int64    `sql:"phone, null" json:"phone"`
+	Fax       bool     `sql:"fax, null" json:"fax"`
+	Notes     string   `sql:"notes, null" json:"notes"`
 }
 
 // CreatePhone - create new phone

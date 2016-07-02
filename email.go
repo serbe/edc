@@ -4,11 +4,12 @@ import "log"
 
 // Email - struct for email
 type Email struct {
-	ID        int64  `sql:"id" json:"id"`
-	CompanyID int64  `sql:"company_id, pk, null" json:"company-id"`
-	PeopleID  int64  `sql:"people_id, pk, null" json:"people-id"`
-	Email     string `sql:"email, null" json:"email"`
-	Notes     string `sql:"notes, null" json:"notes"`
+	TableName struct{} `sql:"mails"`
+	ID        int64    `sql:"id" json:"id"`
+	CompanyID int64    `sql:"company_id, pk, null" json:"company-id"`
+	PeopleID  int64    `sql:"people_id, pk, null" json:"people-id"`
+	Email     string   `sql:"email, null" json:"email"`
+	Notes     string   `sql:"notes, null" json:"notes"`
 }
 
 // GetEmail - get one email by id

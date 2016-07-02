@@ -4,10 +4,11 @@ import "fmt"
 
 // Post - struct for post
 type Post struct {
-	ID    int64  `sql:"id" json:"id"`
-	Name  string `sql:"name" json:"name"`
-	GO    bool   `sql:"go" json:"go"`
-	Notes string `sql:"notes, null" json:"notes"`
+	TableName struct{} `sql:"posts"`
+	ID        int64    `sql:"id" json:"id"`
+	Name      string   `sql:"name" json:"name"`
+	GO        bool     `sql:"go" json:"go"`
+	Notes     string   `sql:"notes, null" json:"notes"`
 }
 
 // GetPost - get one post dy id

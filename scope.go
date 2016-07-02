@@ -4,9 +4,10 @@ import "log"
 
 // Scope - struct for scope
 type Scope struct {
-	ID    int64  `sql:"id" json:"id"`
-	Name  string `sql:"name" json:"name"`
-	Notes string `sql:"notes, null" json:"notes"`
+	TableName struct{} `sql:"scopes"`
+	ID        int64    `sql:"id" json:"id"`
+	Name      string   `sql:"name" json:"name"`
+	Notes     string   `sql:"notes, null" json:"notes"`
 }
 
 // GetScope - get one scope by id

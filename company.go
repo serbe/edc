@@ -6,6 +6,7 @@ import (
 
 // Company is struct for company
 type Company struct {
+	TableName struct{}   `sql:"companies"`
 	ID        int64      `sql:"id" json:"id"`
 	Name      string     `sql:"name" json:"name"`
 	Address   string     `sql:"address, null" json:"address"`
