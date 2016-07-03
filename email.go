@@ -4,7 +4,7 @@ import "log"
 
 // Email - struct for email
 type Email struct {
-	TableName struct{} `sql:"mails"`
+	TableName struct{} `sql:"emails"`
 	ID        int64    `sql:"id" json:"id"`
 	CompanyID int64    `sql:"company_id, pk, null" json:"company-id"`
 	PeopleID  int64    `sql:"people_id, pk, null" json:"people-id"`
