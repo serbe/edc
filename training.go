@@ -30,7 +30,7 @@ func (e *EDc) GetTraining(id int64) (training Training, err error) {
 
 // GetTrainingAll - get all training
 func (e *EDc) GetTrainingAll() (trainings []Training, err error) {
-	err = e.db.Model(&trainings).Order("name ASC").Select()
+	err = e.db.Model(&trainings).Order("start_date ASC").Select()
 	if err != nil {
 		log.Println("GetTrainingAll ", err)
 		return
