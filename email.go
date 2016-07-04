@@ -39,7 +39,7 @@ func (e *EDc) GetCompanyEmails(id int64) (emails []Email, err error) {
 	if id == 0 {
 		return
 	}
-	err = e.db.Model(&emails).Where("company_id = ?", id).Order("name ASC").Select()
+	err = e.db.Model(&emails).Where("company_id = ?", id).Order("email ASC").Select()
 	if err != nil {
 		log.Println("GetCompanyEmails ", err)
 		return
@@ -52,7 +52,7 @@ func (e *EDc) GetPeopleEmails(id int64) (emails []Email, err error) {
 	if id == 0 {
 		return
 	}
-	err = e.db.Model(&emails).Where("people_id = ?", id).Order("name ASC").Select()
+	err = e.db.Model(&emails).Where("people_id = ?", id).Order("email ASC").Select()
 	if err != nil {
 		log.Println("GetPeopleEmails ", err)
 		return
