@@ -15,18 +15,18 @@ func (e *EDc) GetScope(id int64) (scope Scope, err error) {
 	if id == 0 {
 		return
 	}
-	_, err = e.db.QueryOne(&scope, "SELECT * FROM scopes WHERE id = ? LIMIT 1", id)
+	err = e.db.Model(&scope).Where("id = ?", id).Select()
 	if err != nil {
-		log.Println("GetScope e.db.QueryRow Scan ", err)
+		log.Println("GetScope ", err)
 	}
 	return
 }
 
 // GetScopeAll - get all scope
 func (e *EDc) GetScopeAll() (scopes []Scope, err error) {
-	_, err = e.db.Query(&scopes, "SELECT * FROM scopes")
+	err = e.db.Model(&scopes).Order("name ASC").Select()
 	if err != nil {
-		log.Println("GetScopeAll e.db.Query ", err)
+		log.Println("GetScopeAll ", err)
 		return
 	}
 	return
@@ -36,7 +36,7 @@ func (e *EDc) GetScopeAll() (scopes []Scope, err error) {
 func (e *EDc) CreateScope(scope Scope) (err error) {
 	err = e.db.Create(&scope)
 	if err != nil {
-		log.Println("CreateScope e.db.Exec ", err)
+		log.Println("CreateScope ", err)
 	}
 	return
 }
@@ -45,7 +45,7 @@ func (e *EDc) CreateScope(scope Scope) (err error) {
 func (e *EDc) UpdateScope(scope Scope) (err error) {
 	err = e.db.Update(&scope)
 	if err != nil {
-		log.Println("UpdateScope e.db.Exec ", err)
+		log.Println("UpdateScope ", err)
 	}
 	return
 }
@@ -57,7 +57,7 @@ func (e *EDc) DeleteScope(id int64) (err error) {
 	}
 	_, err = e.db.Exec("DELETE FROM scopes WHERE id = ?", id)
 	if err != nil {
-		log.Println("DeleteScope e.db.Exec ", err)
+		log.Println("DeleteScope ", err)
 	}
 	return
 }
@@ -66,7 +66,7 @@ func (e *EDc) scopeCreateTable() (err error) {
 	str := `CREATE TABLE IF NOT EXISTS scopes (id bigserial primary key, name text, notes text)`
 	_, err = e.db.Exec(str)
 	if err != nil {
-		log.Println("scopeCreateTable e.db.Exec ", err)
+		log.Println("scopeCreateTable ", err)
 	}
 	return
 }

@@ -24,9 +24,9 @@ func (e *EDc) GetCompany(id int64) (company Company, err error) {
 	if id == 0 {
 		return
 	}
-	_, err = e.db.QueryOne(&company, "SELECT * FROM companies WHERE id = ? LIMIT 1", id)
+	err = e.db.Model(&company).Where("id = ?", id).Select()
 	if err != nil {
-		log.Println("GetCompany e.db.QueryRow Scan ", err)
+		log.Println("GetCompany Select ", err)
 		return
 	}
 	company.Scope, _ = e.GetScope(company.ScopeID)
@@ -39,9 +39,9 @@ func (e *EDc) GetCompany(id int64) (company Company, err error) {
 
 // GetCompanyAll - get all companyes
 func (e *EDc) GetCompanyAll() (companyes []Company, err error) {
-	_, err = e.db.Query(&companyes, "SELECT * FROM companies")
+	err = e.db.Model(&companyes).Order("name ASC").Select()
 	if err != nil {
-		log.Println("GetCompanyAll e.db.Query ", err)
+		log.Println("GetCompanyAll Select ", err)
 		return
 	}
 	for i := range companyes {

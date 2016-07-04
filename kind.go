@@ -15,18 +15,18 @@ func (e *EDc) GetKind(id int64) (kind Kind, err error) {
 	if id == 0 {
 		return
 	}
-	_, err = e.db.QueryOne(&kind, "SELECT * FROM kinds WHERE id = ? LIMIT 1", id)
+	err = e.db.Model(&kind).Where("id = ?", id).Select()
 	if err != nil {
-		log.Println("GetKind e.db.QueryRow Scan ", err)
+		log.Println("GetKind ", err)
 	}
 	return
 }
 
 // GetKindAll - get all kinds
 func (e *EDc) GetKindAll() (kinds []Kind, err error) {
-	_, err = e.db.Query(&kinds, "SELECT * FROM kinds")
+	err = e.db.Model(&kinds).Order("name ASC").Select()
 	if err != nil {
-		log.Println("GetKindAll e.db.Query ", err)
+		log.Println("GetKindAll ", err)
 		return
 	}
 	return
@@ -36,7 +36,7 @@ func (e *EDc) GetKindAll() (kinds []Kind, err error) {
 func (e *EDc) CreateKind(kind Kind) (err error) {
 	err = e.db.Create(&kind)
 	if err != nil {
-		log.Println("CreateKind e.db.Create ", err)
+		log.Println("CreateKind ", err)
 	}
 	return
 }
@@ -45,7 +45,7 @@ func (e *EDc) CreateKind(kind Kind) (err error) {
 func (e *EDc) UpdateKind(kind Kind) (err error) {
 	err = e.db.Update(&kind)
 	if err != nil {
-		log.Println("UpdateKind e.db.Update ", err)
+		log.Println("UpdateKind ", err)
 	}
 	return
 }
@@ -57,7 +57,7 @@ func (e *EDc) DeleteKind(id int64) (err error) {
 	}
 	_, err = e.db.Exec("DELETE FROM kinds WHERE id = ?", id)
 	if err != nil {
-		log.Println("DeleteKind e.db.Exec ", err)
+		log.Println("DeleteKind ", err)
 	}
 	return
 }
@@ -66,7 +66,7 @@ func (e *EDc) kindCreateTable() (err error) {
 	str := `CREATE TABLE IF NOT EXISTS kinds (id bigserial primary key, name text, notes text)`
 	_, err = e.db.Exec(str)
 	if err != nil {
-		log.Println("kindCreateTable e.db.Exec ", err)
+		log.Println("kindCreateTable ", err)
 	}
 	return
 }

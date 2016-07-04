@@ -25,20 +25,20 @@ func (e *EDc) GetPractice(id int64) (practice Practice, err error) {
 	if id == 0 {
 		return
 	}
-	_, err = e.db.QueryOne(&practice, "SELECT * FROM practices WHERE id = ? LIMIT 1", id)
+	err = e.db.Model(&practice).Where("id = ?", id).Select()
 	if err != nil {
-		log.Println("GetPractice e.db.QueryRow: ", err)
-		return practice, fmt.Errorf("GetPractice e.db.QueryRow: %s", err)
+		log.Println("GetPractice: ", err)
+		return practice, fmt.Errorf("GetPractice: %s", err)
 	}
 	return
 }
 
 // GetPracticeAll - get all practices
 func (e *EDc) GetPracticeAll() (practices []Practice, err error) {
-	_, err = e.db.Query(&practices, "SELECT * FROM practices")
+	err = e.db.Model(&practices).Order("name ASC").Select()
 	if err != nil {
-		log.Println("GetPracticeAll e.db.Query: ", err)
-		return practices, fmt.Errorf("GetPracticeAll e.db.Query: %s", err)
+		log.Println("GetPracticeAll: ", err)
+		return practices, fmt.Errorf("GetPracticeAll: %s", err)
 	}
 	for i := range practices {
 		practices[i].Company, _ = e.GetCompany(practices[i].CompanyID)
@@ -53,10 +53,10 @@ func (e *EDc) GetCompanyPractices(id int64) (practices []Practice, err error) {
 	if id == 0 {
 		return
 	}
-	_, err = e.db.Query(&practices, "SELECT * FROM practices WHERE company_id = ?", id)
+	err = e.db.Model(&practices).Where("company_id = ?", id).Order("name ASC").Select()
 	if err != nil {
-		log.Println("GetCompanyPractices e.db.Query: ", err)
-		return practices, fmt.Errorf("GetCompanyPractices e.db.Query: %s", err)
+		log.Println("GetCompanyPractices: ", err)
+		return practices, fmt.Errorf("GetCompanyPractices: %s", err)
 	}
 	return
 }
@@ -65,8 +65,8 @@ func (e *EDc) GetCompanyPractices(id int64) (practices []Practice, err error) {
 func (e *EDc) CreatePractice(practice Practice) (err error) {
 	err = e.db.Create(&practice)
 	if err != nil {
-		log.Println("CreatePractice e.db.Create: ", err)
-		return fmt.Errorf("CreatePractice e.db.Create: %s", err)
+		log.Println("CreatePractice: ", err)
+		return fmt.Errorf("CreatePractice: %s", err)
 	}
 	return
 }

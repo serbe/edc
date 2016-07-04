@@ -31,9 +31,9 @@ func (e *EDc) GetPeople(id int64) (people People, err error) {
 	if id == 0 {
 		return
 	}
-	_, err = e.db.QueryOne(&people, "SELECT * FROM peoples WHERE id = ? LIMIT 1", id)
+	err = e.db.Model(&people).Where("id = ?", id).Select()
 	if err != nil {
-		log.Println("GetPeople e.db.QueryRow Scan ", err)
+		log.Println("GetPeople ", err)
 		return
 	}
 	people.Company, _ = e.GetCompany(people.CompanyID)
@@ -49,9 +49,9 @@ func (e *EDc) GetPeople(id int64) (people People, err error) {
 
 // GetPeopleAll - get all peoples
 func (e *EDc) GetPeopleAll() (peoples []People, err error) {
-	_, err = e.db.Query(&peoples, "SELECT * FROM peoples")
+	err = e.db.Model(&peoples).Order("name ASC").Select()
 	if err != nil {
-		log.Println("GetPeopleAll e.db.Query ", err)
+		log.Println("GetPeopleAll ", err)
 		return
 	}
 	for i := range peoples {
@@ -71,7 +71,7 @@ func (e *EDc) GetPeopleAll() (peoples []People, err error) {
 func (e *EDc) CreatePeople(people People) (err error) {
 	err = e.db.Create(&people)
 	if err != nil {
-		log.Println("CreatePeople e.db.Exec ", err)
+		log.Println("CreatePeople ", err)
 		return
 	}
 	_ = e.CreatePeopleEmails(people)
@@ -85,7 +85,7 @@ func (e *EDc) CreatePeople(people People) (err error) {
 func (e *EDc) UpdatePeople(people People) (err error) {
 	err = e.db.Update(&people)
 	if err != nil {
-		log.Println("UpdatePeople e.db.Exec ", err)
+		log.Println("UpdatePeople ", err)
 		return
 	}
 	_ = e.CreatePeopleEmails(people)
@@ -107,7 +107,7 @@ func (e *EDc) DeletePeople(id int64) (err error) {
 	}
 	e.db.Exec("DELETE FROM peoples WHERE id = ?", id)
 	if err != nil {
-		log.Println("DeletePeople e.db.Exec ", err)
+		log.Println("DeletePeople ", err)
 	}
 	return
 }
@@ -116,7 +116,7 @@ func (e *EDc) peopleCreateTable() (err error) {
 	str := `CREATE TABLE IF NOT EXISTS peoples (id bigserial primary key, name text, company_id bigint, post_id bigint, post_go_id bigint, rank_id bigint, birthday date, notes text)`
 	_, err = e.db.Exec(str)
 	if err != nil {
-		log.Println("peopleCreateTable e.db.Exec ", err)
+		log.Println("peopleCreateTable ", err)
 	}
 	return
 }

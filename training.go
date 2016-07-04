@@ -21,18 +21,18 @@ func (e *EDc) GetTraining(id int64) (training Training, err error) {
 	if id == 0 {
 		return
 	}
-	_, err = e.db.QueryOne(&training, "SELECT * FROM trainings WHERE id = ? LIMIT 1", id)
+	err = e.db.Model(&training).Where("id = ?", id).Select()
 	if err != nil {
-		log.Println("GetTraining e.db.QueryRow Scan ", err)
+		log.Println("GetTraining ", err)
 	}
 	return
 }
 
 // GetTrainingAll - get all training
 func (e *EDc) GetTrainingAll() (trainings []Training, err error) {
-	_, err = e.db.Query(&trainings, "SELECT * FROM trainings")
+	err = e.db.Model(&trainings).Order("name ASC").Select()
 	if err != nil {
-		log.Println("GetTrainingAll e.db.Query ", err)
+		log.Println("GetTrainingAll ", err)
 		return
 	}
 	for i := range trainings {
@@ -46,7 +46,7 @@ func (e *EDc) GetTrainingAll() (trainings []Training, err error) {
 func (e *EDc) CreateTraining(training Training) (err error) {
 	err = e.db.Create(&training)
 	if err != nil {
-		log.Println("CreateTraining e.db.Exec ", err)
+		log.Println("CreateTraining ", err)
 	}
 	return
 }
@@ -55,7 +55,7 @@ func (e *EDc) CreateTraining(training Training) (err error) {
 func (e *EDc) UpdateTraining(training Training) (err error) {
 	err = e.db.Update(&training)
 	if err != nil {
-		log.Println("UpdateTraining e.db.Exec ", err)
+		log.Println("UpdateTraining ", err)
 	}
 	return
 }
@@ -67,7 +67,7 @@ func (e *EDc) DeleteTraining(id int64) (err error) {
 	}
 	_, err = e.db.Exec("DELETE * FROM trainings WHERE id = ?", id)
 	if err != nil {
-		log.Println("DeleteTraining e.db.Exec ", err)
+		log.Println("DeleteTraining ", err)
 	}
 	return
 }
@@ -76,7 +76,7 @@ func (e *EDc) trainingCreateTable() (err error) {
 	str := `CREATE TABLE IF NOT EXISTS trainings (id bigserial primary key, start_date date, end_date date, notes text)`
 	_, err = e.db.Exec(str)
 	if err != nil {
-		log.Println("trainingCreateTable e.db.Exec ", err)
+		log.Println("trainingCreateTable ", err)
 	}
 	return
 }

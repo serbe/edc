@@ -15,18 +15,18 @@ func (e *EDc) GetRank(id int64) (rank Rank, err error) {
 	if id == 0 {
 		return rank, nil
 	}
-	_, err = e.db.QueryOne(&rank, "SELECT * FROM ranks WHERE id = ? LIMIT 1", id)
+	err = e.db.Model(&rank).Where("id = ?", id).Select()
 	if err != nil {
-		return rank, fmt.Errorf("GetRank e.db.QueryRow Scan: %s", err)
+		return rank, fmt.Errorf("GetRank: %s", err)
 	}
 	return
 }
 
 // GetRankAll - get all rank
 func (e *EDc) GetRankAll() (ranks []Rank, err error) {
-	_, err = e.db.Query(&ranks, "SELECT * FROM ranks")
+	err = e.db.Model(&ranks).Order("name ASC").Select()
 	if err != nil {
-		return ranks, fmt.Errorf("GetRankAll e.db.Query: %s", err)
+		return ranks, fmt.Errorf("GetRankAll: %s", err)
 	}
 	return
 }
@@ -35,7 +35,7 @@ func (e *EDc) GetRankAll() (ranks []Rank, err error) {
 func (e *EDc) CreateRank(rank Rank) (err error) {
 	err = e.db.Create(&rank)
 	if err != nil {
-		return fmt.Errorf("CreateRank e.db.Exec: %s", err)
+		return fmt.Errorf("CreateRank: %s", err)
 	}
 	return
 }
@@ -44,7 +44,7 @@ func (e *EDc) CreateRank(rank Rank) (err error) {
 func (e *EDc) UpdateRank(rank Rank) (err error) {
 	err = e.db.Update(&rank)
 	if err != nil {
-		return fmt.Errorf("UpdateRank e.db.Exec: %s", err)
+		return fmt.Errorf("UpdateRank: %s", err)
 	}
 	return
 }
@@ -56,7 +56,7 @@ func (e *EDc) DeleteRank(id int64) error {
 	}
 	_, err := e.db.Exec("DELETE FROM ranks WHERE id=?", id)
 	if err != nil {
-		return fmt.Errorf("DeleteRank e.db.Exec: %s", err)
+		return fmt.Errorf("DeleteRank: %s", err)
 	}
 	return nil
 }
@@ -65,7 +65,7 @@ func (e *EDc) rankCreateTable() (err error) {
 	str := `CREATE TABLE IF NOT EXISTS ranks (id bigserial primary key, name text, notes text)`
 	_, err = e.db.Exec(str)
 	if err != nil {
-		return fmt.Errorf("rankCreateTable e.db.Exec: %s", err)
+		return fmt.Errorf("rankCreateTable: %s", err)
 	}
 	return
 }
