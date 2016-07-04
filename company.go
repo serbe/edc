@@ -12,7 +12,7 @@ type Company struct {
 	Address   string     `sql:"address, null" json:"address"`
 	Scope     Scope      `sql:"-"`
 	ScopeID   int64      `sql:"scope_id, null" json:"scope-id"`
-	Notes     string     `sql:"notes, null" json:"notes"`
+	Note     string     `sql:"note, null" json:"note"`
 	Emails    []Email    `sql:"-"`
 	Phones    []Phone    `sql:"-"`
 	Faxes     []Phone    `sql:"-"`
@@ -98,7 +98,7 @@ func (e *EDc) DeleteCompany(id int64) (err error) {
 }
 
 func (e *EDc) companyCreateTable() (err error) {
-	str := `CREATE TABLE IF NOT EXISTS companies (id BIGSERIAL PRIMARY KEY, name TEXT, address TEXT, scope_id BIGINT, notes TEXT, UNIQUE(name, scope_id))`
+	str := `CREATE TABLE IF NOT EXISTS companies (id BIGSERIAL PRIMARY KEY, name TEXT, address TEXT, scope_id BIGINT, note TEXT, UNIQUE(name, scope_id))`
 	_, err = e.db.Exec(str)
 	if err != nil {
 		log.Println("companyCreateTable e.db.Exec ", err)

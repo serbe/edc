@@ -7,7 +7,7 @@ type Rank struct {
 	TableName struct{} `sql:"ranks"`
 	ID        int64    `sql:"id" json:"id"`
 	Name      string   `sql:"name" json:"name"`
-	Notes     string   `sql:"notes, null" json:"notes"`
+	Note      string   `sql:"note, null" json:"note"`
 }
 
 // GetRank - get one rank dy id
@@ -62,7 +62,7 @@ func (e *EDc) DeleteRank(id int64) error {
 }
 
 func (e *EDc) rankCreateTable() (err error) {
-	str := `CREATE TABLE IF NOT EXISTS ranks (id bigserial primary key, name text, notes text)`
+	str := `CREATE TABLE IF NOT EXISTS ranks (id bigserial primary key, name text, note text)`
 	_, err = e.db.Exec(str)
 	if err != nil {
 		return fmt.Errorf("rankCreateTable: %s", err)

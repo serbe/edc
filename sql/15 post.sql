@@ -1,1 +1,1 @@
-CREATE TABLE IF NOT EXISTS posts (id bigserial PRIMARY KEY, name text, go BOOL NOT NULL DEFAULT FALSE, notes text, UNIQUE (name, go));
+CREATE TABLE IF NOT EXISTS posts (id bigserial PRIMARY KEY, name text, go BOOL NOT NULL DEFAULT FALSE, note text, UNIQUE (name, go));

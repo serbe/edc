@@ -9,7 +9,7 @@ type Email struct {
 	CompanyID int64    `sql:"company_id, pk, null" json:"company-id"`
 	PeopleID  int64    `sql:"people_id, pk, null" json:"people-id"`
 	Email     string   `sql:"email, null" json:"email"`
-	Notes     string   `sql:"notes, null" json:"notes"`
+	Note      string   `sql:"note, null" json:"note"`
 }
 
 // GetEmail - get one email by id
@@ -151,7 +151,7 @@ func (e *EDc) DeletePeopleEmails(id int64) (err error) {
 }
 
 func (e *EDc) emailCreateTable() (err error) {
-	str := `CREATE TABLE IF NOT EXISTS emails (id bigserial primary key, company_id bigint, people_id bigint, email text, notes text)`
+	str := `CREATE TABLE IF NOT EXISTS emails (id bigserial primary key, company_id bigint, people_id bigint, email text, note text)`
 	_, err = e.db.Exec(str)
 	if err != nil {
 		log.Println("emailCreateTable ", err)

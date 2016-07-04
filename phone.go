@@ -10,7 +10,7 @@ type Phone struct {
 	CompanyID int64    `sql:"company_id, pk, null" json:"company-id"`
 	Phone     int64    `sql:"phone, null" json:"phone"`
 	Fax       bool     `sql:"fax, null" json:"fax"`
-	Notes     string   `sql:"notes, null" json:"notes"`
+	Note      string   `sql:"note, null" json:"note"`
 }
 
 // CreatePhone - create new phone
@@ -338,7 +338,7 @@ func (e *EDc) DeleteAllPeoplePhones(id int64) (err error) {
 }
 
 func (e *EDc) phoneCreateTable() (err error) {
-	str := `CREATE TABLE IF NOT EXISTS phones (id bigserial primary key, people_id bigint, company_id bigint, phone bigint, fax bool NOT NULL DEFAULT false, notes text)`
+	str := `CREATE TABLE IF NOT EXISTS phones (id bigserial primary key, people_id bigint, company_id bigint, phone bigint, fax bool NOT NULL DEFAULT false, note text)`
 	_, err = e.db.Exec(str)
 	if err != nil {
 		log.Println("phoneCreateTable e.db.Exec ", err)

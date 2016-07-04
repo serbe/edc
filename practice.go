@@ -17,7 +17,7 @@ type Practice struct {
 	Topic          string    `sql:"topic, null" json:"topic"`
 	DateOfPractice time.Time `sql:"date_of_practice, null" json:"date-of-practice"`
 	DateStr        string    `sql:"-" json:"date-str"`
-	Notes          string    `sql:"notes, null" json:"notes"`
+	Note           string    `sql:"note, null" json:"note"`
 }
 
 // GetPractice - get one practice by id
@@ -95,7 +95,7 @@ func (e *EDc) DeletePractice(id int64) (err error) {
 }
 
 func (e *EDc) practiceCreateTable() (err error) {
-	str := `CREATE TABLE IF NOT EXISTS practices (id bigserial primary key, company_id bigint, kind_id bigint, topic text, date_of_practice date, notes text)`
+	str := `CREATE TABLE IF NOT EXISTS practices (id bigserial primary key, company_id bigint, kind_id bigint, topic text, date_of_practice date, note text)`
 	_, err = e.db.Exec(str)
 	if err != nil {
 		log.Println("practiceCreateTable e.db.Exec: ", err)

@@ -13,7 +13,7 @@ type Training struct {
 	EndDate   time.Time `sql:"end_date" json:"end-date"`
 	StartStr  string    `sql:"-" json:"start-str"`
 	EndStr    string    `sql:"-" json:"end-str"`
-	Notes     string    `sql:"notes, null" json:"notes"`
+	Note      string    `sql:"note, null" json:"note"`
 }
 
 // GetTraining - get training by id
@@ -73,7 +73,7 @@ func (e *EDc) DeleteTraining(id int64) (err error) {
 }
 
 func (e *EDc) trainingCreateTable() (err error) {
-	str := `CREATE TABLE IF NOT EXISTS trainings (id bigserial primary key, start_date date, end_date date, notes text)`
+	str := `CREATE TABLE IF NOT EXISTS trainings (id bigserial primary key, start_date date, end_date date, note text)`
 	_, err = e.db.Exec(str)
 	if err != nil {
 		log.Println("trainingCreateTable ", err)

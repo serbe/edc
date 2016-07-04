@@ -8,7 +8,7 @@ type Post struct {
 	ID        int64    `sql:"id" json:"id"`
 	Name      string   `sql:"name" json:"name"`
 	GO        bool     `sql:"go" json:"go"`
-	Notes     string   `sql:"notes, null" json:"notes"`
+	Note      string   `sql:"note, null" json:"note"`
 }
 
 // GetPost - get one post dy id
@@ -81,7 +81,7 @@ func (e *EDc) DeletePost(id int64) error {
 }
 
 func (e *EDc) postCreateTable() (err error) {
-	str := `CREATE TABLE IF NOT EXISTS posts (id BIGSERIAL PRIMARY KEY, name TEXT, go BOOL NOT NULL DEFAULT FALSE, notes TEXT, UNIQUE (name, go))`
+	str := `CREATE TABLE IF NOT EXISTS posts (id BIGSERIAL PRIMARY KEY, name TEXT, go BOOL NOT NULL DEFAULT FALSE, note TEXT, UNIQUE (name, go))`
 	_, err = e.db.Exec(str)
 	if err != nil {
 		return fmt.Errorf("postCreateTable: %s", err)

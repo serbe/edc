@@ -19,7 +19,7 @@ type People struct {
 	Rank      Rank       `sql:"-"`
 	RankID    int64      `sql:"rank_id, null" json:"rank-id"`
 	Birthday  time.Time  `sql:"birthday, null" json:"birthday"`
-	Notes     string     `sql:"notes, null" json:"notes"`
+	Note      string     `sql:"note, null" json:"note"`
 	Emails    []Email    `sql:"-"`
 	Phones    []Phone    `sql:"-"`
 	Faxes     []Phone    `sql:"-"`
@@ -113,7 +113,7 @@ func (e *EDc) DeletePeople(id int64) (err error) {
 }
 
 func (e *EDc) peopleCreateTable() (err error) {
-	str := `CREATE TABLE IF NOT EXISTS peoples (id bigserial primary key, name text, company_id bigint, post_id bigint, post_go_id bigint, rank_id bigint, birthday date, notes text)`
+	str := `CREATE TABLE IF NOT EXISTS peoples (id bigserial primary key, name text, company_id bigint, post_id bigint, post_go_id bigint, rank_id bigint, birthday date, note text)`
 	_, err = e.db.Exec(str)
 	if err != nil {
 		log.Println("peopleCreateTable ", err)

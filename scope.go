@@ -7,7 +7,7 @@ type Scope struct {
 	TableName struct{} `sql:"scopes"`
 	ID        int64    `sql:"id" json:"id"`
 	Name      string   `sql:"name" json:"name"`
-	Notes     string   `sql:"notes, null" json:"notes"`
+	Note      string   `sql:"note, null" json:"note"`
 }
 
 // GetScope - get one scope by id
@@ -63,7 +63,7 @@ func (e *EDc) DeleteScope(id int64) (err error) {
 }
 
 func (e *EDc) scopeCreateTable() (err error) {
-	str := `CREATE TABLE IF NOT EXISTS scopes (id bigserial primary key, name text, notes text)`
+	str := `CREATE TABLE IF NOT EXISTS scopes (id bigserial primary key, name text, note text)`
 	_, err = e.db.Exec(str)
 	if err != nil {
 		log.Println("scopeCreateTable ", err)
