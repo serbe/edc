@@ -4,344 +4,398 @@ import "log"
 
 // Phone - struct for phone
 type Phone struct {
-	TableName struct{} `sql:"phones"`
-	ID        int64    `sql:"id" json:"id"`
-	PeopleID  int64    `sql:"people_id, pk, null" json:"people-id"`
-	CompanyID int64    `sql:"company_id, pk, null" json:"company-id"`
-	Phone     int64    `sql:"phone, null" json:"phone"`
-	Fax       bool     `sql:"fax, null" json:"fax"`
-	Note      string   `sql:"note, null" json:"note"`
+	ID        int64  `sql:"id" json:"id"`
+	CompanyID int64  `sql:"company_id, pk, null" json:"company_id"`
+	ContactID int64  `sql:"contact_id, pk, null" json:"contact_id"`
+	Phone     int64  `sql:"phone, null" json:"phone"`
+	Fax       bool   `sql:"fax, null" json:"fax"`
+	CreatedAt string `sql:"created_at" json:"created_at"`
+	UpdatedAt string `sql:"updated_at" json:"updated_at"`
 }
 
-// CreatePhone - create new phone
-func (e *EDc) CreatePhone(phone Phone, fax bool) (err error) {
-	phone.Fax = fax
-	err = e.db.Create(&phone)
-	if err != nil {
-		log.Println("CreatePhone e.db.Exec ", err)
+// PhoneSelect - struct for short phone
+type PhoneSelect struct {
+	ID    int64 `json:"id"`
+	Phone int64 `json:"phone"`
+}
+
+// GetPhone - get one phone by id
+func (e *Edb) GetPhone(id int64) (Phone, error) {
+	var phone Phone
+	if id == 0 {
+		return phone, nil
 	}
-	return
+	err := e.db.Model(&phone).Where(`id = ?`, id).Select()
+	if err != nil {
+		log.Println("GetPhone e.db.Prepare", err)
+		return Phone{}, err
+	}
+	return phone, nil
+}
+
+// GetPhoneList - get all phones for list
+func (e *Edb) GetPhoneList() ([]Phone, error) {
+	var phones []Phone
+	_, err := e.db.Query(&phones, `
+		SELECT
+			id,
+			company_id,
+			contact_id,
+			phone,
+			fax
+		FROM
+			phones
+		ORDER BY
+			phone ASC`)
+	if err != nil {
+		log.Println("GetPhoneList e.db.Query ", err)
+		return []Phone{}, err
+	}
+	return phones, err
 }
 
 // GetCompanyPhones - get all phones by company id
-func (e *EDc) GetCompanyPhones(id int64) (phones []Phone, err error) {
+func (e *Edb) GetCompanyPhones(id int64, fax bool) ([]PhoneSelect, error) {
+	var phones []PhoneSelect
 	if id == 0 {
-		return
+		return phones, nil
 	}
-	phones, err = e.GetCompanyPhonesAndFaxes(id, false)
+	_, err := e.db.Query(&phones, `
+		SELECT
+			id,
+			phone
+		FROM
+			phones
+		WHERE
+			company_id = $1 AND fax = $2
+		ORDER BY
+			phone ASC
+	`, id, fax)
 	if err != nil {
-		log.Println("GetCompanyPhones GetCompanyPhonesAndFaxes ", err)
+		log.Println("GetCompanyPhones e.db.Query ", err)
+		return []PhoneSelect{}, err
 	}
-	return
+	return phones, err
 }
 
-// GetCompanyFaxes - get all faxes by company id
-func (e *EDc) GetCompanyFaxes(id int64) (phones []Phone, err error) {
+// GetContactPhones - get all phones by contact id
+func (e *Edb) GetContactPhones(id int64, fax bool) ([]PhoneSelect, error) {
+	var phones []PhoneSelect
 	if id == 0 {
-		return
+		return phones, nil
 	}
-	phones, err = e.GetCompanyPhonesAndFaxes(id, true)
+	_, err := e.db.Query(&phones, `
+		SELECT
+			id,
+			phone
+		FROM
+			phones
+		ORDER BY
+			phone ASC
+		WHERE
+			contact_id = ? AND fax = ?
+	`, id, fax)
 	if err != nil {
-		log.Println("GetCompanyFaxes GetCompanyPhonesAndFaxes ", err)
+		log.Println("GetContactPhones e.db.Query ", err)
+		return phones, err
 	}
-	return
+	return phones, nil
 }
 
-// GetCompanyPhonesAndFaxes - get all faxes or phones by company id and isfax
-func (e *EDc) GetCompanyPhonesAndFaxes(id int64, fax bool) (phones []Phone, err error) {
+// GetCompanyPhonesAll - get all faxes or phones by company id and isfax
+func (e *Edb) GetCompanyPhonesAll(id int64, fax bool) ([]PhoneSelect, error) {
+	var phones []PhoneSelect
 	if id == 0 {
-		return
+		return phones, nil
 	}
-	_, err = e.db.Query(&phones, "SELECT * FROM phones WHERE company_id = ? and fax = ?", id, fax)
+	_, err := e.db.Query(&phones, `
+		SELECT
+			id,
+			phone
+		FROM
+			phones
+		WHERE
+			company_id = ? and fax = ?
+		ORDER BY
+			phone ASC
+	`, id, fax)
 	if err != nil {
-		log.Println("GetCompanyPhonesAndFaxes e.db.Query ", err)
-		return
+		log.Println("GetCompanyPhonesAll e.db.Query ", err)
+		return phones, err
 	}
-	return
+	return phones, err
+}
+
+// GetContactPhonesAll - get all phones and faxes by contact id
+func (e *Edb) GetContactPhonesAll(id int64, fax bool) ([]PhoneSelect, error) {
+	var phones []PhoneSelect
+	if id == 0 {
+		return phones, nil
+	}
+	_, err := e.db.Query(&phones, `
+		SELECT
+			id,
+			phone
+		FROM
+			phones
+		WHERE
+			contact_id = ? and fax = ?
+		ORDER BY
+			phone ASC
+	`, id, fax)
+	if err != nil {
+		log.Println("GetContactPhonesAll e.db.Query ", err)
+		return phones, nil
+	}
+	return phones, err
+}
+
+// CreatePhone - create new phone
+func (e *Edb) CreatePhone(phone Phone) (int64, error) {
+	err := e.db.Insert(&phone)
+	if err != nil {
+		log.Println("CreatePhone e.db.Prepare ", err)
+		return 0, err
+	}
+	return phone.ID, nil
 }
 
 // CreateCompanyPhones - create new phones to company
-func (e *EDc) CreateCompanyPhones(company Company) (err error) {
-	err = e.CleanCompanyPhones(company)
+func (e *Edb) CreateCompanyPhones(company Company, fax bool) error {
+	err := e.CleanCompanyPhones(company, fax)
 	if err != nil {
 		log.Println("CreateCompanyPhones CleanCompanyPhones ", err)
-		return
+		return err
 	}
 	for _, value := range company.Phones {
-		phone := Phone{}
-		_, err = e.db.QueryOne(&phone, "SELECT * FROM phones WHERE company_id = ? and phone = ? and fax = ? LIMIT 1", company.ID, value.Phone, false)
-		if phone.ID == 0 {
+		var id int64
+		_, err = e.db.QueryOne(&id, `
+			SELECT
+				id
+			FROM
+				phones
+			WHERE
+				company_id = ? and phone = ? and fax = ?
+			RETURNING
+				id
+		`, company.ID, value.Phone, fax)
+		if id == 0 {
 			value.CompanyID = company.ID
-			err = e.CreatePhone(value, false)
+			value.Fax = fax
+			_, err = e.CreatePhone(value)
 			if err != nil {
 				log.Println("CreateCompanyPhones CreatePhone ", err)
-				return
+				return err
 			}
 		}
 	}
-	return
+	return nil
 }
 
-// CreateCompanyFaxes - create new faxes to company
-func (e *EDc) CreateCompanyFaxes(company Company) (err error) {
-	err = e.CleanCompanyFaxes(company)
+// CreateContactPhones - create new phones to contact
+func (e *Edb) CreateContactPhones(contact Contact, fax bool) error {
+	err := e.CleanContactPhones(contact, fax)
 	if err != nil {
-		log.Println("CreateCompanyFaxes CleanCompanyFaxes ", err)
-		return
+		log.Println("CreateContactPhones CleanContactPhones ", err)
+		return err
 	}
-	for _, value := range company.Faxes {
-		phone := Phone{}
-		_, err = e.db.QueryOne(&company, "SELECT * FROM phones WHERE company_id = ? and phone = ? and fax = ? LIMIT 1", company.ID, value.Phone, true)
-		if phone.ID == 0 {
-			value.CompanyID = company.ID
-			err = e.CreatePhone(value, true)
+	var allPhones []Phone
+	if fax {
+		allPhones = contact.Faxes
+	} else {
+		allPhones = contact.Phones
+	}
+	for _, value := range allPhones {
+		var id int64
+		_, err = e.db.QueryOne(&id, `
+			SELECT
+				id
+			FROM
+				phones
+			WHERE
+				contact_id = ? and phone = ? and fax = ?
+			RETURNING
+				id
+		`, contact.ID, value.Phone, fax)
+		if id == 0 {
+			value.ContactID = contact.ID
+			value.Fax = fax
+			_, err = e.CreatePhone(value)
 			if err != nil {
-				log.Println("CreateCompanyFaxes CreatePhone ", err)
-				return
+				log.Println("CreateContactPhones CreatePhone ", err)
+				return err
 			}
 		}
 	}
-	return
+	return nil
 }
 
 // CleanCompanyPhones - delete all unnecessary phones by company id
-func (e *EDc) CleanCompanyPhones(company Company) (err error) {
-	phones := []int64{}
-	for _, value := range company.Phones {
+func (e *Edb) CleanCompanyPhones(company Company, fax bool) error {
+	var (
+		phones    []int64
+		allPhones []Phone
+	)
+	if fax {
+		allPhones = company.Faxes
+	} else {
+		allPhones = company.Phones
+	}
+	for _, value := range allPhones {
 		phones = append(phones, value.Phone)
 	}
 	if len(phones) == 0 {
-		_, err = e.db.Exec("DELETE FROM phones WHERE company_id = ? and fax = ?", company.ID, false)
+		_, err := e.db.Exec(`
+			DELETE FROM
+				phones
+			WHERE
+				company_id = $1 and fax = $2
+		`, company.ID, fax)
 		if err != nil {
 			log.Println("CleanCompanyPhones e.db.Exec ", err)
-			return
+			return err
 		}
 	} else {
 		var companyPhones []Phone
-		_, err = e.db.Query(&companyPhones, "SELECT * FROM phones WHERE company_id = ? and fax = ?", company.ID, false)
+		_, err := e.db.Query(&companyPhones, `
+			SELECT
+				id,
+				phone
+			FROM
+				phones
+			WHERE
+				company_id = ? and fax = ?
+		`, company.ID, fax)
 		if err != nil {
 			log.Println("CleanCompanyPhones e.db.Query ", err)
-			return
+			return err
 		}
 		for _, value := range companyPhones {
 			if int64InSlice(value.Phone, phones) == false {
-				_, err = e.db.Exec("DELETE FROM phones WHERE company_id = ? and fax = ? and phone = ?", company.ID, false, value.Phone)
+				_, err = e.db.Exec(`
+					DELETE FROM
+						phones
+					WHERE
+						company_id = $1 and phone = $2 and fax = $3
+				`, company.ID, value.Phone, fax)
 				if err != nil {
 					log.Println("CleanCompanyPhones e.db.Exec ", err)
-					return
+					return err
 				}
 			}
 		}
 	}
-	return
+	return nil
 }
 
-// CleanCompanyFaxes - delete all unnecessary faxes by company id
-func (e *EDc) CleanCompanyFaxes(company Company) (err error) {
-	phones := []int64{}
-	for _, value := range company.Faxes {
+// CleanContactPhones - delete all unnecessary phones by contact id
+func (e *Edb) CleanContactPhones(contact Contact, fax bool) error {
+	var (
+		phones    []int64
+		allPhones []Phone
+	)
+	if fax {
+		allPhones = contact.Faxes
+	} else {
+		allPhones = contact.Phones
+	}
+	for _, value := range allPhones {
 		phones = append(phones, value.Phone)
 	}
 	if len(phones) == 0 {
-		_, err = e.db.Exec("DELETE FROM phones WHERE company_id = ? and fax = ?", company.ID, true)
+		_, err := e.db.Exec(`
+			DELETE FROM
+				phones
+			WHERE
+				contact_id = $1 and fax = $2
+		`, contact.ID, fax)
 		if err != nil {
-			log.Println("CleanCompanyFaxes e.db.Exec ", err)
-			return
+			log.Println("CleanContactPhones e.db.Exec ", err)
+			return err
 		}
 	} else {
-		var companyPhones []Phone
-		_, err = e.db.Query(&companyPhones, "SELECT * FROM phones WHERE company_id = ? and fax = ?", company.ID, true)
+		var contactPhones []Phone
+		_, err := e.db.Query(&contactPhones, `
+			SELECT
+				id,
+				phone
+			FROM
+				phones
+			WHERE
+				contact_id = ? and fax = ?
+		`, contact.ID, fax)
 		if err != nil {
-			log.Println("CleanCompanyFaxes e.db.Query ", err)
-			return
+			log.Println("CleanContactPhones e.db.Query ", err)
+			return err
 		}
-		for _, value := range companyPhones {
+		for _, value := range contactPhones {
 			if int64InSlice(value.Phone, phones) == false {
-				_, err = e.db.Exec("DELETE FROM phones WHERE company_id = ? and fax = ? and phone = ?", company.ID, true, value.Phone)
+				_, err = e.db.Exec(`
+					DELETE FROM
+						phones
+					WHERE
+						contact_id = $1 and phone = $2 and fax = $3
+				`, contact.ID, value.Phone, fax)
 				if err != nil {
-					log.Println("CleanCompanyFaxes e.db.Exec ", err)
-					return
+					log.Println("CleanContactPhones e.db.Exec ", err)
+					return err
 				}
 			}
 		}
 	}
-	return
+	return nil
 }
 
 // DeleteAllCompanyPhones - delete all phones and faxes by company id
-func (e *EDc) DeleteAllCompanyPhones(id int64) (err error) {
+func (e *Edb) DeleteAllCompanyPhones(id int64) error {
 	if id == 0 {
-		return
+		return nil
 	}
-	_, err = e.db.Exec("DELETE FROM phones WHERE company_id = ?", id)
+	_, err := e.db.Exec(`
+		DELETE FROM
+			phones
+		WHERE
+			company_id = $1
+	`, id)
 	if err != nil {
-		log.Println("DeleteAllCompanyPhones e.db.Exec ", err)
+		log.Println("DeleteAllCompanyPhones e.db.Exec ", id, err)
 	}
-	return
+	return err
 }
 
-// GetPeoplePhones - get all phones by people id
-func (e *EDc) GetPeoplePhones(id int64) (phones []Phone, err error) {
+// DeleteAllContactPhones - delete all phones and faxes by contact id
+func (e *Edb) DeleteAllContactPhones(id int64) error {
 	if id == 0 {
-		return
+		return nil
 	}
-	phones, err = e.GetPeoplePhonesAndFaxes(id, false)
+	_, err := e.db.Exec(`
+		DELETE FROM
+			phones
+		WHERE
+			contact_id = $1
+	`, id)
 	if err != nil {
-		log.Println("GetPeoplePhones GetPeoplePhonesAndFaxes ", err)
+		log.Println("DeleteAllContactPhones e.db.Exec ", id, err)
 	}
-	return
+	return err
 }
 
-// GetPeopleFaxes - get all faxes by people id
-func (e *EDc) GetPeopleFaxes(id int64) (phones []Phone, err error) {
-	if id == 0 {
-		return
-	}
-	phones, err = e.GetPeoplePhonesAndFaxes(id, true)
-	if err != nil {
-		log.Println("GetPeopleFaxes GetPeoplePhonesAndFaxes ", err)
-	}
-	return
-}
-
-// GetPeoplePhonesAndFaxes - get all phones and faxes by people id
-func (e *EDc) GetPeoplePhonesAndFaxes(id int64, fax bool) (phones []Phone, err error) {
-	if id == 0 {
-		return
-	}
-	_, err = e.db.Query(&phones, "SELECT * FROM phones WHERE people_id = ? and fax = ?", id, fax)
-	if err != nil {
-		log.Println("GetPeoplePhonesAndFaxes e.db.Query ", err)
-		return
-	}
-	return
-}
-
-// CreatePeoplePhones - create new phones to people
-func (e *EDc) CreatePeoplePhones(people People) (err error) {
-	err = e.CleanPeoplePhones(people)
-	if err != nil {
-		log.Println("CreatePeoplePhones CleanPeoplePhones ", err)
-		return
-	}
-	for _, value := range people.Phones {
-		phone := Phone{}
-		_, err = e.db.QueryOne(&phone, "SELECT * FROM phones WHERE people_id = ? and phone = ? and fax = ? LIMIT 1", people.ID, value.Phone, false)
-		if phone.ID == 0 {
-			value.PeopleID = people.ID
-			err = e.CreatePhone(value, false)
-			if err != nil {
-				log.Println("CreatePeoplePhones CreatePhone ", err)
-				return
-			}
-		}
-	}
-	return
-}
-
-// CreatePeopleFaxes - create new faxes to people
-func (e *EDc) CreatePeopleFaxes(people People) (err error) {
-	err = e.CleanPeopleFaxes(people)
-	if err != nil {
-		log.Println("CreatePeopleFaxes CleanPeopleFaxes ", err)
-		return
-	}
-	for _, value := range people.Faxes {
-		phone := Phone{}
-		_, err = e.db.QueryOne(&phone, "SELECT * FROM phones WHERE people_id = ? and phone = ? and fax = ? LIMIT 1", people.ID, value.Phone, true)
-		if phone.ID == 0 {
-			value.PeopleID = people.ID
-			err = e.CreatePhone(value, true)
-			if err != nil {
-				log.Println("CreatePeopleFaxes CreatePhone ", err)
-				return
-			}
-		}
-	}
-	return
-}
-
-// CleanPeoplePhones - delete all unnecessary phones by people id
-func (e *EDc) CleanPeoplePhones(people People) (err error) {
-	phones := []int64{}
-	for _, value := range people.Phones {
-		phones = append(phones, value.Phone)
-	}
-	if len(phones) == 0 {
-		_, err = e.db.Exec("DELETE FROM phones WHERE people_id = ? and fax = ?", people.ID, false)
-		if err != nil {
-			log.Println("CleanPeoplePhones e.db.Exec ", err)
-			return
-		}
-	} else {
-		var peoplePhones []Phone
-		_, err = e.db.Query(&peoplePhones, "SELECT * FROM phones WHERE people_id = ? and fax = ?", people.ID, false)
-		if err != nil {
-			log.Println("CleanPeoplePhones e.db.Query ", err)
-			return
-		}
-		for _, value := range peoplePhones {
-			if int64InSlice(value.Phone, phones) == false {
-				_, err = e.db.Exec("DELETE FROM phones WHERE people_id = ? and fax = ? and phone = ?", people.ID, false, value.Phone)
-				if err != nil {
-					log.Println("CleanPeoplePhones e.db.Exec ", err)
-					return
-				}
-			}
-		}
-	}
-	return
-}
-
-// CleanPeopleFaxes - delete all unnecessary faxes by people id
-func (e *EDc) CleanPeopleFaxes(people People) (err error) {
-	phones := []int64{}
-	for _, value := range people.Faxes {
-		phones = append(phones, value.Phone)
-	}
-	if len(phones) == 0 {
-		_, err = e.db.Exec("DELETE FROM phones WHERE people_id = ? and fax = ?", people.ID, true)
-		if err != nil {
-			log.Println("CleanPeopleFaxes e.db.Exec ", err)
-			return
-		}
-	} else {
-		var peoplePhones []Phone
-		_, err = e.db.Query(&peoplePhones, "SELECT * FROM phones WHERE people_id = ? and fax = ?", people.ID, true)
-		if err != nil {
-			log.Println("CleanPeopleFaxes e.db.Query ", err)
-			return
-		}
-		for _, value := range peoplePhones {
-			if int64InSlice(value.Phone, phones) == false {
-				_, err = e.db.Exec("DELETE FROM phones WHERE people_id = ? and fax = ? and phone = ?", people.ID, true, value.Phone)
-				if err != nil {
-					log.Println("CleanPeopleFaxes e.db.Exec ", err)
-					return
-				}
-			}
-		}
-	}
-	return
-}
-
-// DeleteAllPeoplePhones - delete all phones and faxes by people id
-func (e *EDc) DeleteAllPeoplePhones(id int64) (err error) {
-	if id == 0 {
-		return
-	}
-	_, err = e.db.Exec("DELETE FROM phones WHERE people_id = ?", id)
-	if err != nil {
-		log.Println("DeleteAllPeoplePhones e.db.Exec ", err)
-	}
-	return
-}
-
-func (e *EDc) phoneCreateTable() (err error) {
-	str := `CREATE TABLE IF NOT EXISTS phones (id bigserial primary key, people_id bigint, company_id bigint, phone bigint, fax bool NOT NULL DEFAULT false, note text)`
-	_, err = e.db.Exec(str)
+func (e *Edb) phoneCreateTable() error {
+	str := `
+		CREATE TABLE IF NOT EXISTS
+			phones (
+				id bigserial primary key,
+				contact_id bigint,
+				company_id bigint,
+				phone bigint,
+				fax bool NOT NULL DEFAULT false,
+				created_at TIMESTAMP without time zone,
+				updated_at TIMESTAMP without time zone
+			)
+	`
+	_, err := e.db.Exec(str)
 	if err != nil {
 		log.Println("phoneCreateTable e.db.Exec ", err)
 	}
-	return
+	return err
 }

@@ -1,8 +1,7 @@
 CREATE TABLE IF NOT EXISTS
-    emails (
+    educations (
         id         bigserial PRIMARY KEY,
-        company_id bigint,
-        people_id  bigint,
-        email      text,
+        start_date time,
+        end_date   time,
         note       text
     );
