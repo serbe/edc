@@ -1,7 +1,5 @@
 package edc
 
-import "log"
-
 // Department - struct for department
 type Department struct {
 	ID        int64  `sql:"id" json:"id"`
@@ -15,30 +13,24 @@ type Department struct {
 func (e *Edb) GetDepartment(id int64) (Department, error) {
 	var department Department
 	if id == 0 {
-		return Department{}, nil
+		return department, nil
 	}
-
 	err := e.db.Model(&department).Where(`id = ?`, id).Select()
+	if err != nil {
+		errmsg("GetDepartment select", err)
+	}
 	return department, err
 }
 
 // GetDepartmentList - get all department for list
 func (e *Edb) GetDepartmentList() ([]Department, error) {
 	var departments []Department
-	_, err := e.db.Query(&departments, `
-		SELECT
-			id,
-			name,
-			note
-		FROM
-			departments
-		ORDER BY
-			name
-		ASC
-	`)
+	err := e.db.Model(&departments).
+		Column("departments.id", "departments. name", "departments.note").
+		Order("departments.name ASC").
+		Select()
 	if err != nil {
-		log.Println("GetDepartmentList e.db.Query ", err)
-		return []Department{}, err
+		errmsg("GetDepartmentList select", err)
 	}
 	return departments, err
 }
@@ -46,18 +38,12 @@ func (e *Edb) GetDepartmentList() ([]Department, error) {
 // GetDepartmentSelect - get all department for select
 func (e *Edb) GetDepartmentSelect() ([]SelectItem, error) {
 	var departments []SelectItem
-	rows, err := e.db.Query(&departments, `
-		SELECT
-			id,
-			name
-		FROM
-			departments
-		ORDER BY
-			name ASC
-	`)
+	err := e.db.Model(&departments).
+		Column("departments.id", "departments.name").
+		Order("departments.name ASC").
+		Select()
 	if err != nil {
-		log.Println("GetDepartmentSelect e.db.Query ", err)
-		return []SelectItem{}, err
+		errmsg("GetDepartmentSelect select", err)
 	}
 	return departments, err
 }
@@ -66,8 +52,7 @@ func (e *Edb) GetDepartmentSelect() ([]SelectItem, error) {
 func (e *Edb) CreateDepartment(department Department) (int64, error) {
 	err := e.db.Insert(&department)
 	if err != nil {
-		log.Println("CreateDepartment e.db.Insert ", err)
-		return 0, err
+		errmsg("CreateDepartment insert", err)
 	}
 	return department.ID, nil
 }
@@ -76,8 +61,7 @@ func (e *Edb) CreateDepartment(department Department) (int64, error) {
 func (e *Edb) UpdateDepartment(department Department) error {
 	err := e.db.Update(&department)
 	if err != nil {
-		log.Println("UpdateDepartment e.db.Update ", err)
-		return err
+		errmsg("UpdateDepartment update", err)
 	}
 	return err
 }
@@ -87,14 +71,9 @@ func (e *Edb) DeleteDepartment(id int64) error {
 	if id == 0 {
 		return nil
 	}
-	_, err := e.db.Exec(`
-		DELETE FROM
-			departments
-		WHERE
-			id = $1
-	`, id)
+	_, err := e.db.Model(&Department{}).Where("id = ?", id).Delete()
 	if err != nil {
-		log.Println("DeleteDepartment e.db.Exec ", id, err)
+		errmsg("DeleteDepartment delete", err)
 	}
 	return err
 }
@@ -107,13 +86,13 @@ func (e *Edb) departmentCreateTable() error {
 				name text,
 				note text,
 				created_at TIMESTAMP without time zone,
-				updated_at TIMESTAMP without time zone,
+				updated_at TIMESTAMP without time zone default now(),
 				UNIQUE(name)
 			)
 	`
 	_, err := e.db.Exec(str)
 	if err != nil {
-		log.Println("departmentCreateTable e.db.Exec ", err)
+		errmsg("departmentCreateTable exec", err)
 	}
 	return err
 }

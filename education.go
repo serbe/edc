@@ -22,8 +22,7 @@ func (e *Edb) GetEducation(id int64) (Education, error) {
 	}
 	err := e.db.Model(&education).Where(`id = ?`, id).Select()
 	if err != nil {
-		log.Println("GetEducation e.db.Prepare ", err)
-		return Education{}, err
+		errmsg("GetEducation select", err)
 	}
 	return education, err
 }
@@ -31,20 +30,13 @@ func (e *Edb) GetEducation(id int64) (Education, error) {
 // GetEducationList - get all education for list
 func (e *Edb) GetEducationList() ([]Education, error) {
 	var educations []Education
-	_, err := e.db.Query(&educations, `
-		SELECT
-			id,
-			start_date,
-			end_date,
-			note
-		FROM
-			educations
-		ORDER BY
-			start_date
-	`)
+	err := e.db.Model(&educations).
+		Where("educations.id", "educations.start_date", "educations.end_date", "educations.note").
+		Order("educations.start_date").
+		Select()
 	if err != nil {
-		log.Println("GetEducationList e.db.Query ", err)
-		return []Education{}, err
+		errmsg("GetEducationList select", err)
+		return educations, err
 	}
 	for i := range educations {
 		educations[i].StartStr = setStrMonth(educations[i].StartDate)
@@ -56,20 +48,15 @@ func (e *Edb) GetEducationList() ([]Education, error) {
 // GetEducationSelect - get all education for select
 func (e *Edb) GetEducationSelect() ([]Education, error) {
 	var educations []Education
-	_, err := e.db.Query(&educations, `
-		SELECT
-			id,
-			start_date,
-			end_date,
-		FROM
-			educations
-		ORDER BY
-			start_date
-	`)
+	err := e.db.Model(&educations).
+		Where("educations.id", "educations.start_date", "educations.end_date").
+		Order("educations.start_date").
+		Select()
 	if err != nil {
-		log.Println("GetEducationList e.db.Query ", err)
-		return []Education{}, err
+		errmsg("GetEducationSelect select", err)
+		return educations, err
 	}
+
 	for i := range educations {
 		educations[i].StartStr = setStrMonth(educations[i].StartDate)
 		educations[i].EndStr = setStrMonth(educations[i].EndDate)

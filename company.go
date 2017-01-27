@@ -1,7 +1,5 @@
 package edc
 
-import "log"
-
 // Company is struct for company
 type Company struct {
 	ID        int64            `sql:"id" json:"id"`
@@ -100,7 +98,7 @@ func (e *Edb) GetCompanySelect() ([]SelectItem, error) {
 func (e *Edb) CreateCompany(company Company) (int64, error) {
 	err := e.db.Insert(&company)
 	if err != nil {
-		log.Println("CreateCompany e.db.Insert ", err)
+		errmsg("CreateCompany insert", err)
 		return 0, err
 	}
 	_ = e.CreateCompanyEmails(company)
@@ -113,7 +111,7 @@ func (e *Edb) CreateCompany(company Company) (int64, error) {
 func (e *Edb) UpdateCompany(company Company) error {
 	err := e.db.Update(&company)
 	if err != nil {
-		log.Println("UpdateCompany e.db.Update ", err)
+		errmsg("UpdateCompany update", err)
 		return err
 	}
 	_ = e.CreateCompanyEmails(company)
@@ -127,15 +125,13 @@ func (e *Edb) DeleteCompany(id int64) error {
 	if id == 0 {
 		return nil
 	}
-	c, err := e.GetCompany(id)
+	err := e.DeleteAllCompanyPhones(id)
 	if err != nil {
-		log.Println("DeleteCompany e.GetCompany ", err)
-		return err
+		errmsg("DeleteCompany DeleteAllCompanyPhones", err)
 	}
-	e.DeleteAllCompanyPhones(id)
-	err = e.db.Delete(&c)
+	_, err = e.db.Model(&Company{}).Where("id = ?", id).Delete()
 	if err != nil {
-		log.Println("DeleteCompany e.db.Delete ", id, err)
+		errmsg("DeleteCompany delete", err)
 	}
 	return err
 }
@@ -150,13 +146,13 @@ func (e *Edb) companyCreateTable() error {
 				scope_id BIGINT,
 				note TEXT,
 				created_at timestamp without time zone,
-				updated_at timestamp without time zone,
+				updated_at timestamp without time zone default now(),
 				UNIQUE(name, scope_id)
 			)
 	`
 	_, err := e.db.Exec(str)
 	if err != nil {
-		log.Println("companyCreateTable e.db.Exec ", err)
+		errmsg("companyCreateTable exec", err)
 	}
 	return err
 }

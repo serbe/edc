@@ -1,7 +1,5 @@
 package edc
 
-import "log"
-
 // Contact is struct for contact
 type Contact struct {
 	ID           int64       `sql:"id" json:"id"`
@@ -48,40 +46,13 @@ type ContactCompany struct {
 
 // GetContact - get one contact by id
 func (e *Edb) GetContact(id int64) (Contact, error) {
-	if id == 0 {
-		return Contact{}, nil
-	}
 	var contact Contact
-	// stmt, err := e.db.Query(`
-	// 	SELECT
-	// 		c.id,
-	// 		c.name,
-	// 		c.company_id,
-	// 		c.department_id,
-	// 		c.post_id,
-	// 		c.post_go_id,
-	// 		c.rank_id,
-	// 		c.birthday,
-	// 		c.note,
-	// 		array_to_string(array_agg(DISTINCT e.email),',') AS email,
-	// 		array_to_string(array_agg(DISTINCT p.phone),',') AS phone,
-	// 		array_to_string(array_agg(DISTINCT f.phone),',') AS fax
-	// 	FROM
-	// 		contacts AS c
-	// 	LEFT JOIN
-	// 		emails AS e ON c.id = e.contact_id
-	// 	LEFT JOIN
-	// 		phones AS p ON c.id = p.contact_id AND p.fax = false
-	// 	LEFT JOIN
-	// 		phones AS f ON c.id = f.contact_id AND f.fax = true
-	// 	WHERE
-	// 		c.id = $1
-	// 	GROUP BY
-	// 		c.id
-	// `)
+	if id == 0 {
+		return contact, nil
+	}
 	err := e.db.Model(&contact).Where("id = ?", id).Select()
 	if err != nil {
-		log.Println("GetContact e.db.Prepare ", err)
+		errmsg("GetContact select", err)
 		return Contact{}, err
 	}
 	// contact.Educations = GetContactEducationscontacte.ID)
@@ -118,8 +89,7 @@ func (e *Edb) GetContactList() ([]ContactList, error) {
 			name ASC
 	`)
 	if err != nil {
-		log.Println("GetContactList e.db.Query ", err)
-		return []ContactList{}, err
+		errmsg("GetContactList query", err)
 	}
 	return contacts, err
 }
@@ -127,18 +97,9 @@ func (e *Edb) GetContactList() ([]ContactList, error) {
 // GetContactSelect - get all contacts for select
 func (e *Edb) GetContactSelect() ([]SelectItem, error) {
 	var contacts []SelectItem
-	_, err := e.db.Query(&contacts, `
-		SELECT
-			c.id,
-			c.name
-		FROM
-			contacts AS c
-		ORDER BY
-			name ASC
-	`)
+	err := e.db.Model(&contacts).Column("contacts.id", "contacts.name").Order("contacts.name ASC").Select()
 	if err != nil {
-		log.Println("GetContactSelect e.db.Query ", err)
-		return []SelectItem{}, err
+		errmsg("GetContactSelect select", err)
 	}
 	return contacts, err
 }
@@ -159,13 +120,12 @@ func (e *Edb) GetContactCompany(id int64) ([]ContactCompany, error) {
 		LEFT JOIN
 			posts AS pog ON c.post_go_id = pog.id
 		WHERE
-			c.company_id = $1
+			c.company_id = ?
 		ORDER BY
 			name ASC
-	`)
+	`, id)
 	if err != nil {
-		log.Println("GetContactCompany e.db.Prepare ", err)
-		return []ContactCompany{}, err
+		errmsg("GetContactCompany query", err)
 	}
 	return contacts, err
 }
@@ -174,7 +134,7 @@ func (e *Edb) GetContactCompany(id int64) ([]ContactCompany, error) {
 func (e *Edb) CreateContact(contact Contact) (int64, error) {
 	err := e.db.Insert(&contact)
 	if err != nil {
-		log.Println("CreateContact e.db.Insert ", err)
+		errmsg("CreateContact insert", err)
 		return 0, err
 	}
 	_ = e.CreateContactEmails(contact)
@@ -186,29 +146,9 @@ func (e *Edb) CreateContact(contact Contact) (int64, error) {
 
 // UpdateContact - save contact changes
 func (e *Edb) UpdateContact(contact Contact) error {
-	stmt, err := e.db.Prepare(`
-		UPDATE
-			contacts
-		SET
-			name=$2,
-			company_id=$3,
-			department_id=$4,
-			post_id=$5,
-			post_go_id=$6,
-			rank_id=$7,
-			birthday=$8,
-			note=$9,
-			updated_at = now()
-		WHERE
-			id = $1
-	`)
+	err := e.db.Update(&contact)
 	if err != nil {
-		log.Println("UpdateContact e.db.Prepare ", err)
-		return err
-	}
-	_, err = stmt.Exec(i2n(contact.ID), s2n(contact.Name), i2n(contact.CompanyID), i2n(contact.DepartmentID), i2n(contact.PostID), i2n(contact.PostGOID), i2n(contact.RankID), sd2n(contact.Birthday), s2n(contact.Note))
-	if err != nil {
-		log.Println("UpdateContact stmt.Exec ", err)
+		errmsg("UpdateContact update", err)
 		return err
 	}
 	_ = e.CreateContactEmails(contact)
@@ -225,17 +165,12 @@ func (e *Edb) DeleteContact(id int64) error {
 	}
 	err := e.DeleteAllContactPhones(id)
 	if err != nil {
-		log.Println("DeleteContact DeleteAllContactPhones ", err)
+		errmsg("DeleteContact DeleteAllContactPhones", err)
 		return err
 	}
-	e.db.Exec(`
-		DELETE FROM
-			contacts
-		WHERE
-			id = $1
-	`, id)
+	_, err = e.db.Model(&Contact{}).Where("id = ?", id).Delete()
 	if err != nil {
-		log.Println("DeleteContact e.db.Exec ", id, err)
+		errmsg("DeleteContact delete", err)
 	}
 	return err
 }
@@ -254,13 +189,13 @@ func (e *Edb) contactCreateTable() error {
 				birthday date,
 				note text,
 				created_at TIMESTAMP without time zone,
-				updated_at TIMESTAMP without time zone,
+				updated_at TIMESTAMP without time zone default now(),
 				UNIQUE(name, birthday)
 			)
 	`
 	_, err := e.db.Exec(str)
 	if err != nil {
-		log.Println("contactCreateTable ", err)
+		errmsg("contactCreateTable exec", err)
 	}
 	return err
 }
