@@ -13,26 +13,21 @@ type Rank struct {
 
 // GetRank - get one rank by id
 func (e *Edb) GetRank(id int64) (Rank, error) {
+	var rank Rank
 	if id == 0 {
-		return Rank{}, nil
+		return rank, nil
 	}
-	row := e.db.QueryRow(`
-		SELECT
-			id,
-			name,
-			note
-		FROM
-			ranks
-		WHERE
-			id = $1
-	`, id)
-	rank, err := scanRank(row)
+	err := e.db.Model(&rank).Where("id = ?", id).Select()
+	if err != nil {
+		errmsg("GetRank select", err)
+	}
 	return rank, err
 }
 
 // GetRankList - get all rank for list
 func (e *Edb) GetRankList() ([]Rank, error) {
-	rows, err := e.db.Query(`
+	var ranks []Rank
+	_, err := e.db.Query(&ranks, `
 		SELECT
 			id,
 			name,
@@ -43,10 +38,8 @@ func (e *Edb) GetRankList() ([]Rank, error) {
 			name ASC
 	`)
 	if err != nil {
-		log.Println("GetRankList e.db.Query ", err)
-		return []Rank{}, err
+		errmsg("GetRankList query", err)
 	}
-	ranks, err := scanRanksList(rows)
 	return ranks, err
 }
 

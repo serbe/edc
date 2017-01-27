@@ -1,9 +1,6 @@
 package edc
 
-import (
-	"database/sql"
-	"log"
-)
+import "log"
 
 // Post - struct for post
 type Post struct {
@@ -21,106 +18,6 @@ type PostList struct {
 	Name string `sql:"name" json:"name"`
 	GO   bool   `sql:"go" json:"go"`
 	Note string `sql:"note, null" json:"note"`
-}
-
-func scanPost(row *sql.Row) (Post, error) {
-	var (
-		sID   sql.NullInt64
-		sName sql.NullString
-		sGo   sql.NullBool
-		sNote sql.NullString
-		post  Post
-	)
-	err := row.Scan(&sID, &sName, &sGo, &sNote)
-	if err != nil {
-		log.Println("scanPost row.Scan ", err)
-		return post, err
-	}
-	post.ID = n2i(sID)
-	post.Name = n2s(sName)
-	post.GO = n2b(sGo)
-	post.Note = n2s(sNote)
-	return post, nil
-}
-
-func scanPosts(rows *sql.Rows, opt string) ([]Post, error) {
-	var posts []Post
-	for rows.Next() {
-		var (
-			sID   sql.NullInt64
-			sName sql.NullString
-			sGo   sql.NullBool
-			sNote sql.NullString
-			post  Post
-		)
-		err := rows.Scan(&sID, &sName, &sGo, &sNote)
-		if err != nil {
-			log.Println("scanPosts rows.Scan ", err)
-			return posts, err
-		}
-		post.Name = n2s(sName)
-		post.GO = n2b(sGo)
-		post.Note = n2s(sNote)
-		post.ID = n2i(sID)
-		posts = append(posts, post)
-	}
-	err := rows.Err()
-	if err != nil {
-		log.Println("scanPosts rows.Err ", err)
-	}
-	return posts, err
-}
-
-func scanPostsList(rows *sql.Rows) ([]PostList, error) {
-	var posts []PostList
-	for rows.Next() {
-		var (
-			sID   sql.NullInt64
-			sName sql.NullString
-			sGo   sql.NullBool
-			sNote sql.NullString
-			post  PostList
-		)
-		err := rows.Scan(&sID, &sName, &sGo, &sNote)
-		if err != nil {
-			log.Println("scanPostsList rows.Scan ", err)
-			return posts, err
-		}
-		post.ID = n2i(sID)
-		post.Name = n2s(sName)
-		post.GO = n2b(sGo)
-		post.Note = n2s(sNote)
-		posts = append(posts, post)
-	}
-	err := rows.Err()
-	if err != nil {
-		log.Println("scanPostsList rows.Err ", err)
-	}
-	return posts, err
-}
-
-func scanPostsSelect(rows *sql.Rows) ([]SelectItem, error) {
-	var posts []SelectItem
-	for rows.Next() {
-		var (
-			sID   sql.NullInt64
-			sName sql.NullString
-			post  SelectItem
-		)
-		err := rows.Scan(&sID, &sName)
-		if err != nil {
-			log.Println("scanPostsSelect rows.Scan ", err)
-			return posts, err
-		}
-		post.ID = n2i(sID)
-		post.Name = n2s(sName)
-		posts = append(posts, post)
-	}
-	err := rows.Err()
-	if err != nil {
-		log.Println("scanPostsSelect rows.Err ", err)
-	}
-	return posts, err
 }
 
 // GetPost - get one post by id
