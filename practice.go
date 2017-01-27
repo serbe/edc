@@ -1,11 +1,8 @@
 package edc
 
 import (
-	"database/sql"
 	"fmt"
 	"log"
-
-	"github.com/lib/pq"
 )
 
 // Practice - struct for practice
@@ -21,91 +18,6 @@ type Practice struct {
 	Note           string  `sql:"note, null" json:"note"`
 	CreatedAt      string  `sql:"created_at" json:"created_at"`
 	UpdatedAt      string  `sql:"updated_at" json:"updated_at"`
-}
-
-func scanPractice(row *sql.Row) (Practice, error) {
-	var (
-		sID             sql.NullInt64
-		sCompanyID      sql.NullInt64
-		sKindID         sql.NullInt64
-		sTopic          sql.NullString
-		sDateOfPractice pq.NullTime
-		sNote           sql.NullString
-		practice        Practice
-	)
-	err := row.Scan(&sID, &sCompanyID, &sKindID, &sTopic, &sDateOfPractice, &sNote)
-	if err != nil {
-		log.Println("scanPractice row.Scan ", err)
-		return practice, err
-	}
-	practice.ID = n2i(sID)
-	practice.CompanyID = n2i(sCompanyID)
-	practice.KindID = n2i(sKindID)
-	practice.Topic = n2s(sTopic)
-	practice.DateOfPractice = n2sd(sDateOfPractice)
-	practice.Note = n2s(sNote)
-	return practice, nil
-}
-
-func scanPractices(rows *sql.Rows, opt string) ([]Practice, error) {
-	var practices []Practice
-	for rows.Next() {
-		var (
-			sID          sql.NullInt64
-			sCompanyID   sql.NullInt64
-			sCompanyName sql.NullString
-			// sKindID         sql.NullInt64
-			sKindName       sql.NullString
-			sTopic          sql.NullString
-			sDateOfPractice pq.NullTime
-			// sNote           sql.NullString
-			practice Practice
-		)
-		switch opt {
-		case "list":
-			err := rows.Scan(&sID, &sCompanyID, &sCompanyName, &sKindName, &sTopic, &sDateOfPractice)
-			if err != nil {
-				log.Println("scanPractices rows.Scan list ", err)
-				return practices, err
-			}
-			practice.CompanyID = n2i(sCompanyID)
-			practice.Company.Name = n2s(sCompanyName)
-			practice.Kind.Name = n2s(sKindName)
-			practice.Topic = n2s(sTopic)
-		case "company":
-			err := rows.Scan(&sID, &sKindName, &sTopic, &sDateOfPractice)
-			if err != nil {
-				log.Println("scanPractices rows.Scan company ", err)
-				return practices, err
-			}
-			practice.Kind.Name = n2s(sKindName)
-			// if len(practice.Kind.Name) > 210 {
-			// 	practice.Kind.Name = practice.Kind.Name[0:210]
-			// }
-			practice.Topic = n2s(sTopic)
-			// if len(practice.Topic) > 210 {
-			// 	practice.Topic = practice.Topic[0:210]
-			// }
-		case "near":
-			err := rows.Scan(&sID, &sCompanyName, &sKindName, &sTopic, &sDateOfPractice)
-			if err != nil {
-				log.Println("scanPractices rows.Scan near ", err)
-				return practices, err
-			}
-			practice.Company.Name = n2s(sCompanyName)
-			practice.Kind.Name = n2s(sKindName)
-			practice.Topic = n2s(sTopic)
-		}
-		practice.ID = n2i(sID)
-		practice.DateOfPractice = n2sd(sDateOfPractice)
-		practice.DateStr = setStrMonth(practice.DateOfPractice)
-		practices = append(practices, practice)
-	}
-	err := rows.Err()
-	if err != nil {
-		log.Println("scanPractices rows.Err ", err)
-	}
-	return practices, err
 }
 
 // GetPractice - get one practice by id

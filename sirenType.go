@@ -1,9 +1,6 @@
 package edc
 
-import (
-	"database/sql"
-	"log"
-)
+import "log"
 
 // SirenType - struct for sirenType
 type SirenType struct {
@@ -13,78 +10,6 @@ type SirenType struct {
 	Note      string `sql:"note, null" json:"note"`
 	CreatedAt string `sql:"created_at" json:"created_at"`
 	UpdatedAt string `sql:"updated_at" json:"updated_at"`
-}
-
-func scanSirenType(row *sql.Row) (SirenType, error) {
-	var (
-		sID       sql.NullInt64
-		sName     sql.NullString
-		sRadius   sql.NullInt64
-		sNote     sql.NullString
-		sirenType SirenType
-	)
-	err := row.Scan(&sID, &sName, &sRadius, &sNote)
-	if err != nil {
-		log.Println("scanSirenType row.Scan ", err)
-		return sirenType, err
-	}
-	sirenType.ID = n2i(sID)
-	sirenType.Name = n2s(sName)
-	sirenType.Radius = n2i(sRadius)
-	sirenType.Note = n2s(sNote)
-	return sirenType, nil
-}
-
-func scanSirenTypes(rows *sql.Rows) ([]SirenType, error) {
-	var sirenTypes []SirenType
-	for rows.Next() {
-		var (
-			sID       sql.NullInt64
-			sName     sql.NullString
-			sRadius   sql.NullInt64
-			sNote     sql.NullString
-			sirenType SirenType
-		)
-		err := rows.Scan(&sID, &sName, &sRadius, &sNote)
-		if err != nil {
-			log.Println("scanSirenTypes list rows.Scan ", err)
-			return sirenTypes, err
-		}
-		sirenType.Name = n2s(sName)
-		sirenType.Radius = n2i(sRadius)
-		sirenType.Note = n2s(sNote)
-		sirenType.ID = n2i(sID)
-		sirenTypes = append(sirenTypes, sirenType)
-	}
-	err := rows.Err()
-	if err != nil {
-		log.Println("scanSirenTypes rows.Err ", err)
-	}
-	return sirenTypes, err
-}
-
-func scanSirenTypesSelect(rows *sql.Rows) ([]SelectItem, error) {
-	var sirenTypes []SelectItem
-	for rows.Next() {
-		var (
-			sID       sql.NullInt64
-			sName     sql.NullString
-			sirenType SelectItem
-		)
-		err := rows.Scan(&sID, &sName)
-		if err != nil {
-			log.Println("scanSirenTypes select rows.Scan ", err)
-			return sirenTypes, err
-		}
-		sirenType.Name = n2s(sName)
-		sirenType.ID = n2i(sID)
-		sirenTypes = append(sirenTypes, sirenType)
-	}
-	err := rows.Err()
-	if err != nil {
-		log.Println("scanSirenTypes rows.Err ", err)
-	}
-	return sirenTypes, err
 }
 
 // GetSirenType - get one sirenType by id

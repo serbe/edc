@@ -75,7 +75,7 @@ func (e *Edb) GetCompanyList() ([]CompanyList, error) {
 	`)
 	if err != nil {
 		log.Println("GetCompanyList e.db.Query ", err)
-		return []CompanyList{}, err
+		return companies, err
 	}
 	return companies, err
 }
@@ -94,7 +94,7 @@ func (e *Edb) GetCompanySelect() ([]SelectItem, error) {
 	`)
 	if err != nil {
 		log.Println("GetCompanyList e.db.Query ", err)
-		return []SelectItem{}, err
+		return companies, err
 	}
 	return companies, err
 }

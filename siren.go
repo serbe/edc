@@ -1,9 +1,6 @@
 package edc
 
-import (
-	"database/sql"
-	"log"
-)
+import "log"
 
 // Siren - struct for siren
 type Siren struct {
@@ -26,93 +23,6 @@ type Siren struct {
 	Note      string    `sql:"note, null" json:"note"`
 	CreatedAt string    `sql:"created_at" json:"created_at"`
 	UpdatedAt string    `sql:"updated_at" json:"updated_at"`
-}
-
-func scanSiren(row *sql.Row) (Siren, error) {
-	var (
-		sID        sql.NullInt64
-		sNumID     sql.NullInt64
-		sNumPass   sql.NullString
-		sTypeID    sql.NullInt64
-		sAddress   sql.NullString
-		sRadio     sql.NullString
-		sDesk      sql.NullString
-		sContactID sql.NullInt64
-		sCompanyID sql.NullInt64
-		sLatitude  sql.NullString
-		sLongitude sql.NullString
-		sStage     sql.NullInt64
-		sOwn       sql.NullString
-		sNote      sql.NullString
-		siren      Siren
-	)
-	err := row.Scan(&sID, &sNumID, &sNumPass, &sTypeID, &sAddress, &sRadio, &sDesk, &sContactID, &sCompanyID, &sLatitude, &sLongitude, &sStage, &sOwn, &sNote)
-	if err != nil {
-		log.Println("scanSiren row.Scan ", err)
-		return siren, err
-	}
-	siren.ID = n2i(sID)
-	siren.NumID = n2i(sNumID)
-	siren.NumPass = n2s(sNumPass)
-	siren.TypeID = n2i(sTypeID)
-	siren.Address = n2s(sAddress)
-	siren.Radio = n2s(sRadio)
-	siren.Desk = n2s(sDesk)
-	siren.CompanyID = n2i(sContactID)
-	siren.CompanyID = n2i(sCompanyID)
-	siren.Latitude = n2s(sLatitude)
-	siren.Longitude = n2s(sLongitude)
-	siren.Stage = n2i(sStage)
-	siren.Own = n2s(sOwn)
-	siren.Note = n2s(sNote)
-	return siren, nil
-}
-
-func scanSirensList(rows *sql.Rows) ([]Siren, error) {
-	var sirens []Siren
-	for rows.Next() {
-		var (
-			sID        sql.NullInt64
-			sNumID     sql.NullInt64
-			sNumPass   sql.NullString
-			sTypeID    sql.NullInt64
-			sAddress   sql.NullString
-			sRadio     sql.NullString
-			sDesk      sql.NullString
-			sContactID sql.NullInt64
-			sCompanyID sql.NullInt64
-			sLatitude  sql.NullString
-			sLongitude sql.NullString
-			sStage     sql.NullInt64
-			sOwn       sql.NullString
-			sNote      sql.NullString
-			siren      Siren
-		)
-		err := rows.Scan(&sID, &sNumID, &sNumPass, &sTypeID, &sAddress, &sRadio, &sDesk, &sContactID, &sCompanyID, &sLatitude, &sLongitude, &sStage, &sOwn, &sNote)
-		if err != nil {
-			log.Println("scanSirensList rows.Scan ", err)
-			return sirens, err
-		}
-		siren.ID = n2i(sID)
-		siren.NumID = n2i(sNumID)
-		siren.NumPass = n2s(sNumPass)
-		siren.TypeID = n2i(sTypeID)
-		siren.Address = n2s(sAddress)
-		siren.Radio = n2s(sRadio)
-		siren.Desk = n2s(sDesk)
-		siren.CompanyID = n2i(sContactID)
-		siren.CompanyID = n2i(sCompanyID)
-		siren.Latitude = n2s(sLatitude)
-		siren.Longitude = n2s(sLongitude)
-		siren.Stage = n2i(sStage)
-		siren.Own = n2s(sOwn)
-		siren.Note = n2s(sNote)
-	}
-	err := rows.Err()
-	if err != nil {
-		log.Println("scanSirensList rows.Err ", err)
-	}
-	return sirens, err
 }
 
 // GetSiren - get one siren by id

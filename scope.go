@@ -1,9 +1,6 @@
 package edc
 
-import (
-	"database/sql"
-	"log"
-)
+import "log"
 
 // Scope - struct for scope
 type Scope struct {
@@ -12,74 +9,6 @@ type Scope struct {
 	Note      string `sql:"note, null" json:"note"`
 	CreatedAt string `sql:"created_at" json:"created_at"`
 	UpdatedAt string `sql:"updated_at" json:"updated_at"`
-}
-
-func scanScope(row *sql.Row) (Scope, error) {
-	var (
-		sID   sql.NullInt64
-		sName sql.NullString
-		sNote sql.NullString
-		scope Scope
-	)
-	err := row.Scan(&sID, &sName, &sNote)
-	if err != nil {
-		log.Println("scanScope row.Scan ", err)
-		return scope, err
-	}
-	scope.ID = n2i(sID)
-	scope.Name = n2s(sName)
-	scope.Note = n2s(sNote)
-	return scope, nil
-}
-
-func scanScopesList(rows *sql.Rows) ([]Scope, error) {
-	var scopes []Scope
-	for rows.Next() {
-		var (
-			sID   sql.NullInt64
-			sName sql.NullString
-			sNote sql.NullString
-			scope Scope
-		)
-		err := rows.Scan(&sID, &sName, &sNote)
-		if err != nil {
-			log.Println("scanScopesList rows.Scan list ", err)
-			return []Scope{}, err
-		}
-		scope.Name = n2s(sName)
-		scope.Note = n2s(sNote)
-		scope.ID = n2i(sID)
-		scopes = append(scopes, scope)
-	}
-	err := rows.Err()
-	if err != nil {
-		log.Println("scanScopesList rows.Err ", err)
-	}
-	return scopes, err
-}
-
-func scanScopesSelect(rows *sql.Rows) ([]SelectItem, error) {
-	var scopes []SelectItem
-	for rows.Next() {
-		var (
-			sID   sql.NullInt64
-			sName sql.NullString
-			scope SelectItem
-		)
-		err := rows.Scan(&sID, &sName)
-		if err != nil {
-			log.Println("scanScopesSelect rows.Scan select ", err)
-			return []SelectItem{}, err
-		}
-		scope.Name = n2s(sName)
-		scope.ID = n2i(sID)
-		scopes = append(scopes, scope)
-	}
-	err := rows.Err()
-	if err != nil {
-		log.Println("scanScopesSelect rows.Err ", err)
-	}
-	return scopes, err
 }
 
 // GetScope - get one scope by id

@@ -1,9 +1,6 @@
 package edc
 
-import (
-	"database/sql"
-	"log"
-)
+import "log"
 
 // Rank - struct for rank
 type Rank struct {
@@ -12,74 +9,6 @@ type Rank struct {
 	Note      string `sql:"note, null" json:"note"`
 	CreatedAt string `sql:"created_at" json:"created_at"`
 	UpdatedAt string `sql:"updated_at" json:"updated_at"`
-}
-
-func scanRank(row *sql.Row) (Rank, error) {
-	var (
-		sID   sql.NullInt64
-		sName sql.NullString
-		sNote sql.NullString
-		rank  Rank
-	)
-	err := row.Scan(&sID, &sName, &sNote)
-	if err != nil {
-		log.Println("scanRank row.Scan ", err)
-		return rank, err
-	}
-	rank.ID = n2i(sID)
-	rank.Name = n2s(sName)
-	rank.Note = n2s(sNote)
-	return rank, nil
-}
-
-func scanRanksList(rows *sql.Rows) ([]Rank, error) {
-	var ranks []Rank
-	for rows.Next() {
-		var (
-			sID   sql.NullInt64
-			sName sql.NullString
-			sNote sql.NullString
-			rank  Rank
-		)
-		err := rows.Scan(&sID, &sName, &sNote)
-		if err != nil {
-			log.Println("scanRanks rows.Scan list ", err)
-			return ranks, err
-		}
-		rank.Name = n2s(sName)
-		rank.Note = n2s(sNote)
-		rank.ID = n2i(sID)
-		ranks = append(ranks, rank)
-	}
-	err := rows.Err()
-	if err != nil {
-		log.Println("scanRanks rows.Err ", err)
-	}
-	return ranks, nil
-}
-
-func scanRanksSelect(rows *sql.Rows) ([]SelectItem, error) {
-	var ranks []SelectItem
-	for rows.Next() {
-		var (
-			sID   sql.NullInt64
-			sName sql.NullString
-			rank  SelectItem
-		)
-		err := rows.Scan(&sID, &sName)
-		if err != nil {
-			log.Println("scanRanks rows.Scan select ", err)
-			return ranks, err
-		}
-		rank.ID = n2i(sID)
-		rank.Name = n2s(sName)
-		ranks = append(ranks, rank)
-	}
-	err := rows.Err()
-	if err != nil {
-		log.Println("scanRanks rows.Err ", err)
-	}
-	return ranks, nil
 }
 
 // GetRank - get one rank by id
