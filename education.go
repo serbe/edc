@@ -1,7 +1,5 @@
 package edc
 
-import "log"
-
 // Education - struct for education
 type Education struct {
 	ID        int64  `sql:"id" json:"id" `
@@ -56,7 +54,6 @@ func (e *Edb) GetEducationSelect() ([]Education, error) {
 		errmsg("GetEducationSelect select", err)
 		return educations, err
 	}
-
 	for i := range educations {
 		educations[i].StartStr = setStrMonth(educations[i].StartDate)
 		educations[i].EndStr = setStrMonth(educations[i].EndDate)
@@ -68,30 +65,17 @@ func (e *Edb) GetEducationSelect() ([]Education, error) {
 func (e *Edb) CreateEducation(education Education) (int64, error) {
 	err := e.db.Insert(&education)
 	if err != nil {
-		log.Println("CreateEducation e.db.Insert ", err)
-		return 0, err
+		errmsg("CreateEducation insert", err)
 	}
 	return education.ID, err
 }
 
 // UpdateEducation - save changes to education
 func (e *Edb) UpdateEducation(education Education) error {
-	stmt, err := e.db.Prepare(`
-		UPDATE
-			educations
-		SET
-			start_date = $2,
-			end_date = $3,
-			note = $4,
-			updated_at = now()
-		WHERE
-			id = $1
-	`)
+	err := e.db.Update(&education)
 	if err != nil {
-		log.Println("UpdateEducation e.db.Prepare ", err)
-		return err
+		errmsg("UpdateEducation update", err)
 	}
-	_, err = stmt.Exec(education.ID, sd2n(education.StartDate), sd2n(education.EndDate), s2n(education.Note))
 	return err
 }
 
@@ -100,14 +84,9 @@ func (e *Edb) DeleteEducation(id int64) error {
 	if id == 0 {
 		return nil
 	}
-	_, err := e.db.Exec(`
-		DELETE FROM
-			educations
-		WHERE
-			id = $1
-	`, id)
+	_, err := e.db.Model(&Education{}).Where("id = ?", id).Delete()
 	if err != nil {
-		log.Println("DeleteEducation ", id, err)
+		errmsg("DeleteEducation delete", err)
 	}
 	return err
 }
@@ -126,7 +105,7 @@ func (e *Edb) educationCreateTable() error {
 	`
 	_, err := e.db.Exec(str)
 	if err != nil {
-		log.Println("educationCreateTable ", err)
+		errmsg("educationCreateTable exec", err)
 	}
 	return err
 }
