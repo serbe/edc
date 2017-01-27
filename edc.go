@@ -7,10 +7,11 @@ import (
 	"gopkg.in/pg.v5"
 )
 
+var logErrors bool
+
 // Edb struct to store *DB
 type Edb struct {
-	db  *pg.DB
-	log bool
+	db *pg.DB
 }
 
 // SelectItem - struct for select element
@@ -20,7 +21,7 @@ type SelectItem struct {
 }
 
 // InitDB initialize database
-func InitDB(dbname string, user string, password string, logsql bool) (*Edb, error) {
+func InitDB(dbname string, user string, password string, logsql bool, logerr bool) (*Edb, error) {
 	e := new(Edb)
 	opt := pg.Options{
 		User:     user,
@@ -31,7 +32,9 @@ func InitDB(dbname string, user string, password string, logsql bool) (*Edb, err
 		pg.SetQueryLogger(log.New(os.Stdout, "", log.LstdFlags))
 	}
 	e.db = pg.Connect(&opt)
+	logErrors = logerr
 	err := e.createAllTables()
+
 	return e, err
 }
 

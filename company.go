@@ -38,7 +38,14 @@ func (e *Edb) GetCompany(id int64) (Company, error) {
 		return company, nil
 	}
 	err := e.db.Model(&company).Where("id = ?", id).Select()
+	if err != nil {
+		errmsg("GetCompany select", err)
+		return company, err
+	}
 	company.Practices, err = e.GetPracticeCompany(id)
+	if err != nil {
+		errmsg("GetCompany e.GetPracticeCompany", err)
+	}
 	return company, err
 }
 
@@ -74,8 +81,7 @@ func (e *Edb) GetCompanyList() ([]CompanyList, error) {
 			c.name ASC
 	`)
 	if err != nil {
-		log.Println("GetCompanyList e.db.Query ", err)
-		return companies, err
+		errmsg("GetCompanyList query", err)
 	}
 	return companies, err
 }
@@ -83,18 +89,9 @@ func (e *Edb) GetCompanyList() ([]CompanyList, error) {
 // GetCompanySelect - get all companyes for select
 func (e *Edb) GetCompanySelect() ([]SelectItem, error) {
 	var companies []SelectItem
-	rows, err := e.db.Query(&companies, `
-		SELECT
-			c.id,
-			c.name
-        FROM
-			companies AS c
-		ORDER BY
-			c.name ASC
-	`)
+	err := e.db.Model(&companies).Column("companies.id", "companies.name").Order("companies.name ASC").Select()
 	if err != nil {
-		log.Println("GetCompanyList e.db.Query ", err)
-		return companies, err
+		errmsg("GetCompanyList select", err)
 	}
 	return companies, err
 }

@@ -239,3 +239,9 @@ func setStrMonth(d string) string {
 	result = spl[0] + " " + month[spl[1]] + " " + spl[2] + " года"
 	return result
 }
+
+func errmsg(str string, err error) {
+	if logErrors {
+		log.Println("Error in", str, err)
+	}
+}
