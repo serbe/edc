@@ -104,7 +104,7 @@ func (e *Edb) DeletePost(id int64) error {
 		DELETE FROM
 			posts
 		WHERE
-			id = $1
+			id = ?
 	`, id)
 	if err != nil {
 		log.Println("DeletePost e.db.Exec ", id, err)
@@ -121,7 +121,7 @@ func (e *Edb) postCreateTable() error {
 				go BOOL NOT NULL DEFAULT FALSE,
 				note TEXT,
 				created_at TIMESTAMP without time zone,
-				updated_at TIMESTAMP without time zone,
+				updated_at TIMESTAMP without time zone default now(),
 				UNIQUE (name, go)
 			)
 	`

@@ -1,7 +1,5 @@
 package edc
 
-import "log"
-
 // SirenType - struct for sirenType
 type SirenType struct {
 	ID        int64  `sql:"id" json:"id"`
@@ -14,27 +12,21 @@ type SirenType struct {
 
 // GetSirenType - get one sirenType by id
 func (e *Edb) GetSirenType(id int64) (SirenType, error) {
+	var sirenType SirenType
 	if id == 0 {
-		return SirenType{}, nil
+		return sirenType, nil
 	}
-	row := e.db.QueryRow(`
-		SELECT
-			id,
-			name,
-			radius,
-			note
-		FROM
-			sirenTypes
-		WHERE
-			id = $1
-	`, id)
-	sirenType, err := scanSirenType(row)
+	err := e.db.Model(&sirenType).Where("id = ?", id).Select()
+	if err != nil {
+		errmsg("GetSirenType select", err)
+	}
 	return sirenType, err
 }
 
 // GetSirenTypeList - get all sirenType for list
 func (e *Edb) GetSirenTypeList() ([]SirenType, error) {
-	rows, err := e.db.Query(`
+	var sirenTypes []SirenType
+	_, err := e.db.Query(&sirenTypes, `
 		SELECT
 			id,
 			name,
@@ -46,16 +38,15 @@ func (e *Edb) GetSirenTypeList() ([]SirenType, error) {
 			name ASC
 	`)
 	if err != nil {
-		log.Println("GetSirenTypeList e.db.Query ", err)
-		return []SirenType{}, err
+		errmsg("GetSirenTypeList query ", err)
 	}
-	sirenTypes, err := scanSirenTypes(rows)
 	return sirenTypes, err
 }
 
 // GetSirenTypeSelect - get all sirenType for select
 func (e *Edb) GetSirenTypeSelect() ([]SelectItem, error) {
-	rows, err := e.db.Query(`
+	var sirenTypes []SelectItem
+	_, err := e.db.Query(&sirenTypes, `
 		SELECT
 			id,
 			name
@@ -64,62 +55,25 @@ func (e *Edb) GetSirenTypeSelect() ([]SelectItem, error) {
 		ORDER BY
 			name ASC`)
 	if err != nil {
-		log.Println("GetSirenTypeSelect e.db.Query ", err)
-		return []SelectItem{}, err
+		errmsg("GetSirenTypeSelect query ", err)
 	}
-	sirenTypes, err := scanSirenTypesSelect(rows)
 	return sirenTypes, err
 }
 
 // CreateSirenType - create new sirenType
 func (e *Edb) CreateSirenType(sirenType SirenType) (int64, error) {
-	stmt, err := e.db.Prepare(`
-		INSERT INTO
-			sirenTypes (
-				name,
-				radius,
-				note,
-				created_at
-			) VALUES (
-				$1,
-				$2,
-				$3,
-				now()
-			)
-		RETURNING
-			id
-	`)
+	err := e.db.Insert(&sirenType)
 	if err != nil {
-		log.Println("CreateSirenType e.db.Prepare ", err)
-		return 0, err
-	}
-	err = stmt.QueryRow(s2n(sirenType.Name), s2n(sirenType.Note)).Scan(&sirenType.ID)
-	if err != nil {
-		log.Println("CreateSirenType db.QueryRow ", err)
-		return 0, err
+		errmsg("CreateSirenType insert", err)
 	}
 	return sirenType.ID, nil
 }
 
 // UpdateSirenType - save sirenType changes
-func (e *Edb) UpdateSirenType(s SirenType) error {
-	stmt, err := e.db.Prepare(`
-		UPDATE
-			sirenTypes
-		SET
-			name=$2,
-			radius=$3,
-			note=$4,
-			updated_at = now()
-		WHERE
-			id = $1`)
+func (e *Edb) UpdateSirenType(sirenType SirenType) error {
+	err := e.db.Update(&sirenType)
 	if err != nil {
-		log.Println("UpdateSirenType e.db.Prepare ", err)
-		return err
-	}
-	_, err = stmt.Exec(i2n(s.ID), s2n(s.Name), s2n(s.Note))
-	if err != nil {
-		log.Println("UpdateSirenType stmt.Exec ", err)
+		errmsg("UpdateSirenType update", err)
 	}
 	return err
 }
@@ -129,14 +83,9 @@ func (e *Edb) DeleteSirenType(id int64) error {
 	if id == 0 {
 		return nil
 	}
-	_, err := e.db.Exec(`
-		DELETE FROM
-			sirenTypes
-		WHERE
-			id = $1
-	`, id)
+	_, err := e.db.Model(&SirenType{}).Where("id = ?", id).Delete()
 	if err != nil {
-		log.Println("DeleteSirenType e.db.Exec ", id, err)
+		errmsg("DeleteSirenTypedelete", err)
 	}
 	return err
 }
@@ -150,12 +99,12 @@ func (e *Edb) sirenTypeCreateTable() error {
 				radius     bigint,
 				note       text,
 				created_at TIMESTAMP without time zone,
-				updated_at TIMESTAMP without time zone,
+				updated_at TIMESTAMP without time zone default now(),
 				UNIQUE(name, radius)
 			);`
 	_, err := e.db.Exec(str)
 	if err != nil {
-		log.Println("sirenCreateTable e.db.Exec ", err)
+		errmsg("sirenCreateTable exec", err)
 	}
 	return err
 }

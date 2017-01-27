@@ -67,7 +67,7 @@ func (e *Edb) GetCompanyPhones(id int64, fax bool) ([]PhoneSelect, error) {
 		FROM
 			phones
 		WHERE
-			company_id = $1 AND fax = $2
+			company_id = ? AND fax = ?
 		ORDER BY
 			phone ASC
 	`, id, fax)
@@ -249,7 +249,7 @@ func (e *Edb) CleanCompanyPhones(company Company, fax bool) error {
 			DELETE FROM
 				phones
 			WHERE
-				company_id = $1 and fax = $2
+				company_id = ? and fax = ?
 		`, company.ID, fax)
 		if err != nil {
 			log.Println("CleanCompanyPhones e.db.Exec ", err)
@@ -276,7 +276,7 @@ func (e *Edb) CleanCompanyPhones(company Company, fax bool) error {
 					DELETE FROM
 						phones
 					WHERE
-						company_id = $1 and phone = $2 and fax = $3
+						company_id = ? and phone = ? and fax = ?
 				`, company.ID, value.Phone, fax)
 				if err != nil {
 					log.Println("CleanCompanyPhones e.db.Exec ", err)
@@ -307,7 +307,7 @@ func (e *Edb) CleanContactPhones(contact Contact, fax bool) error {
 			DELETE FROM
 				phones
 			WHERE
-				contact_id = $1 and fax = $2
+				contact_id = ? and fax = ?
 		`, contact.ID, fax)
 		if err != nil {
 			log.Println("CleanContactPhones e.db.Exec ", err)
@@ -334,7 +334,7 @@ func (e *Edb) CleanContactPhones(contact Contact, fax bool) error {
 					DELETE FROM
 						phones
 					WHERE
-						contact_id = $1 and phone = $2 and fax = $3
+						contact_id = ? and phone = ? and fax = ?
 				`, contact.ID, value.Phone, fax)
 				if err != nil {
 					log.Println("CleanContactPhones e.db.Exec ", err)
@@ -355,7 +355,7 @@ func (e *Edb) DeleteAllCompanyPhones(id int64) error {
 		DELETE FROM
 			phones
 		WHERE
-			company_id = $1
+			company_id = ?
 	`, id)
 	if err != nil {
 		log.Println("DeleteAllCompanyPhones e.db.Exec ", id, err)
@@ -372,7 +372,7 @@ func (e *Edb) DeleteAllContactPhones(id int64) error {
 		DELETE FROM
 			phones
 		WHERE
-			contact_id = $1
+			contact_id = ?
 	`, id)
 	if err != nil {
 		log.Println("DeleteAllContactPhones e.db.Exec ", id, err)
@@ -390,7 +390,7 @@ func (e *Edb) phoneCreateTable() error {
 				phone bigint,
 				fax bool NOT NULL DEFAULT false,
 				created_at TIMESTAMP without time zone,
-				updated_at TIMESTAMP without time zone
+				updated_at TIMESTAMP without time zone default now()
 			)
 	`
 	_, err := e.db.Exec(str)

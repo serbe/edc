@@ -69,9 +69,9 @@ func (e *Edb) GetPracticeCompany(id int64) ([]Practice, error) {
 	LEFT JOIN
 		kinds AS k ON k.id = p.kind_id
 	WHERE
-	    p.company_id = $1
+	    p.company_id = ?
 	ORDER BY
-		date_of_practice`)
+		date_of_practice`, id)
 	if err != nil {
 		errmsg("GetPracticeCompany query", err)
 	}
@@ -145,7 +145,7 @@ func (e *Edb) practiceCreateTable() error {
 				date_of_practice date,
 				note text,
 				created_at TIMESTAMP without time zone,
-				updated_at TIMESTAMP without time zone
+				updated_at TIMESTAMP without time zone default now()
 			)
 	`
 	_, err := e.db.Exec(str)

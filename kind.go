@@ -93,7 +93,7 @@ func (e *Edb) DeleteKind(id int64) error {
 		DELETE FROM
 			kinds
 		WHERE
-			id = $1
+			id = ?
 	`, id)
 	if err != nil {
 		log.Println("DeleteKind e.db.Exec ", id, err)
@@ -109,7 +109,7 @@ func (e *Edb) kindCreateTable() error {
 				name text,
 				note text,
 				created_at TIMESTAMP without time zone,
-				updated_at TIMESTAMP without time zone,
+				updated_at TIMESTAMP without time zone default now(),
 				UNIQUE(name)
 			)
 	`

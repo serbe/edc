@@ -1,7 +1,5 @@
 package edc
 
-import "log"
-
 // Rank - struct for rank
 type Rank struct {
 	ID        int64  `sql:"id" json:"id"`
@@ -45,7 +43,8 @@ func (e *Edb) GetRankList() ([]Rank, error) {
 
 // GetRankSelect - get all rank for select
 func (e *Edb) GetRankSelect() ([]SelectItem, error) {
-	rows, err := e.db.Query(`
+	var ranks []SelectItem
+	_, err := e.db.Query(&ranks, `
 		SELECT
 			id,
 			name
@@ -55,59 +54,25 @@ func (e *Edb) GetRankSelect() ([]SelectItem, error) {
 			name ASC
 	`)
 	if err != nil {
-		log.Println("GetRankSelect e.db.Query ", err)
-		return []SelectItem{}, err
+		errmsg("GetRankSelect query", err)
 	}
-	ranks, err := scanRanksSelect(rows)
 	return ranks, err
 }
 
 // CreateRank - create new rank
 func (e *Edb) CreateRank(rank Rank) (int64, error) {
-	stmt, err := e.db.Prepare(`
-		INSERT INTO
-			ranks (
-				name,
-				note,
-				created_at
-			) VALUES (
-				$1,
-				$2,
-				now()
-			)
-		RETURNING
-			id
-	`)
+	err := e.db.Insert(&rank)
 	if err != nil {
-		log.Println("CreateRank e.db.Prepare ", err)
-		return 0, err
-	}
-	err = stmt.QueryRow(s2n(rank.Name), s2n(rank.Note)).Scan(&rank.ID)
-	if err != nil {
-		log.Println("CreateRank db.QueryRow ", err)
+		errmsg("CreateRank insert", err)
 	}
 	return rank.ID, err
 }
 
 // UpdateRank - save rank changes
-func (e *Edb) UpdateRank(s Rank) error {
-	stmt, err := e.db.Prepare(`
-		UPDATE
-			ranks
-		SET
-			name = $2,
-			note = $3,
-			updated_at = now()
-		WHERE
-			id = $1
-	`)
+func (e *Edb) UpdateRank(rank Rank) error {
+	err := e.db.Update(&rank)
 	if err != nil {
-		log.Println("UpdateRank e.db.Prepare ", err)
-		return err
-	}
-	_, err = stmt.Exec(i2n(s.ID), s2n(s.Name), s2n(s.Note))
-	if err != nil {
-		log.Println("UpdateRank stmt.Exec ", err)
+		errmsg("UpdateRank update", err)
 	}
 	return err
 }
@@ -117,14 +82,9 @@ func (e *Edb) DeleteRank(id int64) error {
 	if id == 0 {
 		return nil
 	}
-	_, err := e.db.Exec(`
-		DELETE FROM
-			ranks
-		WHERE
-			id = $1
-	`, id)
+	_, err := e.db.Model(&Rank{}).Where("id = ?", id).Delete()
 	if err != nil {
-		log.Println("DeleteRank e.db.Exec ", id, err)
+		errmsg("DeleteRank delete", err)
 	}
 	return err
 }
@@ -137,13 +97,13 @@ func (e *Edb) rankCreateTable() error {
 				name text,
 				note text,
 				created_at TIMESTAMP without time zone,
-				updated_at TIMESTAMP without time zone,
+				updated_at TIMESTAMP without time zone default now(),
 				UNIQUE (name)
 			)
 	`
 	_, err := e.db.Exec(str)
 	if err != nil {
-		log.Println("rankCreateTable e.db.Exec ", err)
+		errmsg("rankCreateTable exec", err)
 	}
 	return err
 }

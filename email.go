@@ -1,7 +1,5 @@
 package edc
 
-import "log"
-
 // Email - struct for email
 type Email struct {
 	ID        int64  `sql:"id" json:"id"`
@@ -18,10 +16,9 @@ func (e *Edb) GetEmail(id int64) (Email, error) {
 	if id == 0 {
 		return email, nil
 	}
-	err := e.db.Model(&email).Where(`id = ?`, id).Select()
+	err := e.db.Model(&email).Where("id = ?", id).Select()
 	if err != nil {
-		log.Println("GetEmail e.db.Select", err)
-		return Email{}, err
+		errmsg("GetEmail select", err)
 	}
 	return email, nil
 }
@@ -39,8 +36,7 @@ func (e *Edb) GetEmails() ([]Email, error) {
 			name ASC
 	`)
 	if err != nil {
-		log.Println("GetEmailList e.db.Query ", err)
-		return []Email{}, err
+		errmsg("GetEmailList query", err)
 	}
 	return emails, err
 }
@@ -58,13 +54,12 @@ func (e *Edb) GetCompanyEmails(id int64) ([]Email, error) {
 		FROM
 			emails
 		WHERE
-			company_id = $1
+			company_id = ?
 		ORDER BY
 			name ASC
 	`, id)
 	if err != nil {
-		log.Println("GetCompanyEmails e.db.Query ", err)
-		return []Email{}, err
+		errmsg("GetCompanyEmails query", err)
 	}
 	return emails, err
 }
@@ -75,20 +70,19 @@ func (e *Edb) GetContactEmails(id int64) ([]Email, error) {
 	if id == 0 {
 		return emails, nil
 	}
-	rows, err := e.db.Query(&emails, `
+	_, err := e.db.Query(&emails, `
 		SELECT
 			id,
 			email
 		FROM
 			emails
 		WHERE
-			contact_id = $1
+			contact_id = ?
 		ORDER BY
 			name ASC
 	`, id)
 	if err != nil {
-		log.Println("GetContactEmails e.db.Query ", err)
-		return []Email{}, err
+		errmsg("GetContactEmails query", err)
 	}
 	return emails, err
 }
@@ -97,8 +91,7 @@ func (e *Edb) GetContactEmails(id int64) ([]Email, error) {
 func (e *Edb) CreateEmail(email Email) (int64, error) {
 	err := e.db.Insert(&email)
 	if err != nil {
-		log.Println("CreateEmail e.db.Insert ", err)
-		return 0, err
+		errmsg("CreateEmail insert", err)
 	}
 	return email.ID, nil
 }
@@ -107,14 +100,14 @@ func (e *Edb) CreateEmail(email Email) (int64, error) {
 func (e *Edb) CreateCompanyEmails(company Company) error {
 	err := e.DeleteCompanyEmails(company.ID)
 	if err != nil {
-		log.Println("CreateCompanyEmails DeleteCompanyEmails ", err)
+		errmsg("CreateCompanyEmails DeleteCompanyEmails", err)
 		return err
 	}
 	for _, email := range company.Emails {
 		email.CompanyID = company.ID
 		_, err = e.CreateEmail(email)
 		if err != nil {
-			log.Println("CreateCompanyEmails CreateEmail ", err)
+			errmsg("CreateCompanyEmails CreateEmail", err)
 			return err
 		}
 	}
@@ -125,14 +118,14 @@ func (e *Edb) CreateCompanyEmails(company Company) error {
 func (e *Edb) CreateContactEmails(contact Contact) error {
 	err := e.DeleteContactEmails(contact.ID)
 	if err != nil {
-		log.Println("CreateContactEmails DeleteContactEmails ", err)
+		errmsg("CreateContactEmails DeleteContactEmails", err)
 		return err
 	}
 	for _, email := range contact.Emails {
 		email.ContactID = contact.ID
 		_, err = e.CreateEmail(email)
 		if err != nil {
-			log.Println("CreateContactEmails CreateEmail ", err)
+			errmsg("CreateContactEmails CreateEmail", err)
 			return err
 		}
 	}
@@ -143,8 +136,7 @@ func (e *Edb) CreateContactEmails(contact Contact) error {
 func (e *Edb) UpdateEmail(email Email) error {
 	err := e.db.Update(&email)
 	if err != nil {
-		log.Println("UpdateEmail e.db.Update ", err)
-		return err
+		errmsg("UpdateEmail update", err)
 	}
 	return err
 }
@@ -154,14 +146,9 @@ func (e *Edb) DeleteEmail(id int64) error {
 	if id == 0 {
 		return nil
 	}
-	_, err := e.db.Exec(`
-		DELETE FROM
-			emails
-		WHERE
-			id = $1
-	`, id)
+	_, err := e.db.Model(&Email{}).Where("id = ?", id).Delete()
 	if err != nil {
-		log.Println("DeleteEmail ", err)
+		errmsg("DeleteEmail delete", err)
 	}
 	return err
 }
@@ -171,14 +158,9 @@ func (e *Edb) DeleteCompanyEmails(id int64) error {
 	if id == 0 {
 		return nil
 	}
-	_, err := e.db.Exec(`
-		DELETE FROM
-			emails
-		WHERE
-			company_id = $1
-	`, id)
+	_, err := e.db.Model(&Email{}).Where("company_id = ?", id).Delete()
 	if err != nil {
-		log.Println("DeleteCompanyEmails ", id, err)
+		errmsg("DeleteCompanyEmails delete", err)
 	}
 	return err
 }
@@ -188,14 +170,9 @@ func (e *Edb) DeleteContactEmails(id int64) error {
 	if id == 0 {
 		return nil
 	}
-	_, err := e.db.Exec(`
-		DELETE FROM
-			emails
-		WHERE
-			contact_id = $1
-	`, id)
+	_, err := e.db.Model(&Email{}).Where("contact_id = ?", id).Delete()
 	if err != nil {
-		log.Println("DeleteContactEmails ", err)
+		errmsg("DeleteContactEmails delete", err)
 	}
 	return err
 }
@@ -209,12 +186,12 @@ func (e *Edb) emailCreateTable() error {
 				contact_id bigint,
 				email text,
 				created_at timestamp without time zone,
-				updated_at timestamp without time zone
+				updated_at timestamp without time zone default now()
 			)
 	`
 	_, err := e.db.Exec(str)
 	if err != nil {
-		log.Println("emailCreateTable ", err)
+		errmsg("emailCreateTable exec", err)
 	}
 	return err
 }

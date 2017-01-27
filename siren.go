@@ -1,7 +1,5 @@
 package edc
 
-import "log"
-
 // Siren - struct for siren
 type Siren struct {
 	ID        int64     `sql:"id" json:"id"`
@@ -27,37 +25,21 @@ type Siren struct {
 
 // GetSiren - get one siren by id
 func (e *Edb) GetSiren(id int64) (Siren, error) {
+	var siren Siren
 	if id == 0 {
-		return Siren{}, nil
+		return siren, nil
 	}
-	row := e.db.QueryRow(`
-		SELECT
-			id,
-			num_id,
-			num_pass,
-			type_id,
-			address,
-			radio,
-			desk,
-			contact_id,
-			company_id,
-			latitude,
-			longitude,
-			stage,
-			own,
-			note
-		FROM
-			sirens
-		WHERE
-			id = $1
-	`, id)
-	siren, err := scanSiren(row)
+	err := e.db.Model(&siren).Where("id = ?", id).Select()
+	if err != nil {
+		errmsg("GetSiren select", err)
+	}
 	return siren, err
 }
 
 // GetSirenList - get all siren for list
 func (e *Edb) GetSirenList() ([]Siren, error) {
-	rows, err := e.db.Query(`
+	var sirens []Siren
+	_, err := e.db.Query(&sirens, `
 		SELECT
 			id,
 			num_id,
@@ -78,119 +60,25 @@ func (e *Edb) GetSirenList() ([]Siren, error) {
 		ORDER BY
 			name ASC`)
 	if err != nil {
-		log.Println("GetSirenList e.db.Query ", err)
-		return []Siren{}, err
+		errmsg("GetSirenList query", err)
 	}
-	sirens, err := scanSirensList(rows)
 	return sirens, err
 }
 
 // CreateSiren - create new siren
 func (e *Edb) CreateSiren(siren Siren) (int64, error) {
-	stmt, err := e.db.Prepare(`
-		INSERT INTO
-			sirens (
-				num_id,
-				num_pass,
-				type_id,
-				address,
-				radio,
-				desk,
-				contact_id,
-				company_id,
-				latitude,
-				longitude,
-				stage,
-				own,
-				note
-				created_at
-			) VALUES (
-				$1,
-				$2,
-				$3,
-				$4,
-				$5,
-				$6,
-				$7,
-				$8,
-				$9,
-				$10,
-				$11,
-				$12,
-				$13,
-				now()
-			)
-		RETURNING
-			id
-	`)
+	err := e.db.Insert(&siren)
 	if err != nil {
-		log.Println("CreateSiren e.db.Prepare ", err)
-		return 0, err
-	}
-	err = stmt.QueryRow(
-		i2n(siren.NumID),
-		s2n(siren.NumPass),
-		i2n(siren.TypeID),
-		s2n(siren.Address),
-		s2n(siren.Radio),
-		s2n(siren.Desk),
-		i2n(siren.CompanyID),
-		i2n(siren.CompanyID),
-		s2n(siren.Latitude),
-		s2n(siren.Longitude),
-		i2n(siren.Stage),
-		s2n(siren.Own),
-		s2n(siren.Note)).Scan(&siren.ID)
-	if err != nil {
-		log.Println("CreateSiren db.QueryRow ", err)
+		errmsg("CreateSiren insert", err)
 	}
 	return siren.ID, err
 }
 
 // UpdateSiren - save siren changes
 func (e *Edb) UpdateSiren(siren Siren) error {
-	stmt, err := e.db.Prepare(`
-		UPDATE
-			sirens
-		SET
-			num_id = $2,
-			num_pass = $3,
-			type_id = $4,
-			address = $5,
-			radio = $6,
-			desk = $7,
-			contact_id = $8,
-			company_id = $9,
-			latitude = $10,
-			longitude = $11,
-			stage = $12,
-			own = $13,
-			note = $14,
-			updated_at = now()
-		WHERE
-			id = $1
-	`)
+	err := e.db.Update(&siren)
 	if err != nil {
-		log.Println("UpdateSiren e.db.Prepare ", err)
-		return err
-	}
-	_, err = stmt.Exec(
-		i2n(siren.ID),
-		i2n(siren.NumID),
-		s2n(siren.NumPass),
-		i2n(siren.TypeID),
-		s2n(siren.Address),
-		s2n(siren.Radio),
-		s2n(siren.Desk),
-		i2n(siren.CompanyID),
-		i2n(siren.CompanyID),
-		s2n(siren.Latitude),
-		s2n(siren.Longitude),
-		i2n(siren.Stage),
-		s2n(siren.Own),
-		s2n(siren.Note))
-	if err != nil {
-		log.Println("UpdateSiren stmt.Exec ", err)
+		errmsg("UpdateSiren update", err)
 	}
 	return err
 }
@@ -200,14 +88,9 @@ func (e *Edb) DeleteSiren(id int64) error {
 	if id == 0 {
 		return nil
 	}
-	_, err := e.db.Exec(`
-		DELETE FROM
-			sirens
-		WHERE
-			id = $1
-	`, id)
+	_, err := e.db.Model(&Siren{}).Where("id = ?", id).Delete()
 	if err != nil {
-		log.Println("DeleteSiren e.db.Exec ", id, err)
+		errmsg("DeleteSiren delete", err)
 	}
 	return err
 }
@@ -230,13 +113,13 @@ func (e *Edb) sirenCreateTable() error {
 				stage      bigint,
 				own        text,
 				created_at TIMESTAMP without time zone,
-				updated_at TIMESTAMP without time zone,
+				updated_at TIMESTAMP without time zone default now(),
 				UNIQUE(num_id, num_pass, type_id)
 			)
 	`
 	_, err := e.db.Exec(str)
 	if err != nil {
-		log.Println("sirenCreateTable e.db.Exec ", err)
+		errmsg("sirenCreateTable exec", err)
 	}
 	return err
 }

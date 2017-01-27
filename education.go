@@ -100,7 +100,7 @@ func (e *Edb) educationCreateTable() error {
 				end_date date,
 				note text,
 				created_at TIMESTAMP without time zone,
-				updated_at TIMESTAMP without time zone
+				updated_at TIMESTAMP without time zone default now()
 			)
 	`
 	_, err := e.db.Exec(str)
