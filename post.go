@@ -1,7 +1,5 @@
 package edc
 
-import "log"
-
 // Post - struct for post
 type Post struct {
 	ID        int64  `sql:"id" json:"id"`
@@ -26,10 +24,9 @@ func (e *Edb) GetPost(id int64) (Post, error) {
 	if id == 0 {
 		return post, nil
 	}
-	err := e.db.Model(&post).Where(`id = ?`, id).Select()
+	err := e.db.Model(&post).Where("id = ?", id).Select()
 	if err != nil {
-		log.Println("GetPost e.db.Select ", err)
-		return post, err
+		errmsg("GetPost select", err)
 	}
 	return post, nil
 }
@@ -48,8 +45,7 @@ func (e *Edb) GetPostList() ([]PostList, error) {
 		ORDER BY
 			name ASC`)
 	if err != nil {
-		log.Println("GetPostList e.db.Query ", err)
-		return posts, err
+		errmsg("GetPostList query", err)
 	}
 	return posts, nil
 }
@@ -69,8 +65,7 @@ func (e *Edb) GetPostSelect(g bool) ([]SelectItem, error) {
 			name ASC
 	`, g)
 	if err != nil {
-		log.Println("GetPostSelect e.db.Query ", err)
-		return posts, err
+		errmsg("GetPostSelect query", err)
 	}
 	return posts, nil
 }
@@ -79,8 +74,7 @@ func (e *Edb) GetPostSelect(g bool) ([]SelectItem, error) {
 func (e *Edb) CreatePost(post Post) (int64, error) {
 	err := e.db.Insert(&post)
 	if err != nil {
-		log.Println("CreatePost e.db.Insert ", err)
-		return 0, err
+		errmsg("CreatePost insert", err)
 	}
 	return post.ID, nil
 }
@@ -89,8 +83,7 @@ func (e *Edb) CreatePost(post Post) (int64, error) {
 func (e *Edb) UpdatePost(post Post) error {
 	err := e.db.Update(&post)
 	if err != nil {
-		log.Println("UpdatePost e.db.Update ", err)
-		return err
+		errmsg("UpdatePost update", err)
 	}
 	return err
 }
@@ -100,14 +93,9 @@ func (e *Edb) DeletePost(id int64) error {
 	if id == 0 {
 		return nil
 	}
-	_, err := e.db.Exec(`
-		DELETE FROM
-			posts
-		WHERE
-			id = ?
-	`, id)
+	_, err := e.db.Model(&Post{}).Where("id = ?", id).Delete()
 	if err != nil {
-		log.Println("DeletePost e.db.Exec ", id, err)
+		errmsg("DeletePost delete", err)
 	}
 	return err
 }
@@ -127,7 +115,7 @@ func (e *Edb) postCreateTable() error {
 	`
 	_, err := e.db.Exec(str)
 	if err != nil {
-		log.Println("postCreateTable e.db.Exec ", err)
+		errmsg("postCreateTable exec", err)
 	}
 	return err
 }

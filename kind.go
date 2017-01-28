@@ -1,7 +1,5 @@
 package edc
 
-import "log"
-
 // Kind - struct for kind
 type Kind struct {
 	ID        int64  `sql:"id" json:"id"`
@@ -17,10 +15,9 @@ func (e *Edb) GetKind(id int64) (Kind, error) {
 	if id == 0 {
 		return kind, nil
 	}
-	err := e.db.Model(&kind).Where(`id = ?`, id).Select()
+	err := e.db.Model(&kind).Where("id = ?", id).Select()
 	if err != nil {
-		log.Println("GetKind e.db.Select ", err)
-		return kind, err
+		errmsg("GetKind select", err)
 	}
 	return kind, err
 }
@@ -39,8 +36,7 @@ func (e *Edb) GetKindList() ([]Kind, error) {
 			name ASC
 	`)
 	if err != nil {
-		log.Println("GetKindList e.db.Query ", err)
-		return []Kind{}, err
+		errmsg("GetKindList query", err)
 	}
 	return kinds, err
 }
@@ -58,8 +54,7 @@ func (e *Edb) GetKindSelect() ([]SelectItem, error) {
 			name ASC
 	`)
 	if err != nil {
-		log.Println("GetKindSelect e.db.Query ", err)
-		return []SelectItem{}, err
+		errmsg("GetKindSelect query", err)
 	}
 	return kinds, err
 }
@@ -68,8 +63,7 @@ func (e *Edb) GetKindSelect() ([]SelectItem, error) {
 func (e *Edb) CreateKind(kind Kind) (int64, error) {
 	err := e.db.Insert(&kind)
 	if err != nil {
-		log.Println("CreateKind e.db.Create ", err)
-		return 0, err
+		errmsg("CreateKind insert", err)
 	}
 	return kind.ID, nil
 }
@@ -78,8 +72,7 @@ func (e *Edb) CreateKind(kind Kind) (int64, error) {
 func (e *Edb) UpdateKind(kind Kind) error {
 	err := e.db.Update(&kind)
 	if err != nil {
-		log.Println("UpdateKind e.db.Update ", err)
-		return err
+		errmsg("UpdateKind update", err)
 	}
 	return err
 }
@@ -89,14 +82,9 @@ func (e *Edb) DeleteKind(id int64) error {
 	if id == 0 {
 		return nil
 	}
-	_, err := e.db.Exec(`
-		DELETE FROM
-			kinds
-		WHERE
-			id = ?
-	`, id)
+	_, err := e.db.Model(&Kind{}).Where("id = ?", id).Delete()
 	if err != nil {
-		log.Println("DeleteKind e.db.Exec ", id, err)
+		errmsg("DeleteKind delete", err)
 	}
 	return err
 }
@@ -115,7 +103,7 @@ func (e *Edb) kindCreateTable() error {
 	`
 	_, err := e.db.Exec(str)
 	if err != nil {
-		log.Println("kindCreateTable e.db.Exec ", err)
+		errmsg("kindCreateTable exec", err)
 	}
 	return err
 }

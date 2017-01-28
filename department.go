@@ -15,7 +15,7 @@ func (e *Edb) GetDepartment(id int64) (Department, error) {
 	if id == 0 {
 		return department, nil
 	}
-	err := e.db.Model(&department).Where(`id = ?`, id).Select()
+	err := e.db.Model(&department).Where("id = ?", id).Select()
 	if err != nil {
 		errmsg("GetDepartment select", err)
 	}

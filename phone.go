@@ -1,7 +1,5 @@
 package edc
 
-import "log"
-
 // Phone - struct for phone
 type Phone struct {
 	ID        int64  `sql:"id" json:"id"`
@@ -25,10 +23,9 @@ func (e *Edb) GetPhone(id int64) (Phone, error) {
 	if id == 0 {
 		return phone, nil
 	}
-	err := e.db.Model(&phone).Where(`id = ?`, id).Select()
+	err := e.db.Model(&phone).Where("id = ?", id).Select()
 	if err != nil {
-		log.Println("GetPhone e.db.Prepare", err)
-		return Phone{}, err
+		errmsg("GetPhone select", err)
 	}
 	return phone, nil
 }
@@ -48,8 +45,7 @@ func (e *Edb) GetPhoneList() ([]Phone, error) {
 		ORDER BY
 			phone ASC`)
 	if err != nil {
-		log.Println("GetPhoneList e.db.Query ", err)
-		return []Phone{}, err
+		errmsg("GetPhoneList query", err)
 	}
 	return phones, err
 }
@@ -72,8 +68,7 @@ func (e *Edb) GetCompanyPhones(id int64, fax bool) ([]PhoneSelect, error) {
 			phone ASC
 	`, id, fax)
 	if err != nil {
-		log.Println("GetCompanyPhones e.db.Query ", err)
-		return []PhoneSelect{}, err
+		errmsg("GetCompanyPhones query", err)
 	}
 	return phones, err
 }
@@ -96,8 +91,7 @@ func (e *Edb) GetContactPhones(id int64, fax bool) ([]PhoneSelect, error) {
 			contact_id = ? AND fax = ?
 	`, id, fax)
 	if err != nil {
-		log.Println("GetContactPhones e.db.Query ", err)
-		return phones, err
+		errmsg("GetContactPhones equery", err)
 	}
 	return phones, nil
 }
@@ -120,8 +114,7 @@ func (e *Edb) GetCompanyPhonesAll(id int64, fax bool) ([]PhoneSelect, error) {
 			phone ASC
 	`, id, fax)
 	if err != nil {
-		log.Println("GetCompanyPhonesAll e.db.Query ", err)
-		return phones, err
+		errmsg("GetCompanyPhonesAll query", err)
 	}
 	return phones, err
 }
@@ -144,8 +137,7 @@ func (e *Edb) GetContactPhonesAll(id int64, fax bool) ([]PhoneSelect, error) {
 			phone ASC
 	`, id, fax)
 	if err != nil {
-		log.Println("GetContactPhonesAll e.db.Query ", err)
-		return phones, nil
+		errmsg("GetContactPhonesAll query", err)
 	}
 	return phones, err
 }
@@ -154,8 +146,7 @@ func (e *Edb) GetContactPhonesAll(id int64, fax bool) ([]PhoneSelect, error) {
 func (e *Edb) CreatePhone(phone Phone) (int64, error) {
 	err := e.db.Insert(&phone)
 	if err != nil {
-		log.Println("CreatePhone e.db.Prepare ", err)
-		return 0, err
+		errmsg("CreatePhone insert", err)
 	}
 	return phone.ID, nil
 }
@@ -164,7 +155,7 @@ func (e *Edb) CreatePhone(phone Phone) (int64, error) {
 func (e *Edb) CreateCompanyPhones(company Company, fax bool) error {
 	err := e.CleanCompanyPhones(company, fax)
 	if err != nil {
-		log.Println("CreateCompanyPhones CleanCompanyPhones ", err)
+		errmsg("CreateCompanyPhones CleanCompanyPhones", err)
 		return err
 	}
 	for _, value := range company.Phones {
@@ -184,7 +175,7 @@ func (e *Edb) CreateCompanyPhones(company Company, fax bool) error {
 			value.Fax = fax
 			_, err = e.CreatePhone(value)
 			if err != nil {
-				log.Println("CreateCompanyPhones CreatePhone ", err)
+				errmsg("CreateCompanyPhones CreatePhone", err)
 				return err
 			}
 		}
@@ -196,7 +187,7 @@ func (e *Edb) CreateCompanyPhones(company Company, fax bool) error {
 func (e *Edb) CreateContactPhones(contact Contact, fax bool) error {
 	err := e.CleanContactPhones(contact, fax)
 	if err != nil {
-		log.Println("CreateContactPhones CleanContactPhones ", err)
+		errmsg("CreateContactPhones CleanContactPhones", err)
 		return err
 	}
 	var allPhones []Phone
@@ -222,7 +213,7 @@ func (e *Edb) CreateContactPhones(contact Contact, fax bool) error {
 			value.Fax = fax
 			_, err = e.CreatePhone(value)
 			if err != nil {
-				log.Println("CreateContactPhones CreatePhone ", err)
+				errmsg("CreateContactPhones CreatePhone", err)
 				return err
 			}
 		}
@@ -245,14 +236,9 @@ func (e *Edb) CleanCompanyPhones(company Company, fax bool) error {
 		phones = append(phones, value.Phone)
 	}
 	if len(phones) == 0 {
-		_, err := e.db.Exec(`
-			DELETE FROM
-				phones
-			WHERE
-				company_id = ? and fax = ?
-		`, company.ID, fax)
+		_, err := e.db.Model(&Phone{}).Where("company_id = ? and fax = ?", company.ID, fax).Delete()
 		if err != nil {
-			log.Println("CleanCompanyPhones e.db.Exec ", err)
+			errmsg("CleanCompanyPhones delete", err)
 			return err
 		}
 	} else {
@@ -267,19 +253,16 @@ func (e *Edb) CleanCompanyPhones(company Company, fax bool) error {
 				company_id = ? and fax = ?
 		`, company.ID, fax)
 		if err != nil {
-			log.Println("CleanCompanyPhones e.db.Query ", err)
+			errmsg("CleanCompanyPhones query", err)
 			return err
 		}
 		for _, value := range companyPhones {
 			if int64InSlice(value.Phone, phones) == false {
-				_, err = e.db.Exec(`
-					DELETE FROM
-						phones
-					WHERE
-						company_id = ? and phone = ? and fax = ?
-				`, company.ID, value.Phone, fax)
+				_, err = e.db.Model(&Phone{}).
+					Where("company_id = ? and phone = ? and fax = ?", company.ID, value.Phone, fax).
+					Delete()
 				if err != nil {
-					log.Println("CleanCompanyPhones e.db.Exec ", err)
+					errmsg("CleanCompanyPhones delete", err)
 					return err
 				}
 			}
@@ -303,14 +286,9 @@ func (e *Edb) CleanContactPhones(contact Contact, fax bool) error {
 		phones = append(phones, value.Phone)
 	}
 	if len(phones) == 0 {
-		_, err := e.db.Exec(`
-			DELETE FROM
-				phones
-			WHERE
-				contact_id = ? and fax = ?
-		`, contact.ID, fax)
+		_, err := e.db.Model(&Phone{}).Where("contact_id = ? and fax = ?", contact.ID, fax).Delete()
 		if err != nil {
-			log.Println("CleanContactPhones e.db.Exec ", err)
+			errmsg("CleanContactPhones delete", err)
 			return err
 		}
 	} else {
@@ -325,19 +303,16 @@ func (e *Edb) CleanContactPhones(contact Contact, fax bool) error {
 				contact_id = ? and fax = ?
 		`, contact.ID, fax)
 		if err != nil {
-			log.Println("CleanContactPhones e.db.Query ", err)
+			errmsg("CleanContactPhones query", err)
 			return err
 		}
 		for _, value := range contactPhones {
 			if int64InSlice(value.Phone, phones) == false {
-				_, err = e.db.Exec(`
-					DELETE FROM
-						phones
-					WHERE
-						contact_id = ? and phone = ? and fax = ?
-				`, contact.ID, value.Phone, fax)
+				_, err = e.db.Model(&Phone{}).
+					Where("contact_id = ? and phone = ? and fax = ?", contact.ID, value.Phone, fax).
+					Delete()
 				if err != nil {
-					log.Println("CleanContactPhones e.db.Exec ", err)
+					errmsg("CleanContactPhones delete", err)
 					return err
 				}
 			}
@@ -351,14 +326,9 @@ func (e *Edb) DeleteAllCompanyPhones(id int64) error {
 	if id == 0 {
 		return nil
 	}
-	_, err := e.db.Exec(`
-		DELETE FROM
-			phones
-		WHERE
-			company_id = ?
-	`, id)
+	_, err := e.db.Model(&Phone{}).Where("company_id = ?", id).Delete()
 	if err != nil {
-		log.Println("DeleteAllCompanyPhones e.db.Exec ", id, err)
+		errmsg("DeleteAllCompanyPhones delete", err)
 	}
 	return err
 }
@@ -368,14 +338,9 @@ func (e *Edb) DeleteAllContactPhones(id int64) error {
 	if id == 0 {
 		return nil
 	}
-	_, err := e.db.Exec(`
-		DELETE FROM
-			phones
-		WHERE
-			contact_id = ?
-	`, id)
+	_, err := e.db.Model(&Phone{}).Where("contact_id = ?", id).Delete()
 	if err != nil {
-		log.Println("DeleteAllContactPhones e.db.Exec ", id, err)
+		errmsg("DeleteAllContactPhones delete", err)
 	}
 	return err
 }
@@ -395,7 +360,7 @@ func (e *Edb) phoneCreateTable() error {
 	`
 	_, err := e.db.Exec(str)
 	if err != nil {
-		log.Println("phoneCreateTable e.db.Exec ", err)
+		errmsg("phoneCreateTable exec", err)
 	}
 	return err
 }

@@ -18,7 +18,7 @@ func (e *Edb) GetEducation(id int64) (Education, error) {
 	if id == 0 {
 		return education, nil
 	}
-	err := e.db.Model(&education).Where(`id = ?`, id).Select()
+	err := e.db.Model(&education).Where("id = ?", id).Select()
 	if err != nil {
 		errmsg("GetEducation select", err)
 	}

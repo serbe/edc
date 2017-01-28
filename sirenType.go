@@ -38,7 +38,7 @@ func (e *Edb) GetSirenTypeList() ([]SirenType, error) {
 			name ASC
 	`)
 	if err != nil {
-		errmsg("GetSirenTypeList query ", err)
+		errmsg("GetSirenTypeList query", err)
 	}
 	return sirenTypes, err
 }
@@ -55,7 +55,7 @@ func (e *Edb) GetSirenTypeSelect() ([]SelectItem, error) {
 		ORDER BY
 			name ASC`)
 	if err != nil {
-		errmsg("GetSirenTypeSelect query ", err)
+		errmsg("GetSirenTypeSelect query", err)
 	}
 	return sirenTypes, err
 }
