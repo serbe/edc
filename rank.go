@@ -27,16 +27,10 @@ func (e *Edb) GetRank(id int64) (Rank, error) {
 // GetRankList - get all rank for list
 func (e *Edb) GetRankList() ([]Rank, error) {
 	var ranks []Rank
-	_, err := e.db.Query(&ranks, `
-		SELECT
-			id,
-			name,
-			note
-		FROM
-			ranks
-		ORDER BY
-			name ASC
-	`)
+	err := e.db.Model(&Rank{}).
+		Column("id", "name", "note").
+		Order("name ASC").
+		Select(&ranks)
 	if err != nil {
 		errmsg("GetRankList query", err)
 	}
@@ -46,15 +40,10 @@ func (e *Edb) GetRankList() ([]Rank, error) {
 // GetRankSelect - get all rank for select
 func (e *Edb) GetRankSelect() ([]SelectItem, error) {
 	var ranks []SelectItem
-	_, err := e.db.Query(&ranks, `
-		SELECT
-			id,
-			name
-		FROM
-			ranks
-		ORDER BY
-			name ASC
-	`)
+	err := e.db.Model(&Rank{}).
+		Column("id", "name").
+		Order("name ASC").
+		Select(&ranks)
 	if err != nil {
 		errmsg("GetRankSelect query", err)
 	}
