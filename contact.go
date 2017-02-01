@@ -50,7 +50,9 @@ func (e *Edb) GetContact(id int64) (Contact, error) {
 	if id == 0 {
 		return contact, nil
 	}
-	err := e.db.Model(&contact).Where("id = ?", id).Select()
+	err := e.db.Model(&contact).
+		Where("id = ?", id).
+		Select()
 	if err != nil {
 		errmsg("GetContact select", err)
 		return Contact{}, err
@@ -69,8 +71,8 @@ func (e *Edb) GetContactList() ([]ContactList, error) {
 			co.id AS company_id,
 			co.name AS company_name,
 			po.name AS post_name,
-			array_to_string(array_agg(DISTINCT ph.phone),',') AS phone,
-			array_to_string(array_agg(DISTINCT f.phone),',') AS fax
+			array_agg(DISTINCT ph.phone) AS phones,
+			array_agg(DISTINCT f.phone) AS faxes
 		FROM
 			contacts AS c
 		LEFT JOIN
@@ -97,7 +99,10 @@ func (e *Edb) GetContactList() ([]ContactList, error) {
 // GetContactSelect - get all contacts for select
 func (e *Edb) GetContactSelect() ([]SelectItem, error) {
 	var contacts []SelectItem
-	err := e.db.Model(&contacts).Column("contacts.id", "contacts.name").Order("contacts.name ASC").Select()
+	err := e.db.Model(&Contact{}).
+		Column("id", "name").
+		Order("name ASC").
+		Select(&contacts)
 	if err != nil {
 		errmsg("GetContactSelect select", err)
 	}
@@ -168,7 +173,9 @@ func (e *Edb) DeleteContact(id int64) error {
 		errmsg("DeleteContact DeleteAllContactPhones", err)
 		return err
 	}
-	_, err = e.db.Model(&Contact{}).Where("id = ?", id).Delete()
+	_, err = e.db.Model(&Contact{}).
+		Where("id = ?", id).
+		Delete()
 	if err != nil {
 		errmsg("DeleteContact delete", err)
 	}

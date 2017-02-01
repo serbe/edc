@@ -15,13 +15,26 @@ type Practice struct {
 	UpdatedAt      string  `sql:"updated_at" json:"updated_at"`
 }
 
+// PracticeList is struct for practice list
+type PracticeList struct {
+	ID             int64  `sql:"id" json:"id"`
+	CompanyID      int64  `sql:"company_id, null" json:"company_id"`
+	CompanyName    string `sql:"company_name, null" json:"company_name"`
+	KindName       string `sql:"kind_name, null" json:"kind_name"`
+	Topic          string `sql:"topic, null" json:"topic"`
+	DateOfPractice string `sql:"date_of_practice, null" json:"date_of_practice"`
+	DateStr        string `sql:"-" json:"date_str"`
+}
+
 // GetPractice - get one practice by id
 func (e *Edb) GetPractice(id int64) (Practice, error) {
 	var practice Practice
 	if id == 0 {
 		return practice, nil
 	}
-	err := e.db.Model(&practice).Where("id = ?", id).Select()
+	err := e.db.Model(&practice).
+		Where("id = ?", id).
+		Select()
 	if err != nil {
 		errmsg("GetPractice select", err)
 		return practice, err
@@ -30,9 +43,10 @@ func (e *Edb) GetPractice(id int64) (Practice, error) {
 }
 
 // GetPracticeList - get all practices for list
-func (e *Edb) GetPracticeList() ([]Practice, error) {
-	var practices []Practice
-	_, err := e.db.Query(&practices, `SELECT
+func (e *Edb) GetPracticeList() ([]PracticeList, error) {
+	var practices []PracticeList
+	_, err := e.db.Query(&practices, `
+	SELECT
 		p.id,
 		p.company_id,
 		c.name AS company_name,
@@ -127,7 +141,9 @@ func (e *Edb) DeletePractice(id int64) error {
 	if id == 0 {
 		return nil
 	}
-	_, err := e.db.Model(&Practice{}).Where("id = ?", id).Delete()
+	_, err := e.db.Model(&Practice{}).
+		Where("id = ?", id).
+		Delete()
 	if err != nil {
 		errmsg("DeletePractice delete", err)
 	}

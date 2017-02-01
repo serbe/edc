@@ -15,7 +15,9 @@ func (e *Edb) GetScope(id int64) (Scope, error) {
 	if id == 0 {
 		return scope, nil
 	}
-	err := e.db.Model(&scope).Where("id = ?", id).Select()
+	err := e.db.Model(&scope).
+		Where("id = ?", id).
+		Select()
 	if err != nil {
 		errmsg("GetScope select", err)
 	}
@@ -65,7 +67,9 @@ func (e *Edb) DeleteScope(id int64) error {
 	if id == 0 {
 		return nil
 	}
-	_, err := e.db.Model(&Scope{}).Where("id = ?", id).Delete()
+	_, err := e.db.Model(&Scope{}).
+		Where("id = ?", id).
+		Delete()
 	if err != nil {
 		errmsg("DeleteScope delete", err)
 	}

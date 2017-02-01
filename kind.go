@@ -15,7 +15,9 @@ func (e *Edb) GetKind(id int64) (Kind, error) {
 	if id == 0 {
 		return kind, nil
 	}
-	err := e.db.Model(&kind).Where("id = ?", id).Select()
+	err := e.db.Model(&kind).
+		Where("id = ?", id).
+		Select()
 	if err != nil {
 		errmsg("GetKind select", err)
 	}
@@ -25,18 +27,12 @@ func (e *Edb) GetKind(id int64) (Kind, error) {
 // GetKindList - get all kind for list
 func (e *Edb) GetKindList() ([]Kind, error) {
 	var kinds []Kind
-	_, err := e.db.Query(&kinds, `
-		SELECT
-			id,
-			name,
-			note
-		FROM
-			kinds
-		ORDER BY
-			name ASC
-	`)
+	err := e.db.Model(&kinds).
+		Column("id", "name", "note").
+		Order("name ASC").
+		Select()
 	if err != nil {
-		errmsg("GetKindList query", err)
+		errmsg("GetKindList select", err)
 	}
 	return kinds, err
 }
@@ -44,17 +40,12 @@ func (e *Edb) GetKindList() ([]Kind, error) {
 // GetKindSelect - get all kind for select
 func (e *Edb) GetKindSelect() ([]SelectItem, error) {
 	var kinds []SelectItem
-	_, err := e.db.Query(kinds, `
-		SELECT
-			id,
-			name
-		FROM
-			kinds
-		ORDER BY
-			name ASC
-	`)
+	err := e.db.Model(&kinds).
+		Column("id", "name").
+		Order("name ASC").
+		Select()
 	if err != nil {
-		errmsg("GetKindSelect query", err)
+		errmsg("GetKindSelect select", err)
 	}
 	return kinds, err
 }
@@ -82,7 +73,9 @@ func (e *Edb) DeleteKind(id int64) error {
 	if id == 0 {
 		return nil
 	}
-	_, err := e.db.Model(&Kind{}).Where("id = ?", id).Delete()
+	_, err := e.db.Model(&Kind{}).
+		Where("id = ?", id).
+		Delete()
 	if err != nil {
 		errmsg("DeleteKind delete", err)
 	}

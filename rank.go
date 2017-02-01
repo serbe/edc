@@ -15,7 +15,9 @@ func (e *Edb) GetRank(id int64) (Rank, error) {
 	if id == 0 {
 		return rank, nil
 	}
-	err := e.db.Model(&rank).Where("id = ?", id).Select()
+	err := e.db.Model(&rank).
+		Where("id = ?", id).
+		Select()
 	if err != nil {
 		errmsg("GetRank select", err)
 	}
@@ -82,7 +84,9 @@ func (e *Edb) DeleteRank(id int64) error {
 	if id == 0 {
 		return nil
 	}
-	_, err := e.db.Model(&Rank{}).Where("id = ?", id).Delete()
+	_, err := e.db.Model(&Rank{}).
+		Where("id = ?", id).
+		Delete()
 	if err != nil {
 		errmsg("DeleteRank delete", err)
 	}

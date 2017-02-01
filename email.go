@@ -16,7 +16,9 @@ func (e *Edb) GetEmail(id int64) (Email, error) {
 	if id == 0 {
 		return email, nil
 	}
-	err := e.db.Model(&email).Where("id = ?", id).Select()
+	err := e.db.Model(&email).
+		Where("id = ?", id).
+		Select()
 	if err != nil {
 		errmsg("GetEmail select", err)
 	}
@@ -26,17 +28,12 @@ func (e *Edb) GetEmail(id int64) (Email, error) {
 // GetEmails - get all emails for list
 func (e *Edb) GetEmails() ([]Email, error) {
 	var emails []Email
-	_, err := e.db.Query(&emails, `
-		SELECT
-			id,
-			email
-		FROM
-			emails
-		ORDER BY
-			name ASC
-	`)
+	err := e.db.Model(&emails).
+		Column("id", "email").
+		Order("name ASC").
+		Select()
 	if err != nil {
-		errmsg("GetEmailList query", err)
+		errmsg("GetEmailList select", err)
 	}
 	return emails, err
 }
@@ -47,19 +44,12 @@ func (e *Edb) GetCompanyEmails(id int64) ([]Email, error) {
 	if id == 0 {
 		return emails, nil
 	}
-	_, err := e.db.Query(&emails, `
-		SELECT
-			id,
-			email
-		FROM
-			emails
-		WHERE
-			company_id = ?
-		ORDER BY
-			name ASC
-	`, id)
+	err := e.db.Model(&emails).
+		Column("id", "email").
+		Order("name ASC").
+		Where("company_id = ?", id).Select()
 	if err != nil {
-		errmsg("GetCompanyEmails query", err)
+		errmsg("GetCompanyEmails select", err)
 	}
 	return emails, err
 }
@@ -70,19 +60,12 @@ func (e *Edb) GetContactEmails(id int64) ([]Email, error) {
 	if id == 0 {
 		return emails, nil
 	}
-	_, err := e.db.Query(&emails, `
-		SELECT
-			id,
-			email
-		FROM
-			emails
-		WHERE
-			contact_id = ?
-		ORDER BY
-			name ASC
-	`, id)
+	err := e.db.Model(&emails).
+		Column("id", "email").
+		Order("name ASC").
+		Where("contact_id = ?", id).Select()
 	if err != nil {
-		errmsg("GetContactEmails query", err)
+		errmsg("GetContactEmails select", err)
 	}
 	return emails, err
 }
@@ -146,7 +129,9 @@ func (e *Edb) DeleteEmail(id int64) error {
 	if id == 0 {
 		return nil
 	}
-	_, err := e.db.Model(&Email{}).Where("id = ?", id).Delete()
+	_, err := e.db.Model(&Email{}).
+		Where("id = ?", id).
+		Delete()
 	if err != nil {
 		errmsg("DeleteEmail delete", err)
 	}
@@ -158,7 +143,9 @@ func (e *Edb) DeleteCompanyEmails(id int64) error {
 	if id == 0 {
 		return nil
 	}
-	_, err := e.db.Model(&Email{}).Where("company_id = ?", id).Delete()
+	_, err := e.db.Model(&Email{}).
+		Where("company_id = ?", id).
+		Delete()
 	if err != nil {
 		errmsg("DeleteCompanyEmails delete", err)
 	}
@@ -170,7 +157,9 @@ func (e *Edb) DeleteContactEmails(id int64) error {
 	if id == 0 {
 		return nil
 	}
-	_, err := e.db.Model(&Email{}).Where("contact_id = ?", id).Delete()
+	_, err := e.db.Model(&Email{}).
+		Where("contact_id = ?", id).
+		Delete()
 	if err != nil {
 		errmsg("DeleteContactEmails delete", err)
 	}

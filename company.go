@@ -35,7 +35,9 @@ func (e *Edb) GetCompany(id int64) (Company, error) {
 	if id == 0 {
 		return company, nil
 	}
-	err := e.db.Model(&company).Where("id = ?", id).Select()
+	err := e.db.Model(&company).
+		Where("id = ?", id).
+		Select()
 	if err != nil {
 		errmsg("GetCompany select", err)
 		return company, err
@@ -56,10 +58,10 @@ func (e *Edb) GetCompanyList() ([]CompanyList, error) {
 			c.name,
 			c.address,
 			s.name AS scope_name,
-			array_to_string(array_agg(DISTINCT e.email),',') AS email,
-			array_to_string(array_agg(DISTINCT p.phone),',') AS phone,
-			array_to_string(array_agg(DISTINCT f.phone),',') AS fax,
-			array_to_string(array_agg(DISTINCT pr.date_of_practice),',') AS practice
+			array_agg(DISTINCT e.email) AS emails,
+			array_agg(DISTINCT p.phone) AS phones,
+			array_agg(DISTINCT f.phone) AS faxes,
+			array_agg(DISTINCT pr.date_of_practice) AS practices
         FROM
 			companies AS c
 		LEFT JOIN
@@ -87,9 +89,12 @@ func (e *Edb) GetCompanyList() ([]CompanyList, error) {
 // GetCompanySelect - get all companyes for select
 func (e *Edb) GetCompanySelect() ([]SelectItem, error) {
 	var companies []SelectItem
-	err := e.db.Model(&companies).Column("companies.id", "companies.name").Order("companies.name ASC").Select()
+	err := e.db.Model(&Company{}).
+		Column("id", "name").
+		Order("name ASC").
+		Select(&companies)
 	if err != nil {
-		errmsg("GetCompanyList select", err)
+		errmsg("GetCompanySelect select", err)
 	}
 	return companies, err
 }
@@ -129,7 +134,9 @@ func (e *Edb) DeleteCompany(id int64) error {
 	if err != nil {
 		errmsg("DeleteCompany DeleteAllCompanyPhones", err)
 	}
-	_, err = e.db.Model(&Company{}).Where("id = ?", id).Delete()
+	_, err = e.db.Model(&Company{}).
+		Where("id = ?", id).
+		Delete()
 	if err != nil {
 		errmsg("DeleteCompany delete", err)
 	}

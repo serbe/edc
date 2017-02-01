@@ -29,7 +29,9 @@ func (e *Edb) GetSiren(id int64) (Siren, error) {
 	if id == 0 {
 		return siren, nil
 	}
-	err := e.db.Model(&siren).Where("id = ?", id).Select()
+	err := e.db.Model(&siren).
+		Where("id = ?", id).
+		Select()
 	if err != nil {
 		errmsg("GetSiren select", err)
 	}
@@ -88,7 +90,9 @@ func (e *Edb) DeleteSiren(id int64) error {
 	if id == 0 {
 		return nil
 	}
-	_, err := e.db.Model(&Siren{}).Where("id = ?", id).Delete()
+	_, err := e.db.Model(&Siren{}).
+		Where("id = ?", id).
+		Delete()
 	if err != nil {
 		errmsg("DeleteSiren delete", err)
 	}

@@ -16,7 +16,9 @@ func (e *Edb) GetSirenType(id int64) (SirenType, error) {
 	if id == 0 {
 		return sirenType, nil
 	}
-	err := e.db.Model(&sirenType).Where("id = ?", id).Select()
+	err := e.db.Model(&sirenType).
+		Where("id = ?", id).
+		Select()
 	if err != nil {
 		errmsg("GetSirenType select", err)
 	}
@@ -83,7 +85,9 @@ func (e *Edb) DeleteSirenType(id int64) error {
 	if id == 0 {
 		return nil
 	}
-	_, err := e.db.Model(&SirenType{}).Where("id = ?", id).Delete()
+	_, err := e.db.Model(&SirenType{}).
+		Where("id = ?", id).
+		Delete()
 	if err != nil {
 		errmsg("DeleteSirenTypedelete", err)
 	}

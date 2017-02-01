@@ -24,7 +24,9 @@ func (e *Edb) GetPost(id int64) (Post, error) {
 	if id == 0 {
 		return post, nil
 	}
-	err := e.db.Model(&post).Where("id = ?", id).Select()
+	err := e.db.Model(&post).
+		Where("id = ?", id).
+		Select()
 	if err != nil {
 		errmsg("GetPost select", err)
 	}
@@ -34,16 +36,10 @@ func (e *Edb) GetPost(id int64) (Post, error) {
 // GetPostList - get all post for list
 func (e *Edb) GetPostList() ([]PostList, error) {
 	var posts []PostList
-	_, err := e.db.Query(&posts, `
-		SELECT
-			id,
-			name,
-			go,
-			note
-		FROM
-			posts
-		ORDER BY
-			name ASC`)
+	err := e.db.Model(&Post{}).
+		Column("id", "name", "go", "note").
+		Order("name ASC").
+		Select(&posts)
 	if err != nil {
 		errmsg("GetPostList query", err)
 	}
@@ -53,17 +49,11 @@ func (e *Edb) GetPostList() ([]PostList, error) {
 // GetPostSelect - get all post for select
 func (e *Edb) GetPostSelect(g bool) ([]SelectItem, error) {
 	var posts []SelectItem
-	_, err := e.db.Query(&posts, `
-		SELECT
-			id,
-			name
-		FROM
-			posts
-		WHERE
-			go = ?
-		ORDER BY
-			name ASC
-	`, g)
+	err := e.db.Model(&Post{}).
+		Column("id", "name").
+		Where("go = ?", g).
+		Order("name ASC").
+		Select(&posts)
 	if err != nil {
 		errmsg("GetPostSelect query", err)
 	}
@@ -93,7 +83,9 @@ func (e *Edb) DeletePost(id int64) error {
 	if id == 0 {
 		return nil
 	}
-	_, err := e.db.Model(&Post{}).Where("id = ?", id).Delete()
+	_, err := e.db.Model(&Post{}).
+		Where("id = ?", id).
+		Delete()
 	if err != nil {
 		errmsg("DeletePost delete", err)
 	}

@@ -15,7 +15,9 @@ func (e *Edb) GetDepartment(id int64) (Department, error) {
 	if id == 0 {
 		return department, nil
 	}
-	err := e.db.Model(&department).Where("id = ?", id).Select()
+	err := e.db.Model(&department).
+		Where("id = ?", id).
+		Select()
 	if err != nil {
 		errmsg("GetDepartment select", err)
 	}
@@ -26,8 +28,8 @@ func (e *Edb) GetDepartment(id int64) (Department, error) {
 func (e *Edb) GetDepartmentList() ([]Department, error) {
 	var departments []Department
 	err := e.db.Model(&departments).
-		Column("departments.id", "departments. name", "departments.note").
-		Order("departments.name ASC").
+		Column("id", "name", "note").
+		Order("name ASC").
 		Select()
 	if err != nil {
 		errmsg("GetDepartmentList select", err)
@@ -38,10 +40,10 @@ func (e *Edb) GetDepartmentList() ([]Department, error) {
 // GetDepartmentSelect - get all department for select
 func (e *Edb) GetDepartmentSelect() ([]SelectItem, error) {
 	var departments []SelectItem
-	err := e.db.Model(&departments).
-		Column("departments.id", "departments.name").
-		Order("departments.name ASC").
-		Select()
+	err := e.db.Model(&Department{}).
+		Column("id", "name").
+		Order("name ASC").
+		Select(&departments)
 	if err != nil {
 		errmsg("GetDepartmentSelect select", err)
 	}
@@ -71,7 +73,9 @@ func (e *Edb) DeleteDepartment(id int64) error {
 	if id == 0 {
 		return nil
 	}
-	_, err := e.db.Model(&Department{}).Where("id = ?", id).Delete()
+	_, err := e.db.Model(&Department{}).
+		Where("id = ?", id).
+		Delete()
 	if err != nil {
 		errmsg("DeleteDepartment delete", err)
 	}

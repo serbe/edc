@@ -18,7 +18,9 @@ func (e *Edb) GetEducation(id int64) (Education, error) {
 	if id == 0 {
 		return education, nil
 	}
-	err := e.db.Model(&education).Where("id = ?", id).Select()
+	err := e.db.Model(&education).
+		Where("id = ?", id).
+		Select()
 	if err != nil {
 		errmsg("GetEducation select", err)
 	}
@@ -29,8 +31,8 @@ func (e *Edb) GetEducation(id int64) (Education, error) {
 func (e *Edb) GetEducationList() ([]Education, error) {
 	var educations []Education
 	err := e.db.Model(&educations).
-		Where("educations.id", "educations.start_date", "educations.end_date", "educations.note").
-		Order("educations.start_date").
+		Column("id", "start_date", "end_date", "note").
+		Order("start_date").
 		Select()
 	if err != nil {
 		errmsg("GetEducationList select", err)
@@ -47,8 +49,8 @@ func (e *Edb) GetEducationList() ([]Education, error) {
 func (e *Edb) GetEducationSelect() ([]Education, error) {
 	var educations []Education
 	err := e.db.Model(&educations).
-		Where("educations.id", "educations.start_date", "educations.end_date").
-		Order("educations.start_date").
+		Where("id", "start_date", "end_date").
+		Order("start_date").
 		Select()
 	if err != nil {
 		errmsg("GetEducationSelect select", err)
@@ -84,7 +86,9 @@ func (e *Edb) DeleteEducation(id int64) error {
 	if id == 0 {
 		return nil
 	}
-	_, err := e.db.Model(&Education{}).Where("id = ?", id).Delete()
+	_, err := e.db.Model(&Education{}).
+		Where("id = ?", id).
+		Delete()
 	if err != nil {
 		errmsg("DeleteEducation delete", err)
 	}
