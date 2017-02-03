@@ -73,21 +73,11 @@ func (e *Edb) GetPracticeCompany(id int64) ([]Practice, error) {
 	if id == 0 {
 		return practices, nil
 	}
-	_, err := e.db.Query(&practices, `SELECT
-		p.id,
-		k.name AS kind_name,
-		p.topic,
-		p.date_of_practice
-	FROM
-		practices AS p
-	LEFT JOIN
-		kinds AS k ON k.id = p.kind_id
-	WHERE
-	    p.company_id = ?
-	ORDER BY
-		date_of_practice`, id)
+	err := e.db.Model(&practices).
+		Where("company_id = ?", id).
+		Select()
 	if err != nil {
-		errmsg("GetPracticeCompany query", err)
+		errmsg("GetPracticeCompany select", err)
 	}
 	return practices, err
 }
