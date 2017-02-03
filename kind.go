@@ -40,10 +40,10 @@ func (e *Edb) GetKindList() ([]Kind, error) {
 // GetKindSelect - get all kind for select
 func (e *Edb) GetKindSelect() ([]SelectItem, error) {
 	var kinds []SelectItem
-	err := e.db.Model(&kinds).
+	err := e.db.Model(&Kind{}).
 		Column("id", "name").
 		Order("name ASC").
-		Select()
+		Select(&kinds)
 	if err != nil {
 		errmsg("GetKindSelect select", err)
 	}
