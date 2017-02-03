@@ -30,7 +30,7 @@ func (e *Edb) GetEmails() ([]Email, error) {
 	var emails []Email
 	err := e.db.Model(&emails).
 		Column("id", "email").
-		Order("name ASC").
+		Order("email ASC").
 		Select()
 	if err != nil {
 		errmsg("GetEmailList select", err)
@@ -46,7 +46,7 @@ func (e *Edb) GetCompanyEmails(id int64) ([]Email, error) {
 	}
 	err := e.db.Model(&emails).
 		Column("id", "email").
-		Order("name ASC").
+		Order("email ASC").
 		Where("company_id = ?", id).Select()
 	if err != nil {
 		errmsg("GetCompanyEmails select", err)
@@ -62,7 +62,7 @@ func (e *Edb) GetContactEmails(id int64) ([]Email, error) {
 	}
 	err := e.db.Model(&emails).
 		Column("id", "email").
-		Order("name ASC").
+		Order("email ASC").
 		Where("contact_id = ?", id).Select()
 	if err != nil {
 		errmsg("GetContactEmails select", err)
