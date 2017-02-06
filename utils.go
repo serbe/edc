@@ -17,7 +17,7 @@ func int64InSlice(a int64, list []int64) bool {
 
 func setStrMonth(d string) string {
 	var result string
-	t, err := time.Parse("02.01.2006", d)
+	t, err := time.Parse("2006-01-02", d)
 	if err != nil {
 		return result
 	}
