@@ -21,6 +21,7 @@ type PracticeList struct {
 	CompanyID      int64  `sql:"company_id, null" json:"company_id"`
 	CompanyName    string `sql:"company_name, null" json:"company_name"`
 	KindName       string `sql:"kind_name, null" json:"kind_name"`
+	Topic          string `sql:"topic, null" json:"topic"`
 	DateOfPractice string `sql:"date_of_practice, null" json:"date_of_practice"`
 	DateStr        string `sql:"-" json:"date_str"`
 }
@@ -87,9 +88,10 @@ func (e *Edb) GetPracticeCompany(id int64) ([]Practice, error) {
 }
 
 // GetPracticeNear - get 10 nearest practices
-func (e *Edb) GetPracticeNear() ([]Practice, error) {
-	var practices []Practice
-	_, err := e.db.Query(&practices, `SELECT
+func (e *Edb) GetPracticeNear() ([]PracticeList, error) {
+	var practices []PracticeList
+	_, err := e.db.Query(&practices, `
+	SELECT
 		p.id,
 		c.name AS company_name,
 		k.name AS kind_name,
