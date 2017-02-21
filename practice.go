@@ -93,6 +93,7 @@ func (e *Edb) GetPracticeNear() ([]PracticeList, error) {
 	_, err := e.db.Query(&practices, `
 	SELECT
 		p.id,
+		p.company_id,
 		c.name AS company_name,
 		k.name AS kind_name,
 		p.topic,
