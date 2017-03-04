@@ -6,15 +6,6 @@ import (
 	"time"
 )
 
-func int64InSlice(a int64, list []int64) bool {
-	for _, b := range list {
-		if b == a {
-			return true
-		}
-	}
-	return false
-}
-
 func setStrMonth(d string) string {
 	var result string
 	t, err := time.Parse("2006-01-02", d)
