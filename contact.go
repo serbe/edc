@@ -2,26 +2,26 @@ package edc
 
 // Contact is struct for contact
 type Contact struct {
-	ID           int64       `sql:"id" json:"id"`
-	Name         string      `sql:"name" json:"name"`
-	Company      Company     `sql:"-"`
-	CompanyID    int64       `sql:"company_id, null" json:"company_id"`
-	Department   Department  `sql:"-"`
+	ID           int64       `sql:"id"                  json:"id"`
+	Name         string      `sql:"name"                json:"name"`
+	Company      Company     `sql:"-"                   json:"company"`
+	CompanyID    int64       `sql:"company_id, null"    json:"company_id"`
+	Department   Department  `sql:"-"                   json:"department"`
 	DepartmentID int64       `sql:"department_id, null" json:"department_id"`
-	Post         Post        `sql:"-"`
-	PostID       int64       `sql:"post_id, null" json:"post_id"`
-	PostGO       Post        `sql:"-"`
-	PostGOID     int64       `sql:"post_go_id, null" json:"post_go_id"`
-	Rank         Rank        `sql:"-"`
-	RankID       int64       `sql:"rank_id, null" json:"rank_id"`
-	Birthday     string      `sql:"birthday, null" json:"birthday"`
-	Note         string      `sql:"note, null" json:"note"`
-	Emails       []Email     `sql:"-"`
-	Phones       []Phone     `sql:"-"`
-	Faxes        []Phone     `sql:"-"`
-	Educations   []Education `sql:"-"`
-	CreatedAt    string      `sql:"created_at" json:"created_at"`
-	UpdatedAt    string      `sql:"updated_at" json:"updated_at"`
+	Post         Post        `sql:"-"                   json:"post"`
+	PostID       int64       `sql:"post_id, null"       json:"post_id"`
+	PostGO       Post        `sql:"-"                   json:"post_go"`
+	PostGOID     int64       `sql:"post_go_id, null"    json:"post_go_id"`
+	Rank         Rank        `sql:"-"                   json:"rank"`
+	RankID       int64       `sql:"rank_id, null"       json:"rank_id"`
+	Birthday     string      `sql:"birthday, null"      json:"birthday"`
+	Note         string      `sql:"note, null"          json:"note"`
+	Emails       []Email     `sql:"-"                   json:"emails"`
+	Phones       []Phone     `sql:"-"                   json:"phones"`
+	Faxes        []Phone     `sql:"-"                   json:"faxes"`
+	Educations   []Education `sql:"-"                   json:"educations"`
+	CreatedAt    string      `sql:"created_at"          json:"created_at"`
+	UpdatedAt    string      `sql:"updated_at"          json:"updated_at"`
 }
 
 // ContactList is struct for contact list
