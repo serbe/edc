@@ -105,7 +105,7 @@ func (e *Edb) GetPracticeNear() ([]PracticeList, error) {
 	LEFT JOIN
 		kinds AS k ON k.id = p.kind_id
 	WHERE
-		p.date_of_practice > now()
+		p.date_of_practice > TIMESTAMP 'yesterday'
 	ORDER BY
 		date_of_practice
 	LIMIT 10`)
