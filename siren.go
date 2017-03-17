@@ -2,25 +2,25 @@ package edc
 
 // Siren - struct for siren
 type Siren struct {
-	ID        int64     `sql:"id" json:"id"`
-	NumID     int64     `sql:"num_id, null" json:"num_id"`
-	NumPass   string    `sql:"num_pass, null" json:"num_pass"`
-	TypeID    int64     `sql:"type_id" json:"type_id"`
-	Type      SirenType `sql:"-"`
-	Address   string    `sql:"address, null" json:"address"`
-	Radio     string    `sql:"radio, null" json:"radio"`
-	Desk      string    `sql:"desk, null" json:"desk"`
+	ID        int64     `sql:"id"               json:"id"`
+	NumID     int64     `sql:"num_id, null"     json:"num_id"`
+	NumPass   string    `sql:"num_pass, null"   json:"num_pass"`
+	TypeID    int64     `sql:"type_id"          json:"type_id"`
+	Type      SirenType `sql:"-"                json:"siren_type"`
+	Address   string    `sql:"address, null"    json:"address"`
+	Radio     string    `sql:"radio, null"      json:"radio"`
+	Desk      string    `sql:"desk, null"       json:"desk"`
 	ContactID int64     `sql:"contact_id, null" json:"contact_id"`
-	Contact   Contact   `sql:"-"`
+	Contact   Contact   `sql:"-"                json:"contact"`
 	CompanyID int64     `sql:"company_id, null" json:"company_id"`
-	Company   Company   `sql:"-"`
-	Latitude  string    `sql:"latitude, null" json:"latitude"`
-	Longitude string    `sql:"longitude, null" json:"longitude"`
-	Stage     int64     `sql:"stage, null" json:"stage"`
-	Own       string    `sql:"own, null" json:"own"`
-	Note      string    `sql:"note, null" json:"note"`
-	CreatedAt string    `sql:"created_at" json:"created_at"`
-	UpdatedAt string    `sql:"updated_at" json:"updated_at"`
+	Company   Company   `sql:"-"                json:"company"`
+	Latitude  string    `sql:"latitude, null"   json:"latitude"`
+	Longitude string    `sql:"longitude, null"  json:"longitude"`
+	Stage     int64     `sql:"stage, null"      json:"stage"`
+	Own       string    `sql:"own, null"        json:"own"`
+	Note      string    `sql:"note, null"       json:"note"`
+	CreatedAt string    `sql:"created_at"       json:"created_at"`
+	UpdatedAt string    `sql:"updated_at"       json:"updated_at"`
 }
 
 // GetSiren - get one siren by id

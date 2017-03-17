@@ -2,8 +2,8 @@ package edc
 
 // Department - struct for department
 type Department struct {
-	ID        int64  `sql:"id" json:"id"`
-	Name      string `sql:"name" json:"name"`
+	ID        int64  `sql:"id"         json:"id"`
+	Name      string `sql:"name"       json:"name"`
 	Note      string `sql:"note, null" json:"note"`
 	CreatedAt string `sql:"created_at" json:"created_at"`
 	UpdatedAt string `sql:"updated_at" json:"updated_at"`

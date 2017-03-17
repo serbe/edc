@@ -2,13 +2,13 @@ package edc
 
 // Phone - struct for phone
 type Phone struct {
-	ID        int64  `sql:"id" json:"id"`
+	ID        int64  `sql:"id"                   json:"id"`
 	CompanyID int64  `sql:"company_id, pk, null" json:"company_id"`
 	ContactID int64  `sql:"contact_id, pk, null" json:"contact_id"`
-	Phone     int64  `sql:"phone, null" json:"phone"`
-	Fax       bool   `sql:"fax, null" json:"fax"`
-	CreatedAt string `sql:"created_at" json:"created_at"`
-	UpdatedAt string `sql:"updated_at" json:"updated_at"`
+	Phone     int64  `sql:"phone, null"          json:"phone"`
+	Fax       bool   `sql:"fax, null"            json:"fax"`
+	CreatedAt string `sql:"created_at"           json:"created_at"`
+	UpdatedAt string `sql:"updated_at"           json:"updated_at"`
 }
 
 // GetPhone - get one phone by id

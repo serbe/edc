@@ -2,9 +2,9 @@ package edc
 
 // Post - struct for post
 type Post struct {
-	ID        int64  `sql:"id" json:"id"`
-	Name      string `sql:"name" json:"name"`
-	GO        bool   `sql:"go" json:"go"`
+	ID        int64  `sql:"id"         json:"id"`
+	Name      string `sql:"name"       json:"name"`
+	GO        bool   `sql:"go"         json:"go"`
 	Note      string `sql:"note, null" json:"note"`
 	CreatedAt string `sql:"created_at" json:"created_at"`
 	UpdatedAt string `sql:"updated_at" json:"updated_at"`
@@ -12,9 +12,9 @@ type Post struct {
 
 // PostList - struct for post list
 type PostList struct {
-	ID   int64  `sql:"id" json:"id"`
-	Name string `sql:"name" json:"name"`
-	GO   bool   `sql:"go" json:"go"`
+	ID   int64  `sql:"id"         json:"id"`
+	Name string `sql:"name"       json:"name"`
+	GO   bool   `sql:"go"         json:"go"`
 	Note string `sql:"note, null" json:"note"`
 }
 

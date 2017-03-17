@@ -2,28 +2,28 @@ package edc
 
 // Practice - struct for practice
 type Practice struct {
-	ID             int64   `sql:"id" json:"id"`
-	Company        Company `sql:"-"`
-	CompanyID      int64   `sql:"company_id, null" json:"company_id"`
-	Kind           Kind    `sql:"-"`
-	KindID         int64   `sql:"kind_id, null" json:"kind_id"`
-	Topic          string  `sql:"topic, null" json:"topic"`
+	ID             int64   `sql:"id"                     json:"id"`
+	Company        Company `sql:"-"                      json:"company"`
+	CompanyID      int64   `sql:"company_id, null"       json:"company_id"`
+	Kind           Kind    `sql:"-"                      json:"kind"`
+	KindID         int64   `sql:"kind_id, null"          json:"kind_id"`
+	Topic          string  `sql:"topic, null"            json:"topic"`
 	DateOfPractice string  `sql:"date_of_practice, null" json:"date_of_practice"`
-	DateStr        string  `sql:"-" json:"date_str"`
-	Note           string  `sql:"note, null" json:"note"`
-	CreatedAt      string  `sql:"created_at" json:"created_at"`
-	UpdatedAt      string  `sql:"updated_at" json:"updated_at"`
+	DateStr        string  `sql:"-"                      json:"date_str"`
+	Note           string  `sql:"note, null"             json:"note"`
+	CreatedAt      string  `sql:"created_at"             json:"created_at"`
+	UpdatedAt      string  `sql:"updated_at"             json:"updated_at"`
 }
 
 // PracticeList is struct for practice list
 type PracticeList struct {
-	ID             int64  `sql:"id" json:"id"`
-	CompanyID      int64  `sql:"company_id, null" json:"company_id"`
-	CompanyName    string `sql:"company_name, null" json:"company_name"`
-	KindName       string `sql:"kind_name, null" json:"kind_name"`
-	Topic          string `sql:"topic, null" json:"topic"`
+	ID             int64  `sql:"id"                     json:"id"`
+	CompanyID      int64  `sql:"company_id, null"       json:"company_id"`
+	CompanyName    string `sql:"company_name, null"     json:"company_name"`
+	KindName       string `sql:"kind_name, null"        json:"kind_name"`
+	Topic          string `sql:"topic, null"            json:"topic"`
 	DateOfPractice string `sql:"date_of_practice, null" json:"date_of_practice"`
-	DateStr        string `sql:"-" json:"date_str"`
+	DateStr        string `sql:"-"                      json:"date_str"`
 }
 
 // GetPractice - get one practice by id
