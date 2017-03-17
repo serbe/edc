@@ -20,7 +20,7 @@ type PracticeList struct {
 	ID             int64  `sql:"id"                     json:"id"`
 	CompanyID      int64  `sql:"company_id, null"       json:"company_id"`
 	CompanyName    string `sql:"company_name, null"     json:"company_name"`
-	KindName       string `sql:"kind_name, null"        json:"kind_name"`
+	KindName       string `sql:"-"                      json:"kind_name"`
 	Topic          string `sql:"topic, null"            json:"topic"`
 	DateOfPractice string `sql:"date_of_practice, null" json:"date_of_practice"`
 	DateStr        string `sql:"-"                      json:"date_str"`
@@ -80,6 +80,11 @@ func (e *Edb) GetPracticeCompany(id int64) ([]Practice, error) {
 		Select()
 	for i := range practices {
 		practices[i].DateStr = setStrMonth(practices[i].DateOfPractice)
+		kind, err := e.GetKind(practices[i].KindID)
+		if err != nil {
+			errmsg("GetPracticeCompany GetKind", err)
+		}
+		practices[i].Kind = kind
 	}
 	if err != nil {
 		errmsg("GetPracticeCompany select", err)
