@@ -77,6 +77,7 @@ func (e *Edb) GetPracticeCompany(id int64) ([]Practice, error) {
 	}
 	err := e.db.Model(&practices).
 		Where("company_id = ?", id).
+		Order("date_of_practice DESC").
 		Select()
 	for i := range practices {
 		practices[i].DateStr = setStrMonth(practices[i].DateOfPractice)
@@ -112,7 +113,7 @@ func (e *Edb) GetPracticeNear() ([]PracticeList, error) {
 	WHERE
 		p.date_of_practice > TIMESTAMP 'yesterday'
 	ORDER BY
-		date_of_practice
+		date_of_practice DESC
 	LIMIT 10`)
 	for i := range practices {
 		practices[i].DateStr = setStrMonth(practices[i].DateOfPractice)
