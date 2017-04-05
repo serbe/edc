@@ -8,8 +8,8 @@ type Education struct {
 	StartStr  string `sql:"-"          json:"start_str"`
 	EndStr    string `sql:"-"          json:"end_str"`
 	Note      string `sql:"note, null" json:"note"`
-	CreatedAt string `sql:"created_at" json:"created_at"`
-	UpdatedAt string `sql:"updated_at" json:"updated_at"`
+	CreatedAt string `sql:"created_at" json:"-"`
+	UpdatedAt string `sql:"updated_at" json:"-"`
 }
 
 // GetEducation - get education by id

@@ -6,8 +6,8 @@ type Email struct {
 	CompanyID int64  `sql:"company_id, pk, null" json:"company_id"`
 	ContactID int64  `sql:"contact_id, pk, null" json:"contact_id"`
 	Email     string `sql:"email, null"          json:"email"`
-	CreatedAt string `sql:"created_at"           json:"created_at"`
-	UpdatedAt string `sql:"updated_at"           json:"updated_at"`
+	CreatedAt string `sql:"created_at"           json:"-"`
+	UpdatedAt string `sql:"updated_at"           json:"-"`
 }
 
 // GetEmail - get one email by id

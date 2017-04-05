@@ -19,8 +19,8 @@ type Siren struct {
 	Stage     int64     `sql:"stage, null"      json:"stage"`
 	Own       string    `sql:"own, null"        json:"own"`
 	Note      string    `sql:"note, null"       json:"note"`
-	CreatedAt string    `sql:"created_at"       json:"created_at"`
-	UpdatedAt string    `sql:"updated_at"       json:"updated_at"`
+	CreatedAt string    `sql:"created_at"       json:"-"`
+	UpdatedAt string    `sql:"updated_at"       json:"-"`
 }
 
 // GetSiren - get one siren by id

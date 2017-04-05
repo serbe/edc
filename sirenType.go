@@ -6,8 +6,8 @@ type SirenType struct {
 	Name      string `sql:"name"       json:"name"`
 	Radius    int64  `sql:"radius"     json:"radius"`
 	Note      string `sql:"note, null" json:"note"`
-	CreatedAt string `sql:"created_at" json:"created_at"`
-	UpdatedAt string `sql:"updated_at" json:"updated_at"`
+	CreatedAt string `sql:"created_at" json:"-"`
+	UpdatedAt string `sql:"updated_at" json:"-"`
 }
 
 // GetSirenType - get one sirenType by id

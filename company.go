@@ -5,16 +5,16 @@ type Company struct {
 	ID        int64            `sql:"id"             json:"id"`
 	Name      string           `sql:"name"           json:"name"`
 	Address   string           `sql:"address, null"  json:"address"`
-	Scope     Scope            `sql:"-"              json:"scope"`
+	Scope     Scope            `sql:"-"              json:"scope, omitempty"`
 	ScopeID   int64            `sql:"scope_id, null" json:"scope_id"`
 	Note      string           `sql:"note, null"     json:"note"`
-	Emails    []Email          `sql:"-"              json:"emails"`
-	Phones    []Phone          `sql:"-"              json:"phones"`
-	Faxes     []Phone          `sql:"-"              json:"faxes"`
-	Practices []Practice       `sql:"-"              json:"practices"`
-	Contacts  []ContactCompany `sql:"-"              json:"contacts"`
-	CreatedAt string           `sql:"created_at"     json:"created_at"`
-	UpdatedAt string           `sql:"updated_at"     json:"updated_at"`
+	Emails    []Email          `sql:"-"              json:"emails, omitempty"`
+	Phones    []Phone          `sql:"-"              json:"phones, omitempty"`
+	Faxes     []Phone          `sql:"-"              json:"faxes, omitempty"`
+	Practices []Practice       `sql:"-"              json:"practices, omitempty"`
+	Contacts  []ContactCompany `sql:"-"              json:"contacts, omitempty"`
+	CreatedAt string           `sql:"created_at"     json:"-"`
+	UpdatedAt string           `sql:"updated_at"     json:"-"`
 }
 
 // CompanyList is struct for list company
@@ -42,9 +42,36 @@ func (e *Edb) GetCompany(id int64) (Company, error) {
 		errmsg("GetCompany select", err)
 		return company, err
 	}
+	if company.ScopeID > 0 {
+		company.Scope, err = e.GetScope(company.ScopeID)
+		if err != nil {
+			errmsg("GetCompany e.GetScope ", err)
+			return company, err
+		}
+	}
+	company.Emails, err = e.GetCompanyEmails(company.ID)
+	if err != nil {
+		errmsg("GetCompany e.GetCompanyEmails ", err)
+		return company, err
+	}
+	company.Phones, err = e.GetCompanyPhones(company.ID, false)
+	if err != nil {
+		errmsg("GetCompany e.GetCompanyPhones false ", err)
+		return company, err
+	}
+	company.Faxes, err = e.GetCompanyPhones(company.ID, true)
+	if err != nil {
+		errmsg("GetCompany e.GetCompanyPhones true ", err)
+		return company, err
+	}
 	company.Practices, err = e.GetPracticeCompany(id)
 	if err != nil {
 		errmsg("GetCompany e.GetPracticeCompany", err)
+	}
+	company.Contacts, err = e.GetContactCompany(company.ID)
+	if err != nil {
+		errmsg("GetCompany e.GetContactCompany ", err)
+		return company, err
 	}
 	return company, err
 }

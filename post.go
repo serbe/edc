@@ -6,8 +6,8 @@ type Post struct {
 	Name      string `sql:"name"       json:"name"`
 	GO        bool   `sql:"go"         json:"go"`
 	Note      string `sql:"note, null" json:"note"`
-	CreatedAt string `sql:"created_at" json:"created_at"`
-	UpdatedAt string `sql:"updated_at" json:"updated_at"`
+	CreatedAt string `sql:"created_at" json:"-"`
+	UpdatedAt string `sql:"updated_at" json:"-"`
 }
 
 // PostList - struct for post list

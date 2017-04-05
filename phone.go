@@ -7,8 +7,8 @@ type Phone struct {
 	ContactID int64  `sql:"contact_id, pk, null" json:"contact_id"`
 	Phone     int64  `sql:"phone, null"          json:"phone"`
 	Fax       bool   `sql:"fax, null"            json:"fax"`
-	CreatedAt string `sql:"created_at"           json:"created_at"`
-	UpdatedAt string `sql:"updated_at"           json:"updated_at"`
+	CreatedAt string `sql:"created_at"           json:"-"`
+	UpdatedAt string `sql:"updated_at"           json:"-"`
 }
 
 // GetPhone - get one phone by id

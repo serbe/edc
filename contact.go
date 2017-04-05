@@ -20,8 +20,8 @@ type Contact struct {
 	Phones       []Phone     `sql:"-"                   json:"phones"`
 	Faxes        []Phone     `sql:"-"                   json:"faxes"`
 	Educations   []Education `sql:"-"                   json:"educations"`
-	CreatedAt    string      `sql:"created_at"          json:"created_at"`
-	UpdatedAt    string      `sql:"updated_at"          json:"updated_at"`
+	CreatedAt    string      `sql:"created_at"          json:"-"`
+	UpdatedAt    string      `sql:"updated_at"          json:"-"`
 }
 
 // ContactList is struct for contact list
@@ -57,7 +57,51 @@ func (e *Edb) GetContact(id int64) (Contact, error) {
 		errmsg("GetContact select", err)
 		return Contact{}, err
 	}
-	// contact.Educations = GetContactEducationscontacte.ID)
+	contact.Company, err = e.GetCompany(contact.CompanyID)
+	if err != nil {
+		errmsg("GetContact GetCompany", err)
+		return Contact{}, err
+	}
+	contact.Department, err = e.GetDepartment(contact.DepartmentID)
+	if err != nil {
+		errmsg("GetContact GetDepartment", err)
+		return Contact{}, err
+	}
+	contact.Post, err = e.GetPost(contact.PostID)
+	if err != nil {
+		errmsg("GetContact GetPost", err)
+		return Contact{}, err
+	}
+	contact.PostGO, err = e.GetPost(contact.PostGOID)
+	if err != nil {
+		errmsg("GetContact GetPostGO", err)
+		return Contact{}, err
+	}
+	contact.Rank, err = e.GetRank(contact.RankID)
+	if err != nil {
+		errmsg("GetContact GetRank", err)
+		return Contact{}, err
+	}
+	contact.Phones, err = e.GetContactPhones(contact.ID, false)
+	if err != nil {
+		errmsg("GetContact GetContactPhones", err)
+		return Contact{}, err
+	}
+	contact.Faxes, err = e.GetContactPhones(contact.ID, true)
+	if err != nil {
+		errmsg("GetContact GetContactPhones", err)
+		return Contact{}, err
+	}
+	contact.Emails, err = e.GetContactEmails(contact.ID)
+	if err != nil {
+		errmsg("GetContact GetContactEmails", err)
+		return Contact{}, err
+	}
+	// contact.Educations, err = e.ContactEducations(contact.ID)
+	// if err != nil {
+	// 	errmsg("GetContact ContactEducations", err)
+	// 	return Contact{}, err
+	// }
 	return contact, err
 }
 

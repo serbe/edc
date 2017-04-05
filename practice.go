@@ -11,8 +11,8 @@ type Practice struct {
 	DateOfPractice string  `sql:"date_of_practice, null" json:"date_of_practice"`
 	DateStr        string  `sql:"-"                      json:"date_str"`
 	Note           string  `sql:"note, null"             json:"note"`
-	CreatedAt      string  `sql:"created_at"             json:"created_at"`
-	UpdatedAt      string  `sql:"updated_at"             json:"updated_at"`
+	CreatedAt      string  `sql:"created_at"             json:"-"`
+	UpdatedAt      string  `sql:"updated_at"             json:"-"`
 }
 
 // PracticeList is struct for practice list
