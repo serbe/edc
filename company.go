@@ -5,14 +5,14 @@ type Company struct {
 	ID        int64            `sql:"id"             json:"id"`
 	Name      string           `sql:"name"           json:"name"`
 	Address   string           `sql:"address, null"  json:"address"`
-	Scope     Scope            `sql:"-"              json:"scope, omitempty"`
+	Scope     Scope            `sql:"-"              json:"scope"`
 	ScopeID   int64            `sql:"scope_id, null" json:"scope_id"`
 	Note      string           `sql:"note, null"     json:"note"`
-	Emails    []Email          `sql:"-"              json:"emails, omitempty"`
-	Phones    []Phone          `sql:"-"              json:"phones, omitempty"`
-	Faxes     []Phone          `sql:"-"              json:"faxes, omitempty"`
-	Practices []Practice       `sql:"-"              json:"practices, omitempty"`
-	Contacts  []ContactCompany `sql:"-"              json:"contacts, omitempty"`
+	Emails    []Email          `sql:"-"              json:"emails"`
+	Phones    []Phone          `sql:"-"              json:"phones"`
+	Faxes     []Phone          `sql:"-"              json:"faxes"`
+	Practices []Practice       `sql:"-"              json:"practices"`
+	Contacts  []ContactCompany `sql:"-"              json:"contacts"`
 	CreatedAt string           `sql:"created_at"     json:"-"`
 	UpdatedAt string           `sql:"updated_at"     json:"-"`
 }
