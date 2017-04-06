@@ -73,6 +73,7 @@ func (e *Edb) GetContactPhones(id int64, fax bool) ([]Phone, error) {
 
 // CreatePhone - create new phone
 func (e *Edb) CreatePhone(phone Phone) (int64, error) {
+	phone.ID = 0
 	err := e.db.Insert(&phone)
 	if err != nil {
 		errmsg("CreatePhone insert", err)
@@ -94,18 +95,20 @@ func (e *Edb) CreateCompanyPhones(company Company, fax bool) error {
 		allPhones = company.Phones
 	}
 	for _, value := range allPhones {
-		var id int64
-		err = e.db.Model(&Phone{}).
-			Column("id").
-			Where("company_id = ? and phone = ? and fax = ?", company.ID, value.Phone, fax).
-			Select(&id)
-		if id == 0 {
-			value.CompanyID = company.ID
-			value.Fax = fax
-			_, err = e.CreatePhone(value)
-			if err != nil {
-				errmsg("CreateCompanyPhones CreatePhone", err)
-				return err
+		if value.Phone != 0 {
+			var id int64
+			err = e.db.Model(&Phone{}).
+				Column("id").
+				Where("company_id = ? and phone = ? and fax = ?", company.ID, value.Phone, fax).
+				Select(&id)
+			if id == 0 {
+				value.CompanyID = company.ID
+				value.Fax = fax
+				_, err = e.CreatePhone(value)
+				if err != nil {
+					errmsg("CreateCompanyPhones CreatePhone", err)
+					return err
+				}
 			}
 		}
 	}
@@ -126,18 +129,20 @@ func (e *Edb) CreateContactPhones(contact Contact, fax bool) error {
 		allPhones = contact.Phones
 	}
 	for _, value := range allPhones {
-		var id int64
-		err = e.db.Model(&Phone{}).
-			Column("id").
-			Where("contact_id = ? and phone = ? and fax = ?", contact.ID, value.Phone, fax).
-			Select(&id)
-		if id == 0 {
-			value.ContactID = contact.ID
-			value.Fax = fax
-			_, err = e.CreatePhone(value)
-			if err != nil {
-				errmsg("CreateContactPhones CreatePhone", err)
-				return err
+		if value.Phone != 0 {
+			var id int64
+			err = e.db.Model(&Phone{}).
+				Column("id").
+				Where("contact_id = ? and phone = ? and fax = ?", contact.ID, value.Phone, fax).
+				Select(&id)
+			if id == 0 {
+				value.ContactID = contact.ID
+				value.Fax = fax
+				_, err = e.CreatePhone(value)
+				if err != nil {
+					errmsg("CreateContactPhones CreatePhone", err)
+					return err
+				}
 			}
 		}
 	}

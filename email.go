@@ -72,6 +72,7 @@ func (e *Edb) GetContactEmails(id int64) ([]Email, error) {
 
 // CreateEmail - create new email
 func (e *Edb) CreateEmail(email Email) (int64, error) {
+	email.ID = 0
 	err := e.db.Insert(&email)
 	if err != nil {
 		errmsg("CreateEmail insert", err)
@@ -87,11 +88,13 @@ func (e *Edb) CreateCompanyEmails(company Company) error {
 		return err
 	}
 	for _, email := range company.Emails {
-		email.CompanyID = company.ID
-		_, err = e.CreateEmail(email)
-		if err != nil {
-			errmsg("CreateCompanyEmails CreateEmail", err)
-			return err
+		if email.Email != "" {
+			email.CompanyID = company.ID
+			_, err = e.CreateEmail(email)
+			if err != nil {
+				errmsg("CreateCompanyEmails CreateEmail", err)
+				return err
+			}
 		}
 	}
 	return nil
@@ -105,11 +108,13 @@ func (e *Edb) CreateContactEmails(contact Contact) error {
 		return err
 	}
 	for _, email := range contact.Emails {
-		email.ContactID = contact.ID
-		_, err = e.CreateEmail(email)
-		if err != nil {
-			errmsg("CreateContactEmails CreateEmail", err)
-			return err
+		if email.Email != "" {
+			email.ContactID = contact.ID
+			_, err = e.CreateEmail(email)
+			if err != nil {
+				errmsg("CreateContactEmails CreateEmail", err)
+				return err
+			}
 		}
 	}
 	return nil
