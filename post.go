@@ -46,8 +46,36 @@ func (e *Edb) GetPostList() ([]PostList, error) {
 	return posts, nil
 }
 
-// GetPostSelect - get all post for select
-func (e *Edb) GetPostSelect(g bool) ([]SelectItem, error) {
+// GetPostSelect - get post for select
+func (e *Edb) GetPostSelect(id int64) (SelectItem, error) {
+	var post SelectItem
+	err := e.db.Model(&Post{}).
+		Column("id", "name").
+		Where("go = false AND id = ?", id).
+		Order("name ASC").
+		Select(&post)
+	if err != nil {
+		errmsg("GetPostSelect query", err)
+	}
+	return post, nil
+}
+
+// GetPostGOSelect - get post go for select
+func (e *Edb) GetPostGOSelect(id int64) (SelectItem, error) {
+	var post SelectItem
+	err := e.db.Model(&Post{}).
+		Column("id", "name").
+		Where("go = true AND id = ?", id).
+		Order("name ASC").
+		Select(&post)
+	if err != nil {
+		errmsg("GetPostGOSelect query", err)
+	}
+	return post, nil
+}
+
+// GetPostSelectAll - get all post for select
+func (e *Edb) GetPostSelectAll(g bool) ([]SelectItem, error) {
 	var posts []SelectItem
 	err := e.db.Model(&Post{}).
 		Column("id", "name").
@@ -55,7 +83,7 @@ func (e *Edb) GetPostSelect(g bool) ([]SelectItem, error) {
 		Order("name ASC").
 		Select(&posts)
 	if err != nil {
-		errmsg("GetPostSelect query", err)
+		errmsg("GetPostSelectAll query", err)
 	}
 	return posts, nil
 }

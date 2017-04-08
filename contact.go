@@ -4,15 +4,15 @@ package edc
 type Contact struct {
 	ID           int64       `sql:"id"                  json:"id"`
 	Name         string      `sql:"name"                json:"name"`
-	Company      CompanyTiny `sql:"-"                   json:"company"`
+	Company      SelectItem  `sql:"-"                   json:"company"`
 	CompanyID    int64       `sql:"company_id, null"    json:"company_id"`
-	Department   Department  `sql:"-"                   json:"department"`
+	Department   SelectItem  `sql:"-"                   json:"department"`
 	DepartmentID int64       `sql:"department_id, null" json:"department_id"`
-	Post         Post        `sql:"-"                   json:"post"`
+	Post         SelectItem  `sql:"-"                   json:"post"`
 	PostID       int64       `sql:"post_id, null"       json:"post_id"`
-	PostGO       Post        `sql:"-"                   json:"post_go"`
+	PostGO       SelectItem  `sql:"-"                   json:"post_go"`
 	PostGOID     int64       `sql:"post_go_id, null"    json:"post_go_id"`
-	Rank         Rank        `sql:"-"                   json:"rank"`
+	Rank         SelectItem  `sql:"-"                   json:"rank"`
 	RankID       int64       `sql:"rank_id, null"       json:"rank_id"`
 	Birthday     string      `sql:"birthday, null"      json:"birthday"`
 	Note         string      `sql:"note, null"          json:"note"`
@@ -57,27 +57,27 @@ func (e *Edb) GetContact(id int64) (Contact, error) {
 		errmsg("GetContact select", err)
 		return Contact{}, err
 	}
-	contact.Company, err = e.GetCompanyContact(contact.CompanyID)
+	contact.Company, err = e.GetCompanySelect(contact.CompanyID)
 	if err != nil {
-		errmsg("GetContact GetCompany", err)
+		errmsg("GetContact GetCompanySelect", err)
 		return Contact{}, err
 	}
-	contact.Department, err = e.GetDepartment(contact.DepartmentID)
+	contact.Department, err = e.GetDepartmentSelect(contact.DepartmentID)
 	if err != nil {
-		errmsg("GetContact GetDepartment", err)
+		errmsg("GetContact GetDepartmentSelect", err)
 		return Contact{}, err
 	}
-	contact.Post, err = e.GetPost(contact.PostID)
+	contact.Post, err = e.GetPostSelect(contact.PostID)
 	if err != nil {
-		errmsg("GetContact GetPost", err)
+		errmsg("GetContact GetPostSelect", err)
 		return Contact{}, err
 	}
-	contact.PostGO, err = e.GetPost(contact.PostGOID)
+	contact.PostGO, err = e.GetPostGOSelect(contact.PostGOID)
 	if err != nil {
-		errmsg("GetContact GetPostGO", err)
+		errmsg("GetContact GetPostGOSelect", err)
 		return Contact{}, err
 	}
-	contact.Rank, err = e.GetRank(contact.RankID)
+	contact.Rank, err = e.GetRankSelect(contact.RankID)
 	if err != nil {
 		errmsg("GetContact GetRank", err)
 		return Contact{}, err
@@ -140,15 +140,15 @@ func (e *Edb) GetContactList() ([]ContactList, error) {
 	return contacts, err
 }
 
-// GetContactSelect - get all contacts for select
-func (e *Edb) GetContactSelect() ([]SelectItem, error) {
+// GetContactSelectAll - get all contacts for select
+func (e *Edb) GetContactSelectAll() ([]SelectItem, error) {
 	var contacts []SelectItem
 	err := e.db.Model(&Contact{}).
 		Column("id", "name").
 		Order("name ASC").
 		Select(&contacts)
 	if err != nil {
-		errmsg("GetContactSelect select", err)
+		errmsg("GetContactSelectAll select", err)
 	}
 	return contacts, err
 }

@@ -2,17 +2,17 @@ package edc
 
 // Practice - struct for practice
 type Practice struct {
-	ID             int64       `sql:"id"                     json:"id"`
-	Company        CompanyTiny `sql:"-"                      json:"company"`
-	CompanyID      int64       `sql:"company_id, null"       json:"company_id"`
-	Kind           Kind        `sql:"-"                      json:"kind"`
-	KindID         int64       `sql:"kind_id, null"          json:"kind_id"`
-	Topic          string      `sql:"topic, null"            json:"topic"`
-	DateOfPractice string      `sql:"date_of_practice, null" json:"date_of_practice"`
-	DateStr        string      `sql:"-"                      json:"date_str"`
-	Note           string      `sql:"note, null"             json:"note"`
-	CreatedAt      string      `sql:"created_at"             json:"-"`
-	UpdatedAt      string      `sql:"updated_at"             json:"-"`
+	ID             int64      `sql:"id"                     json:"id"`
+	Company        SelectItem `sql:"-"                      json:"company"`
+	CompanyID      int64      `sql:"company_id, null"       json:"company_id"`
+	Kind           Kind       `sql:"-"                      json:"kind"`
+	KindID         int64      `sql:"kind_id, null"          json:"kind_id"`
+	Topic          string     `sql:"topic, null"            json:"topic"`
+	DateOfPractice string     `sql:"date_of_practice, null" json:"date_of_practice"`
+	DateStr        string     `sql:"-"                      json:"date_str"`
+	Note           string     `sql:"note, null"             json:"note"`
+	CreatedAt      string     `sql:"created_at"             json:"-"`
+	UpdatedAt      string     `sql:"updated_at"             json:"-"`
 }
 
 // PracticeList is struct for practice list

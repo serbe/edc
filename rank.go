@@ -38,14 +38,28 @@ func (e *Edb) GetRankList() ([]Rank, error) {
 }
 
 // GetRankSelect - get all rank for select
-func (e *Edb) GetRankSelect() ([]SelectItem, error) {
+func (e *Edb) GetRankSelect(id int64) (SelectItem, error) {
+	var rank SelectItem
+	err := e.db.Model(&Rank{}).
+		Column("id", "name").
+		Where("id = ?", id).
+		Order("name ASC").
+		Select(&rank)
+	if err != nil {
+		errmsg("GetRankSelect query", err)
+	}
+	return rank, err
+}
+
+// GetRankSelectAll - get all rank for select
+func (e *Edb) GetRankSelectAll() ([]SelectItem, error) {
 	var ranks []SelectItem
 	err := e.db.Model(&Rank{}).
 		Column("id", "name").
 		Order("name ASC").
 		Select(&ranks)
 	if err != nil {
-		errmsg("GetRankSelect query", err)
+		errmsg("GetRankSelectAll query", err)
 	}
 	return ranks, err
 }

@@ -37,15 +37,28 @@ func (e *Edb) GetDepartmentList() ([]Department, error) {
 	return departments, err
 }
 
-// GetDepartmentSelect - get all department for select
-func (e *Edb) GetDepartmentSelect() ([]SelectItem, error) {
+// GetDepartmentSelect - get department for select
+func (e *Edb) GetDepartmentSelect(id int64) (SelectItem, error) {
+	var department SelectItem
+	err := e.db.Model(&Department{}).
+		Column("id", "name").
+		Where("id = ?", id).
+		Select(&department)
+	if err != nil {
+		errmsg("GetDepartmentSelect select", err)
+	}
+	return department, err
+}
+
+// GetDepartmentSelectAll - get all department for select
+func (e *Edb) GetDepartmentSelectAll() ([]SelectItem, error) {
 	var departments []SelectItem
 	err := e.db.Model(&Department{}).
 		Column("id", "name").
 		Order("name ASC").
 		Select(&departments)
 	if err != nil {
-		errmsg("GetDepartmentSelect select", err)
+		errmsg("GetDepartmentSelectAll select", err)
 	}
 	return departments, err
 }

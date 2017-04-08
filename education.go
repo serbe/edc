@@ -45,15 +45,15 @@ func (e *Edb) GetEducationList() ([]Education, error) {
 	return educations, err
 }
 
-// GetEducationSelect - get all education for select
-func (e *Edb) GetEducationSelect() ([]Education, error) {
+// GetEducationSelectAll - get all education for select
+func (e *Edb) GetEducationSelectAll() ([]Education, error) {
 	var educations []Education
 	err := e.db.Model(&educations).
 		Where("id", "start_date", "end_date").
 		Order("start_date").
 		Select()
 	if err != nil {
-		errmsg("GetEducationSelect select", err)
+		errmsg("GetEducationSelectAll select", err)
 		return educations, err
 	}
 	for i := range educations {

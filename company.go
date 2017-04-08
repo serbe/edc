@@ -29,15 +29,6 @@ type CompanyList struct {
 	Practices []string `json:"practices"   pg:",array"`
 }
 
-// CompanyTiny is struct of company for another parents
-type CompanyTiny struct {
-	ID      int64  `sql:"id"             json:"id"`
-	Name    string `sql:"name"           json:"name"`
-	Address string `sql:"address, null"  json:"address"`
-	ScopeID int64  `sql:"scope_id, null" json:"scope_id"`
-	Note    string `sql:"note, null"     json:"note"`
-}
-
 // GetCompany - get one company by id
 func (e *Edb) GetCompany(id int64) (Company, error) {
 	var company Company
@@ -122,29 +113,28 @@ func (e *Edb) GetCompanyList() ([]CompanyList, error) {
 	return companies, err
 }
 
-// GetCompanySelect - get all companyes for select
-func (e *Edb) GetCompanySelect() ([]SelectItem, error) {
+// GetCompanySelect - get company for contact
+func (e *Edb) GetCompanySelect(id int64) (SelectItem, error) {
+	var company SelectItem
+	err := e.db.Model(&Company{}).
+		Column("id", "name").
+		Where("id = ?", id).
+		Select(&company)
+	if err != nil {
+		errmsg("GetCompanySelect select", err)
+	}
+	return company, err
+}
+
+// GetCompanySelectAll - get all companyes for select
+func (e *Edb) GetCompanySelectAll() ([]SelectItem, error) {
 	var companies []SelectItem
 	err := e.db.Model(&Company{}).
 		Column("id", "name").
 		Order("name ASC").
 		Select(&companies)
 	if err != nil {
-		errmsg("GetCompanySelect select", err)
-	}
-	return companies, err
-}
-
-// GetCompanyContact - get company for contact
-func (e *Edb) GetCompanyContact(id int64) (CompanyTiny, error) {
-	var companies CompanyTiny
-	err := e.db.Model(&Company{}).
-		Column("id", "name", "address", "scope_id", "note").
-		Where("id = ?", id).
-		Order("name ASC").
-		Select(&companies)
-	if err != nil {
-		errmsg("GetCompanySelect select", err)
+		errmsg("GetCompanySelectAll select", err)
 	}
 	return companies, err
 }
