@@ -51,7 +51,8 @@ func (e *Edb) GetPracticeList() ([]PracticeList, error) {
 		p.company_id,
 		c.name AS company_name,
 		k.name AS kind_name,
-		p.date_of_practice
+		p.date_of_practice,
+		p.topic
 	FROM
 		practices AS p
 	LEFT JOIN
@@ -81,7 +82,8 @@ func (e *Edb) GetPracticeCompany(id int64) ([]PracticeList, error) {
 		p.company_id,
 		c.name AS company_name,
 		k.name AS kind_name,
-		p.date_of_practice
+		p.date_of_practice,
+		p.topic
 	FROM
 		practices AS p
 	LEFT JOIN
