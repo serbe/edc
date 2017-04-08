@@ -24,22 +24,41 @@ func (e *Edb) GetScope(id int64) (Scope, error) {
 	return scope, err
 }
 
-// GetScopeList - get all scope for list
-func (e *Edb) GetScopeList() ([]Scope, error) {
+// GetScopeListAll - get all scope for list
+func (e *Edb) GetScopeListAll() ([]Scope, error) {
 	var scopes []Scope
-	_, err := e.db.Query(&scopes, `SELECT id, name, note FROM scopes ORDER BY name ASC`)
+	err := e.db.Model(&Scope{}).
+		Column("id", "name", "note").
+		Order("name ASC").
+		Select(&scopes)
 	if err != nil {
-		errmsg("GetScopeList query", err)
+		errmsg("GetScopeListAll select", err)
 	}
 	return scopes, err
 }
 
-// GetScopeSelect - get all scope for select
-func (e *Edb) GetScopeSelect() ([]SelectItem, error) {
-	var scopes []SelectItem
-	_, err := e.db.Query(&scopes, `SELECT id, name FROM scopes ORDER BY name ASC`)
+// GetScopeSelect - get scope for select
+func (e *Edb) GetScopeSelect(id int64) (SelectItem, error) {
+	var scope SelectItem
+	err := e.db.Model(&Scope{}).
+		Column("id", "name").
+		Where("id = ?", id).
+		Select(&scope)
 	if err != nil {
-		errmsg("GetScopeSelect query", err)
+		errmsg("GetScopeSelect select", err)
+	}
+	return scope, err
+}
+
+// GetScopeSelectAll - get all scope for select
+func (e *Edb) GetScopeSelectAll() ([]SelectItem, error) {
+	var scopes []SelectItem
+	err := e.db.Model(&Scope{}).
+		Column("id", "name").
+		Order("name ASC").
+		Select(&scopes)
+	if err != nil {
+		errmsg("GetScopeSelectAll query", err)
 	}
 	return scopes, err
 }

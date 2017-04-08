@@ -2,17 +2,17 @@ package edc
 
 // Practice - struct for practice
 type Practice struct {
-	ID             int64   `sql:"id"                     json:"id"`
-	Company        Company `sql:"-"                      json:"company"`
-	CompanyID      int64   `sql:"company_id, null"       json:"company_id"`
-	Kind           Kind    `sql:"-"                      json:"kind"`
-	KindID         int64   `sql:"kind_id, null"          json:"kind_id"`
-	Topic          string  `sql:"topic, null"            json:"topic"`
-	DateOfPractice string  `sql:"date_of_practice, null" json:"date_of_practice"`
-	DateStr        string  `sql:"-"                      json:"date_str"`
-	Note           string  `sql:"note, null"             json:"note"`
-	CreatedAt      string  `sql:"created_at"             json:"-"`
-	UpdatedAt      string  `sql:"updated_at"             json:"-"`
+	ID             int64       `sql:"id"                     json:"id"`
+	Company        CompanyTiny `sql:"-"                      json:"company"`
+	CompanyID      int64       `sql:"company_id, null"       json:"company_id"`
+	Kind           Kind        `sql:"-"                      json:"kind"`
+	KindID         int64       `sql:"kind_id, null"          json:"kind_id"`
+	Topic          string      `sql:"topic, null"            json:"topic"`
+	DateOfPractice string      `sql:"date_of_practice, null" json:"date_of_practice"`
+	DateStr        string      `sql:"-"                      json:"date_str"`
+	Note           string      `sql:"note, null"             json:"note"`
+	CreatedAt      string      `sql:"created_at"             json:"-"`
+	UpdatedAt      string      `sql:"updated_at"             json:"-"`
 }
 
 // PracticeList is struct for practice list
@@ -70,22 +70,30 @@ func (e *Edb) GetPracticeList() ([]PracticeList, error) {
 }
 
 // GetPracticeCompany - get all practices of company
-func (e *Edb) GetPracticeCompany(id int64) ([]Practice, error) {
-	var practices []Practice
+func (e *Edb) GetPracticeCompany(id int64) ([]PracticeList, error) {
+	var practices []PracticeList
 	if id == 0 {
 		return practices, nil
 	}
-	err := e.db.Model(&practices).
-		Where("company_id = ?", id).
-		Order("date_of_practice DESC").
-		Select()
+	_, err := e.db.Query(&practices, `
+	SELECT
+		p.id,
+		p.company_id,
+		c.name AS company_name,
+		k.name AS kind_name,
+		p.date_of_practice
+	FROM
+		practices AS p
+	LEFT JOIN
+		companies AS c ON c.id = p.company_id
+	LEFT JOIN
+		kinds AS k ON k.id = p.kind_id
+	WHERE
+		p.company_id = ?
+	ORDER BY
+		date_of_practice DESC`, id)
 	for i := range practices {
 		practices[i].DateStr = setStrMonth(practices[i].DateOfPractice)
-		kind, err := e.GetKind(practices[i].KindID)
-		if err != nil {
-			errmsg("GetPracticeCompany GetKind", err)
-		}
-		practices[i].Kind = kind
 	}
 	if err != nil {
 		errmsg("GetPracticeCompany select", err)

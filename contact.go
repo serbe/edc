@@ -4,7 +4,7 @@ package edc
 type Contact struct {
 	ID           int64       `sql:"id"                  json:"id"`
 	Name         string      `sql:"name"                json:"name"`
-	Company      Company     `sql:"-"                   json:"company"`
+	Company      CompanyTiny `sql:"-"                   json:"company"`
 	CompanyID    int64       `sql:"company_id, null"    json:"company_id"`
 	Department   Department  `sql:"-"                   json:"department"`
 	DepartmentID int64       `sql:"department_id, null" json:"department_id"`
@@ -35,8 +35,8 @@ type ContactList struct {
 	Faxes       []string `json:"faxes"         pg:",array"`
 }
 
-// ContactCompany is struct for company
-type ContactCompany struct {
+// ContactTiny is struct of contact for another parents
+type ContactTiny struct {
 	ID             int64  `json:"id"`
 	Name           string `json:"name"`
 	DepartmentName string `json:"department_name"`
@@ -57,7 +57,7 @@ func (e *Edb) GetContact(id int64) (Contact, error) {
 		errmsg("GetContact select", err)
 		return Contact{}, err
 	}
-	contact.Company, err = e.GetCompany(contact.CompanyID)
+	contact.Company, err = e.GetCompanyContact(contact.CompanyID)
 	if err != nil {
 		errmsg("GetContact GetCompany", err)
 		return Contact{}, err
@@ -154,8 +154,8 @@ func (e *Edb) GetContactSelect() ([]SelectItem, error) {
 }
 
 // GetContactCompany - get all contacts from company
-func (e *Edb) GetContactCompany(id int64) ([]ContactCompany, error) {
-	var contacts []ContactCompany
+func (e *Edb) GetContactCompany(id int64) ([]ContactTiny, error) {
+	var contacts []ContactTiny
 	_, err := e.db.Query(&contacts, `
 		SELECT
 			c.id,

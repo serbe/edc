@@ -2,9 +2,9 @@ package edc
 
 import (
 	"log"
-	"os"
+	"time"
 
-	"gopkg.in/pg.v5"
+	"github.com/go-pg/pg"
 )
 
 var logErrors bool
@@ -28,10 +28,17 @@ func InitDB(dbname string, user string, password string, logsql bool, logerr boo
 		Password: password,
 		Database: dbname,
 	}
-	if logsql == true {
-		pg.SetQueryLogger(log.New(os.Stdout, "", log.LstdFlags))
-	}
 	e.db = pg.Connect(&opt)
+	if logsql == true {
+		e.db.OnQueryProcessed(func(event *pg.QueryProcessedEvent) {
+			query, err := event.FormattedQuery()
+			if err != nil {
+				panic(err)
+			}
+
+			log.Printf("%s %s", time.Since(event.StartTime), query)
+		})
+	}
 	logErrors = logerr
 	err := e.createAllTables()
 
