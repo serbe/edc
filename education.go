@@ -12,6 +12,18 @@ type Education struct {
 	UpdatedAt string `sql:"updated_at" json:"-"`
 }
 
+// EducationList - struct for list of education
+type EducationList struct {
+	ID        int64  `sql:"id"         json:"id" `
+	StartDate string `sql:"start_date" json:"start_date"`
+	EndDate   string `sql:"end_date"   json:"end_date"`
+	StartStr  string `sql:"-"          json:"start_str"`
+	EndStr    string `sql:"-"          json:"end_str"`
+	Note      string `sql:"note, null" json:"note"`
+	CreatedAt string `sql:"created_at" json:"-"`
+	UpdatedAt string `sql:"updated_at" json:"-"`
+}
+
 // GetEducation - get education by id
 func (e *Edb) GetEducation(id int64) (Education, error) {
 	var education Education

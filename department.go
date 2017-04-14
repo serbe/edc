@@ -9,6 +9,13 @@ type Department struct {
 	UpdatedAt string `sql:"updated_at" json:"-"`
 }
 
+// DepartmentList - struct for list of departments
+type DepartmentList struct {
+	ID   int64  `sql:"id"         json:"id"`
+	Name string `sql:"name"       json:"name"`
+	Note string `sql:"note, null" json:"note"`
+}
+
 // GetDepartment - get one department by id
 func (e *Edb) GetDepartment(id int64) (Department, error) {
 	var department Department
@@ -25,12 +32,12 @@ func (e *Edb) GetDepartment(id int64) (Department, error) {
 }
 
 // GetDepartmentList - get all department for list
-func (e *Edb) GetDepartmentList() ([]Department, error) {
-	var departments []Department
-	err := e.db.Model(&departments).
+func (e *Edb) GetDepartmentList() ([]DepartmentList, error) {
+	var departments []DepartmentList
+	err := e.db.Model(&Department{}).
 		Column("id", "name", "note").
 		Order("name ASC").
-		Select()
+		Select(&departments)
 	if err != nil {
 		errmsg("GetDepartmentList select", err)
 	}

@@ -41,28 +41,11 @@ func (e *Edb) GetSiren(id int64) (Siren, error) {
 // GetSirenList - get all siren for list
 func (e *Edb) GetSirenList() ([]Siren, error) {
 	var sirens []Siren
-	_, err := e.db.Query(&sirens, `
-		SELECT
-			id,
-			num_id,
-			num_pass,
-			type_id,
-			address,
-			radio,
-			desk,
-			contact_id,
-			company_id,
-			latitude,
-			longitude,
-			stage,
-			own,
-			note
-		FROM
-			sirens
-		ORDER BY
-			name ASC`)
+	err := e.db.Model(&sirens).
+		Order("name ASC").
+		Select()
 	if err != nil {
-		errmsg("GetSirenList query", err)
+		errmsg("GetSirenList select", err)
 	}
 	return sirens, err
 }

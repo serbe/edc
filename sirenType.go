@@ -28,19 +28,11 @@ func (e *Edb) GetSirenType(id int64) (SirenType, error) {
 // GetSirenTypeList - get all sirenType for list
 func (e *Edb) GetSirenTypeList() ([]SirenType, error) {
 	var sirenTypes []SirenType
-	_, err := e.db.Query(&sirenTypes, `
-		SELECT
-			id,
-			name,
-			radius,
-			note
-		FROM
-			sirenTypes
-		ORDER BY
-			name ASC
-	`)
+	err := e.db.Model(&sirenTypes).
+		Order("name ASC").
+		Select()
 	if err != nil {
-		errmsg("GetSirenTypeList query", err)
+		errmsg("GetSirenTypeList select", err)
 	}
 	return sirenTypes, err
 }
@@ -48,16 +40,11 @@ func (e *Edb) GetSirenTypeList() ([]SirenType, error) {
 // GetSirenTypeSelect - get all sirenType for select
 func (e *Edb) GetSirenTypeSelect() ([]SelectItem, error) {
 	var sirenTypes []SelectItem
-	_, err := e.db.Query(&sirenTypes, `
-		SELECT
-			id,
-			name
-		FROM
-			sirenTypes
-		ORDER BY
-			name ASC`)
+	err := e.db.Model(&SirenType{}).
+		Order("name ASC").
+		Select(&sirenTypes)
 	if err != nil {
-		errmsg("GetSirenTypeSelect query", err)
+		errmsg("GetSirenTypeSelect Select", err)
 	}
 	return sirenTypes, err
 }
