@@ -5,7 +5,7 @@ type Phone struct {
 	ID        int64  `sql:"id"                   json:"id"`
 	CompanyID int64  `sql:"company_id, pk, null" json:"company_id"`
 	ContactID int64  `sql:"contact_id, pk, null" json:"contact_id"`
-	Phone     int64  `sql:"phone, null"          json:"phone"`
+	Phone     int64  `sql:"phone, null"          json:"phone, string"`
 	Fax       bool   `sql:"fax, null"            json:"fax"`
 	CreatedAt string `sql:"created_at"           json:"-"`
 	UpdatedAt string `sql:"updated_at"           json:"-"`
