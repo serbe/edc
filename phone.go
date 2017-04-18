@@ -151,6 +151,9 @@ func (e *Edb) CreateContactPhones(contact Contact, fax bool) error {
 
 // DeleteCompanyPhones - delete all unnecessary phones by company id
 func (e *Edb) DeleteCompanyPhones(id int64, fax bool) error {
+	if id == 0 {
+		return nil
+	}
 	_, err := e.db.Model(&Phone{}).
 		Where("company_id = ? and fax = ?", id, fax).
 		Delete()
@@ -162,6 +165,9 @@ func (e *Edb) DeleteCompanyPhones(id int64, fax bool) error {
 
 // DeleteContactPhones - delete all unnecessary phones by contact id
 func (e *Edb) DeleteContactPhones(id int64, fax bool) error {
+	if id == 0 {
+		return nil
+	}
 	_, err := e.db.Model(&Phone{}).
 		Where("contact_id = ? and fax = ?", id, fax).
 		Delete()

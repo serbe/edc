@@ -47,6 +47,9 @@ func (e *Edb) GetDepartmentList() ([]DepartmentList, error) {
 // GetDepartmentSelect - get department for select
 func (e *Edb) GetDepartmentSelect(id int64) (SelectItem, error) {
 	var department SelectItem
+	if id == 0 {
+		return department, nil
+	}
 	err := e.db.Model(&Department{}).
 		Column("id", "name").
 		Where("id = ?", id).

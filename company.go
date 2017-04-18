@@ -116,6 +116,9 @@ func (e *Edb) GetCompanyList() ([]CompanyList, error) {
 // GetCompanySelect - get company for contact
 func (e *Edb) GetCompanySelect(id int64) (SelectItem, error) {
 	var company SelectItem
+	if id == 0 {
+		return company, nil
+	}
 	err := e.db.Model(&Company{}).
 		Column("id", "name").
 		Where("id = ?", id).

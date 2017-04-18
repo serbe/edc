@@ -40,6 +40,9 @@ func (e *Edb) GetRankList() ([]Rank, error) {
 // GetRankSelect - get all rank for select
 func (e *Edb) GetRankSelect(id int64) (SelectItem, error) {
 	var rank SelectItem
+	if id == 0 {
+		return rank, nil
+	}
 	err := e.db.Model(&Rank{}).
 		Column("id", "name").
 		Where("id = ?", id).

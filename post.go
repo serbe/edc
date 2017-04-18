@@ -49,6 +49,9 @@ func (e *Edb) GetPostList() ([]PostList, error) {
 // GetPostSelect - get post for select
 func (e *Edb) GetPostSelect(id int64) (SelectItem, error) {
 	var post SelectItem
+	if id == 0 {
+		return post, nil
+	}
 	err := e.db.Model(&Post{}).
 		Column("id", "name").
 		Where("go = false AND id = ?", id).
@@ -63,6 +66,9 @@ func (e *Edb) GetPostSelect(id int64) (SelectItem, error) {
 // GetPostGOSelect - get post go for select
 func (e *Edb) GetPostGOSelect(id int64) (SelectItem, error) {
 	var post SelectItem
+	if id == 0 {
+		return post, nil
+	}
 	err := e.db.Model(&Post{}).
 		Column("id", "name").
 		Where("go = true AND id = ?", id).

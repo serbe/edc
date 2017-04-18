@@ -40,6 +40,9 @@ func (e *Edb) GetScopeListAll() ([]Scope, error) {
 // GetScopeSelect - get scope for select
 func (e *Edb) GetScopeSelect(id int64) (SelectItem, error) {
 	var scope SelectItem
+	if id == 0 {
+		return scope, nil
+	}
 	err := e.db.Model(&Scope{}).
 		Column("id", "name").
 		Where("id = ?", id).

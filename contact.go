@@ -156,6 +156,9 @@ func (e *Edb) GetContactSelectAll() ([]SelectItem, error) {
 // GetContactCompany - get all contacts from company
 func (e *Edb) GetContactCompany(id int64) ([]ContactTiny, error) {
 	var contacts []ContactTiny
+	if id == 0 {
+		return contacts, nil
+	}
 	_, err := e.db.Query(&contacts, `
 		SELECT
 			c.id,
