@@ -42,8 +42,34 @@ func (e *Edb) GetPractice(id int64) (Practice, error) {
 	return practice, err
 }
 
-// GetPracticeList - get all practices for list
-func (e *Edb) GetPracticeList() ([]PracticeList, error) {
+// GetPracticeList - get practice by id for list
+func (e *Edb) GetPracticeList(id int64) (PracticeList, error) {
+	var practice PracticeList
+	_, err := e.db.Query(practice, `
+	SELECT
+		p.id,
+		p.company_id,
+		c.name AS company_name,
+		k.name AS kind_name,
+		p.date_of_practice,
+		p.topic
+	FROM
+		practices AS p
+	LEFT JOIN
+		companies AS c ON c.id = p.company_id
+	LEFT JOIN
+		kinds AS k ON k.id = p.kind_id
+	WHERE
+		id = ?`, id)
+	if err != nil {
+		errmsg("GetPracticeList query", err)
+	}
+	practice.DateStr = setStrMonth(practice.DateOfPractice)
+	return practice, err
+}
+
+// GetPracticeListAll - get all practices for list
+func (e *Edb) GetPracticeListAll() ([]PracticeList, error) {
 	var practices []PracticeList
 	_, err := e.db.Query(&practices, `
 	SELECT
