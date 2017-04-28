@@ -20,8 +20,6 @@ type EducationList struct {
 	StartStr  string `sql:"-"          json:"start_str"`
 	EndStr    string `sql:"-"          json:"end_str"`
 	Note      string `sql:"note, null" json:"note"`
-	CreatedAt string `sql:"created_at" json:"-"`
-	UpdatedAt string `sql:"updated_at" json:"-"`
 }
 
 // GetEducation - get education by id
@@ -39,15 +37,31 @@ func (e *Edb) GetEducation(id int64) (Education, error) {
 	return education, err
 }
 
-// GetEducationList - get all education for list
-func (e *Edb) GetEducationList() ([]Education, error) {
-	var educations []Education
-	err := e.db.Model(&educations).
+// GetEducationList - get education for list by id
+func (e *Edb) GetEducationList(id int64) (EducationList, error) {
+	var education EducationList
+	err := e.db.Model(&Education{}).
 		Column("id", "start_date", "end_date", "note").
-		Order("start_date").
-		Select()
+		Where("id = ?", id).
+		Select(&education)
 	if err != nil {
 		errmsg("GetEducationList select", err)
+		return education, err
+	}
+	education.StartStr = setStrMonth(education.StartDate)
+	education.EndStr = setStrMonth(education.EndDate)
+	return education, err
+}
+
+// GetEducationListAll - get all education for list
+func (e *Edb) GetEducationListAll() ([]EducationList, error) {
+	var educations []EducationList
+	err := e.db.Model(&Education{}).
+		Column("id", "start_date", "end_date", "note").
+		Order("start_date").
+		Select(&educations)
+	if err != nil {
+		errmsg("GetEducationListAll select", err)
 		return educations, err
 	}
 	for i := range educations {

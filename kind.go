@@ -34,10 +34,10 @@ func (e *Edb) GetKind(id int64) (Kind, error) {
 // GetKindList - get kind for list by id
 func (e *Edb) GetKindList(id int64) (KindList, error) {
 	var kind KindList
-	err := e.db.Model(&kind).
+	err := e.db.Model(&Kind{}).
 		Column("id", "name", "note").
 		Where("id = ?").
-		Select()
+		Select(&kind)
 	if err != nil {
 		errmsg("GetKindList select", err)
 	}
@@ -47,10 +47,10 @@ func (e *Edb) GetKindList(id int64) (KindList, error) {
 // GetKindListAll - get all kind for list
 func (e *Edb) GetKindListAll() ([]KindList, error) {
 	var kinds []KindList
-	err := e.db.Model(&kinds).
+	err := e.db.Model(&Kind{}).
 		Column("id", "name", "note").
 		Order("name ASC").
-		Select()
+		Select(&kinds)
 	if err != nil {
 		errmsg("GetKindListAll select", err)
 	}
