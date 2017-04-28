@@ -9,6 +9,13 @@ type Scope struct {
 	UpdatedAt string `sql:"updated_at" json:"-"`
 }
 
+// ScopeList - struct for scope list
+type ScopeList struct {
+	ID   int64  `sql:"id"         json:"id"`
+	Name string `sql:"name"       json:"name"`
+	Note string `sql:"note, null" json:"note"`
+}
+
 // GetScope - get one scope by id
 func (e *Edb) GetScope(id int64) (Scope, error) {
 	var scope Scope
@@ -24,9 +31,22 @@ func (e *Edb) GetScope(id int64) (Scope, error) {
 	return scope, err
 }
 
+// GetScopeList - get scope for list by id
+func (e *Edb) GetScopeList(id int64) (ScopeList, error) {
+	var scope ScopeList
+	err := e.db.Model(&Scope{}).
+		Column("id", "name", "note").
+		Where("id = ?", id).
+		Select(&scope)
+	if err != nil {
+		errmsg("GetScopeList select", err)
+	}
+	return scope, err
+}
+
 // GetScopeListAll - get all scope for list
-func (e *Edb) GetScopeListAll() ([]Scope, error) {
-	var scopes []Scope
+func (e *Edb) GetScopeListAll() ([]ScopeList, error) {
+	var scopes []ScopeList
 	err := e.db.Model(&Scope{}).
 		Column("id", "name", "note").
 		Order("name ASC").

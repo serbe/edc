@@ -31,8 +31,21 @@ func (e *Edb) GetDepartment(id int64) (Department, error) {
 	return department, err
 }
 
-// GetDepartmentList - get all department for list
-func (e *Edb) GetDepartmentList() ([]DepartmentList, error) {
+// GetDepartmentList - get department for list by id
+func (e *Edb) GetDepartmentList(id int64) (DepartmentList, error) {
+	var department DepartmentList
+	err := e.db.Model(&Department{}).
+		Column("id", "name", "note").
+		Where("id = ?", id).
+		Select(&department)
+	if err != nil {
+		errmsg("GetDepartmentList select", err)
+	}
+	return department, err
+}
+
+// GetDepartmentListAll - get all department for list
+func (e *Edb) GetDepartmentListAll() ([]DepartmentList, error) {
 	var departments []DepartmentList
 	err := e.db.Model(&Department{}).
 		Column("id", "name", "note").

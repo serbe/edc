@@ -9,6 +9,13 @@ type Rank struct {
 	UpdatedAt string `sql:"updated_at" json:"-"`
 }
 
+// RankList - struct for rank list
+type RankList struct {
+	ID   int64  `sql:"id"         json:"id"`
+	Name string `sql:"name"       json:"name"`
+	Note string `sql:"note, null" json:"note"`
+}
+
 // GetRank - get one rank by id
 func (e *Edb) GetRank(id int64) (Rank, error) {
 	var rank Rank
@@ -24,15 +31,28 @@ func (e *Edb) GetRank(id int64) (Rank, error) {
 	return rank, err
 }
 
-// GetRankList - get all rank for list
-func (e *Edb) GetRankList() ([]Rank, error) {
-	var ranks []Rank
+// GetRankList - get rank for list by id
+func (e *Edb) GetRankList(id int64) (RankList, error) {
+	var rank RankList
+	err := e.db.Model(&Rank{}).
+		Column("id", "name", "note").
+		Where("id = ?", id).
+		Select(&rank)
+	if err != nil {
+		errmsg("GetRankList query", err)
+	}
+	return rank, err
+}
+
+// GetRankListList - get all rank for list
+func (e *Edb) GetRankListAll() ([]RankList, error) {
+	var ranks []RankList
 	err := e.db.Model(&Rank{}).
 		Column("id", "name", "note").
 		Order("name ASC").
 		Select(&ranks)
 	if err != nil {
-		errmsg("GetRankList query", err)
+		errmsg("GetRankListAll query", err)
 	}
 	return ranks, err
 }

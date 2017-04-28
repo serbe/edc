@@ -9,6 +9,13 @@ type Kind struct {
 	UpdatedAt string `sql:"updated_at" json:"-"`
 }
 
+// KindList - struct for kind list
+type KindList struct {
+	ID   int64  `sql:"id"         json:"id"`
+	Name string `sql:"name"       json:"name"`
+	Note string `sql:"note, null" json:"note"`
+}
+
 // GetKind - get one kind by id
 func (e *Edb) GetKind(id int64) (Kind, error) {
 	var kind Kind
@@ -24,15 +31,28 @@ func (e *Edb) GetKind(id int64) (Kind, error) {
 	return kind, err
 }
 
-// GetKindList - get all kind for list
-func (e *Edb) GetKindList() ([]Kind, error) {
-	var kinds []Kind
+// GetKindList - get kind for list by id
+func (e *Edb) GetKindList(id int64) (KindList, error) {
+	var kind KindList
+	err := e.db.Model(&kind).
+		Column("id", "name", "note").
+		Where("id = ?").
+		Select()
+	if err != nil {
+		errmsg("GetKindList select", err)
+	}
+	return kind, err
+}
+
+// GetKindListAll - get all kind for list
+func (e *Edb) GetKindListAll() ([]KindList, error) {
+	var kinds []KindList
 	err := e.db.Model(&kinds).
 		Column("id", "name", "note").
 		Order("name ASC").
 		Select()
 	if err != nil {
-		errmsg("GetKindList select", err)
+		errmsg("GetKindListAll select", err)
 	}
 	return kinds, err
 }

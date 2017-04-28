@@ -33,15 +33,28 @@ func (e *Edb) GetPost(id int64) (Post, error) {
 	return post, nil
 }
 
-// GetPostList - get all post for list
-func (e *Edb) GetPostList() ([]PostList, error) {
+// GetPostList - get post for list by id
+func (e *Edb) GetPostList(id int64) (PostList, error) {
+	var post PostList
+	err := e.db.Model(&Post{}).
+		Column("id", "name", "go", "note").
+		Where("id = ?", id).
+		Select(&post)
+	if err != nil {
+		errmsg("GetPostList select", err)
+	}
+	return post, nil
+}
+
+// GetPostListAll - get all post for list
+func (e *Edb) GetPostListAll() ([]PostList, error) {
 	var posts []PostList
 	err := e.db.Model(&Post{}).
 		Column("id", "name", "go", "note").
 		Order("name ASC").
 		Select(&posts)
 	if err != nil {
-		errmsg("GetPostList query", err)
+		errmsg("GetPostListAll select", err)
 	}
 	return posts, nil
 }
