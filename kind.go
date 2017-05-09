@@ -4,16 +4,16 @@ package edc
 type Kind struct {
 	ID        int64  `sql:"id"         json:"id"`
 	Name      string `sql:"name"       json:"name"`
-	Note      string `sql:"note, null" json:"note"`
+	Note      string `sql:"note,null"  json:"note"`
 	CreatedAt string `sql:"created_at" json:"-"`
 	UpdatedAt string `sql:"updated_at" json:"-"`
 }
 
 // KindList - struct for kind list
 type KindList struct {
-	ID   int64  `sql:"id"         json:"id"`
-	Name string `sql:"name"       json:"name"`
-	Note string `sql:"note, null" json:"note"`
+	ID   int64  `sql:"id"        json:"id"`
+	Name string `sql:"name"      json:"name"`
+	Note string `sql:"note,null" json:"note"`
 }
 
 // GetKind - get one kind by id

@@ -7,7 +7,7 @@ type Education struct {
 	EndDate   string `sql:"end_date"   json:"end_date"`
 	StartStr  string `sql:"-"          json:"start_str"`
 	EndStr    string `sql:"-"          json:"end_str"`
-	Note      string `sql:"note, null" json:"note"`
+	Note      string `sql:"note,null"  json:"note"`
 	CreatedAt string `sql:"created_at" json:"-"`
 	UpdatedAt string `sql:"updated_at" json:"-"`
 }
@@ -19,7 +19,7 @@ type EducationList struct {
 	EndDate   string `sql:"end_date"   json:"end_date"`
 	StartStr  string `sql:"-"          json:"start_str"`
 	EndStr    string `sql:"-"          json:"end_str"`
-	Note      string `sql:"note, null" json:"note"`
+	Note      string `sql:"note,null"  json:"note"`
 }
 
 // GetEducation - get education by id

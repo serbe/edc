@@ -2,19 +2,19 @@ package edc
 
 // Company is struct for company
 type Company struct {
-	ID        int64          `sql:"id"             json:"id"`
-	Name      string         `sql:"name"           json:"name"`
-	Address   string         `sql:"address, null"  json:"address"`
-	Scope     SelectItem     `sql:"-"              json:"scope"`
-	ScopeID   int64          `sql:"scope_id, null" json:"scope_id"`
-	Note      string         `sql:"note, null"     json:"note"`
-	Emails    []Email        `sql:"-"              json:"emails"`
-	Phones    []Phone        `sql:"-"              json:"phones"`
-	Faxes     []Phone        `sql:"-"              json:"faxes"`
-	Practices []PracticeList `sql:"-"              json:"practices"`
-	Contacts  []ContactTiny  `sql:"-"              json:"contacts"`
-	CreatedAt string         `sql:"created_at"     json:"-"`
-	UpdatedAt string         `sql:"updated_at"     json:"-"`
+	ID        int64          `sql:"id"            json:"id"`
+	Name      string         `sql:"name"          json:"name"`
+	Address   string         `sql:"address,null"  json:"address"`
+	Scope     SelectItem     `sql:"-"             json:"scope"`
+	ScopeID   int64          `sql:"scope_id,null" json:"scope_id"`
+	Note      string         `sql:"note,null"     json:"note"`
+	Emails    []Email        `sql:"-"             json:"emails"`
+	Phones    []Phone        `sql:"-"             json:"phones"`
+	Faxes     []Phone        `sql:"-"             json:"faxes"`
+	Practices []PracticeList `sql:"-"             json:"practices"`
+	Contacts  []ContactTiny  `sql:"-"             json:"contacts"`
+	CreatedAt string         `sql:"created_at"    json:"-"`
+	UpdatedAt string         `sql:"updated_at"    json:"-"`
 }
 
 // CompanyList is struct for list company

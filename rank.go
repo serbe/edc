@@ -4,16 +4,16 @@ package edc
 type Rank struct {
 	ID        int64  `sql:"id"         json:"id"`
 	Name      string `sql:"name"       json:"name"`
-	Note      string `sql:"note, null" json:"note"`
+	Note      string `sql:"note,null"  json:"note"`
 	CreatedAt string `sql:"created_at" json:"-"`
 	UpdatedAt string `sql:"updated_at" json:"-"`
 }
 
 // RankList - struct for rank list
 type RankList struct {
-	ID   int64  `sql:"id"         json:"id"`
-	Name string `sql:"name"       json:"name"`
-	Note string `sql:"note, null" json:"note"`
+	ID   int64  `sql:"id"        json:"id"`
+	Name string `sql:"name"      json:"name"`
+	Note string `sql:"note,null" json:"note"`
 }
 
 // GetRank - get one rank by id
@@ -44,7 +44,7 @@ func (e *Edb) GetRankList(id int64) (RankList, error) {
 	return rank, err
 }
 
-// GetRankListList - get all rank for list
+// GetRankListAll - get all rank for list
 func (e *Edb) GetRankListAll() ([]RankList, error) {
 	var ranks []RankList
 	err := e.db.Model(&Rank{}).
