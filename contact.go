@@ -55,47 +55,47 @@ func (e *Edb) GetContact(id int64) (Contact, error) {
 		Select()
 	if err != nil {
 		errmsg("GetContact select", err)
-		return Contact{}, err
+		return contact, err
 	}
 	contact.Company, err = e.GetCompanySelect(contact.CompanyID)
 	if err != nil {
 		errmsg("GetContact GetCompanySelect", err)
-		return Contact{}, err
+		return contact, err
 	}
 	contact.Department, err = e.GetDepartmentSelect(contact.DepartmentID)
 	if err != nil {
 		errmsg("GetContact GetDepartmentSelect", err)
-		return Contact{}, err
+		return contact, err
 	}
 	contact.Post, err = e.GetPostSelect(contact.PostID)
 	if err != nil {
 		errmsg("GetContact GetPostSelect", err)
-		return Contact{}, err
+		return contact, err
 	}
 	contact.PostGO, err = e.GetPostGOSelect(contact.PostGOID)
 	if err != nil {
 		errmsg("GetContact GetPostGOSelect", err)
-		return Contact{}, err
+		return contact, err
 	}
 	contact.Rank, err = e.GetRankSelect(contact.RankID)
 	if err != nil {
 		errmsg("GetContact GetRank", err)
-		return Contact{}, err
+		return contact, err
 	}
 	contact.Phones, err = e.GetContactPhones(contact.ID, false)
 	if err != nil {
 		errmsg("GetContact GetContactPhones", err)
-		return Contact{}, err
+		return contact, err
 	}
 	contact.Faxes, err = e.GetContactPhones(contact.ID, true)
 	if err != nil {
 		errmsg("GetContact GetContactPhones", err)
-		return Contact{}, err
+		return contact, err
 	}
 	contact.Emails, err = e.GetContactEmails(contact.ID)
 	if err != nil {
 		errmsg("GetContact GetContactEmails", err)
-		return Contact{}, err
+		return contact, err
 	}
 	// contact.Educations, err = e.ContactEducations(contact.ID)
 	// if err != nil {
