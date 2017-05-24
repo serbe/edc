@@ -2,18 +2,18 @@ package edc
 
 // Scope - struct for scope
 type Scope struct {
-	ID        int64  `sql:"id"         json:"id"`
-	Name      string `sql:"name"       json:"name"`
-	Note      string `sql:"note,null"  json:"note"`
-	CreatedAt string `sql:"created_at" json:"-"`
-	UpdatedAt string `sql:"updated_at" json:"-"`
+	ID        int64  `sql:"id"         json:"id" form:"id" query:"id"`
+	Name      string `sql:"name"       json:"name" form:"name" query:"name"`
+	Note      string `sql:"note,null"  json:"note" form:"note" query:"note"`
+	CreatedAt string `sql:"created_at" json:"-" form:"-" query:"-"`
+	UpdatedAt string `sql:"updated_at" json:"-" form:"-" query:"-"`
 }
 
 // ScopeList - struct for scope list
 type ScopeList struct {
-	ID   int64  `sql:"id"        json:"id"`
-	Name string `sql:"name"      json:"name"`
-	Note string `sql:"note,null" json:"note"`
+	ID   int64  `sql:"id"        json:"id" form:"id" query:"id"`
+	Name string `sql:"name"      json:"name" form:"name" query:"name"`
+	Note string `sql:"note,null" json:"note" form:"note" query:"note"`
 }
 
 // GetScope - get one scope by id

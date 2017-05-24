@@ -2,29 +2,29 @@ package edc
 
 // Practice - struct for practice
 type Practice struct {
-	ID             int64      `sql:"id"                    json:"id"`
-	Company        SelectItem `sql:"-"                     json:"company"`
-	CompanyID      int64      `sql:"company_id,null"       json:"company_id"`
-	Kind           Kind       `sql:"-"                     json:"kind"`
-	KindID         int64      `sql:"kind_id,null"          json:"kind_id"`
-	Topic          string     `sql:"topic,null"            json:"topic"`
-	DateOfPractice string     `sql:"date_of_practice,null" json:"date_of_practice"`
-	DateStr        string     `sql:"-"                     json:"date_str"`
-	Note           string     `sql:"note,null"             json:"note"`
-	CreatedAt      string     `sql:"created_at"            json:"-"`
-	UpdatedAt      string     `sql:"updated_at"            json:"-"`
+	ID             int64      `sql:"id"                    json:"id" form:"id" query:"id"`
+	Company        SelectItem `sql:"-"                     json:"company" form:"company" query:"company"`
+	CompanyID      int64      `sql:"company_id,null"       json:"company_id" form:"company_id" query:"company_id"`
+	Kind           Kind       `sql:"-"                     json:"kind" form:"kind" query:"kind"`
+	KindID         int64      `sql:"kind_id,null"          json:"kind_id" form:"kind_id" query:"kind_id"`
+	Topic          string     `sql:"topic,null"            json:"topic" form:"topic" query:"topic"`
+	DateOfPractice string     `sql:"date_of_practice,null" json:"date_of_practice" form:"date_of_practice" query:"date_of_practice"`
+	DateStr        string     `sql:"-"                     json:"date_str" form:"date_str" query:"date_str"`
+	Note           string     `sql:"note,null"             json:"note" form:"note" query:"note"`
+	CreatedAt      string     `sql:"created_at"            json:"-" form:"-" query:"-"`
+	UpdatedAt      string     `sql:"updated_at"            json:"-" form:"-" query:"-"`
 }
 
 // PracticeList is struct for practice list
 type PracticeList struct {
-	ID             int64  `sql:"id"                    json:"id"`
-	CompanyID      int64  `sql:"company_id,null"       json:"company_id"`
-	CompanyName    string `sql:"company_name,null"     json:"company_name"`
-	KindID         int64  `sql:"kind_id"               json:"kind_id"`
-	KindName       string `sql:"-"                     json:"kind_name"`
-	Topic          string `sql:"topic,null"            json:"topic"`
-	DateOfPractice string `sql:"date_of_practice,null" json:"date_of_practice"`
-	DateStr        string `sql:"-"                     json:"date_str"`
+	ID             int64  `sql:"id"                    json:"id" form:"id" query:"id"`
+	CompanyID      int64  `sql:"company_id,null"       json:"company_id" form:"company_id" query:"company_id"`
+	CompanyName    string `sql:"company_name,null"     json:"company_name" form:"company_name" query:"company_name"`
+	KindID         int64  `sql:"kind_id"               json:"kind_id" form:"kind_id" query:"kind_id"`
+	KindName       string `sql:"-"                     json:"kind_name" form:"kind_name" query:"kind_name"`
+	Topic          string `sql:"topic,null"            json:"topic" form:"topic" query:"topic"`
+	DateOfPractice string `sql:"date_of_practice,null" json:"date_of_practice" form:"date_of_practice" query:"date_of_practice"`
+	DateStr        string `sql:"-"                     json:"date_str" form:"date_str" query:"date_str"`
 }
 
 // GetPractice - get one practice by id

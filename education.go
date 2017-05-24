@@ -2,24 +2,24 @@ package edc
 
 // Education - struct for education
 type Education struct {
-	ID        int64  `sql:"id"         json:"id" `
-	StartDate string `sql:"start_date" json:"start_date"`
-	EndDate   string `sql:"end_date"   json:"end_date"`
-	StartStr  string `sql:"-"          json:"start_str"`
-	EndStr    string `sql:"-"          json:"end_str"`
-	Note      string `sql:"note,null"  json:"note"`
-	CreatedAt string `sql:"created_at" json:"-"`
-	UpdatedAt string `sql:"updated_at" json:"-"`
+	ID        int64  `sql:"id"         json:"id" form:"id" query:"id" `
+	StartDate string `sql:"start_date" json:"start_date" form:"start_date" query:"start_date"`
+	EndDate   string `sql:"end_date"   json:"end_date" form:"end_date" query:"end_date"`
+	StartStr  string `sql:"-"          json:"start_str" form:"start_str" query:"start_str"`
+	EndStr    string `sql:"-"          json:"end_str" form:"end_str" query:"end_str"`
+	Note      string `sql:"note,null"  json:"note" form:"note" query:"note"`
+	CreatedAt string `sql:"created_at" json:"-" form:"-" query:"-"`
+	UpdatedAt string `sql:"updated_at" json:"-" form:"-" query:"-"`
 }
 
 // EducationList - struct for list of education
 type EducationList struct {
-	ID        int64  `sql:"id"         json:"id" `
-	StartDate string `sql:"start_date" json:"start_date"`
-	EndDate   string `sql:"end_date"   json:"end_date"`
-	StartStr  string `sql:"-"          json:"start_str"`
-	EndStr    string `sql:"-"          json:"end_str"`
-	Note      string `sql:"note,null"  json:"note"`
+	ID        int64  `sql:"id"         json:"id" form:"id" query:"id" `
+	StartDate string `sql:"start_date" json:"start_date" form:"start_date" query:"start_date"`
+	EndDate   string `sql:"end_date"   json:"end_date" form:"end_date" query:"end_date"`
+	StartStr  string `sql:"-"          json:"start_str" form:"start_str" query:"start_str"`
+	EndStr    string `sql:"-"          json:"end_str" form:"end_str" query:"end_str"`
+	Note      string `sql:"note,null"  json:"note" form:"note" query:"note"`
 }
 
 // GetEducation - get education by id
