@@ -2,12 +2,12 @@ package edc
 
 // Email - struct for email
 type Email struct {
-	ID        int64  `sql:"id"                 json:"id" form:"id" query:"id"`
+	ID        int64  `sql:"id"                 json:"id"         form:"id"         query:"id"`
 	CompanyID int64  `sql:"company_id,pk,null" json:"company_id" form:"company_id" query:"company_id"`
 	ContactID int64  `sql:"contact_id,pk,null" json:"contact_id" form:"contact_id" query:"contact_id"`
-	Email     string `sql:"email,null"         json:"email" form:"email" query:"email"`
-	CreatedAt string `sql:"created_at"         json:"-" form:"-" query:"-"`
-	UpdatedAt string `sql:"updated_at"         json:"-" form:"-" query:"-"`
+	Email     string `sql:"email,null"         json:"email"      form:"email"      query:"email"`
+	CreatedAt string `sql:"created_at"         json:"-"`
+	UpdatedAt string `sql:"updated_at"         json:"-"`
 }
 
 // GetEmail - get one email by id
