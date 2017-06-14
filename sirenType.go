@@ -38,7 +38,7 @@ func (e *Edb) GetSirenTypeList(id int64) (SirenTypeList, error) {
 	var sirenType SirenTypeList
 	err := e.db.Model(&SirenType{}).
 		Column("id", "name", "radius", "note").
-		Order("name ASC").
+		Where("id = ?", id).
 		Select(&sirenType)
 	if err != nil {
 		errmsg("GetSirenTypeList select", err)
