@@ -10,6 +10,14 @@ type SirenType struct {
 	UpdatedAt string `sql:"updated_at" json:"-"`
 }
 
+// SirenTypeList - struct for sirenType list
+type SirenTypeList struct {
+	ID     int64  `sql:"id"         json:"id"     form:"id"     query:"id"`
+	Name   string `sql:"name"       json:"name"   form:"name"   query:"name"`
+	Radius int64  `sql:"radius"     json:"radius" form:"radius" query:"radius"`
+	Note   string `sql:"note,null"  json:"note"   form:"note"   query:"note"`
+}
+
 // GetSirenType - get one sirenType by id
 func (e *Edb) GetSirenType(id int64) (SirenType, error) {
 	var sirenType SirenType
@@ -25,10 +33,24 @@ func (e *Edb) GetSirenType(id int64) (SirenType, error) {
 	return sirenType, err
 }
 
-// GetSirenTypeList - get all sirenType for list
-func (e *Edb) GetSirenTypeList() ([]SirenType, error) {
-	var sirenTypes []SirenType
-	err := e.db.Model(&sirenTypes).
+// GetSirenTypeList - get sirenType for list by id
+func (e *Edb) GetSirenTypeList(id int64) (SirenTypeList, error) {
+	var sirenType SirenTypeList
+	err := e.db.Model(&SirenType{}).
+		Column("id", "name", "radius", "note").
+		Order("name ASC").
+		Select(&sirenType)
+	if err != nil {
+		errmsg("GetSirenTypeList select", err)
+	}
+	return sirenType, err
+}
+
+// GetSirenTypeListAll - get all sirenType for list
+func (e *Edb) GetSirenTypeListAll() ([]SirenTypeList, error) {
+	var sirenTypes []SirenTypeList
+	err := e.db.Model(&SirenType{}).
+		Column("id", "name", "radius", "note").
 		Order("name ASC").
 		Select()
 	if err != nil {
