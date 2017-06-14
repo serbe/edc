@@ -23,6 +23,16 @@ type Siren struct {
 	UpdatedAt string    `sql:"updated_at"      json:"-"`
 }
 
+// SirenList - struct for siren
+type SirenList struct {
+	ID      int64  `sql:"id"              json:"id"         form:"id"         query:"id"`
+	TypeID  int64  `sql:"type_id"         json:"type_id"    form:"type_id"    query:"type_id"`
+	Address string `sql:"address,null"    json:"address"    form:"address"    query:"address"`
+	Stage   int64  `sql:"stage,null"      json:"stage"      form:"stage"      query:"stage"`
+	Own     string `sql:"own,null"        json:"own"        form:"own"        query:"own"`
+	Note    string `sql:"note,null"       json:"note"       form:"note"       query:"note"`
+}
+
 // GetSiren - get one siren by id
 func (e *Edb) GetSiren(id int64) (Siren, error) {
 	var siren Siren
@@ -39,11 +49,25 @@ func (e *Edb) GetSiren(id int64) (Siren, error) {
 }
 
 // GetSirenList - get all siren for list
-func (e *Edb) GetSirenList() ([]Siren, error) {
-	var sirens []Siren
-	err := e.db.Model(&sirens).
+func (e *Edb) GetSirenList(id int64) (SirenList, error) {
+	var sirens SirenList
+	err := e.db.Model(&Siren{}).
+		Column("id", "type_id", "address", "stage", "own", "note").
+		Where("id = ?", id).
+		Select(&sirens)
+	if err != nil {
+		errmsg("GetSirenList select", err)
+	}
+	return sirens, err
+}
+
+// GetSirenListAll - get all siren for list
+func (e *Edb) GetSirenListAll() ([]SirenList, error) {
+	var sirens []SirenList
+	err := e.db.Model(&Siren{}).
+		Column("id", "type_id", "address", "stage", "own", "note").
 		Order("name ASC").
-		Select()
+		Select(&sirens)
 	if err != nil {
 		errmsg("GetSirenList select", err)
 	}
