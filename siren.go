@@ -23,7 +23,7 @@ type Siren struct {
 	UpdatedAt string    `sql:"updated_at"      json:"-"`
 }
 
-// SirenList - struct for siren
+// SirenList - struct for siren list
 type SirenList struct {
 	ID      int64  `sql:"id"              json:"id"         form:"id"         query:"id"`
 	TypeID  int64  `sql:"type_id"         json:"type_id"    form:"type_id"    query:"type_id"`
@@ -123,6 +123,7 @@ func (e *Edb) sirenCreateTable() error {
 				longitude  text,
 				stage      bigint,
 				own        text,
+				note        text,
 				created_at TIMESTAMP without time zone,
 				updated_at TIMESTAMP without time zone default now(),
 				UNIQUE(num_id, num_pass, type_id)
