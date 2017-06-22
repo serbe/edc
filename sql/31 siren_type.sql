@@ -1,5 +1,5 @@
 CREATE TABLE IF NOT EXISTS
-    sirenTypes (
+    siren_types (
         id         bigserial primary key,
         name       text,
         radius     bigint,

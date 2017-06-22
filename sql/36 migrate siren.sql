@@ -1,0 +1,1 @@
+﻿ALTER TABLE sirens ADD COLUMN note text;
