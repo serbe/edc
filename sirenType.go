@@ -52,7 +52,7 @@ func (e *Edb) GetSirenTypeListAll() ([]SirenTypeList, error) {
 	err := e.db.Model(&SirenType{}).
 		Column("id", "name", "radius", "note").
 		Order("name ASC").
-		Select()
+		Select(&sirenTypes)
 	if err != nil {
 		errmsg("GetSirenTypeList select", err)
 	}
@@ -106,7 +106,7 @@ func (e *Edb) DeleteSirenType(id int64) error {
 func (e *Edb) sirenTypeCreateTable() error {
 	str := `
 		CREATE TABLE IF NOT EXISTS
-			sirenTypes (
+			siren_types (
 				id         bigserial primary key,
 				name       text,
 				radius     bigint,

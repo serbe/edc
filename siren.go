@@ -50,15 +50,15 @@ func (e *Edb) GetSiren(id int64) (Siren, error) {
 
 // GetSirenList - get all siren for list
 func (e *Edb) GetSirenList(id int64) (SirenList, error) {
-	var sirens SirenList
+	var siren SirenList
 	err := e.db.Model(&Siren{}).
 		Column("id", "type_id", "address", "stage", "own", "note").
 		Where("id = ?", id).
-		Select(&sirens)
+		Select(&siren)
 	if err != nil {
 		errmsg("GetSirenList select", err)
 	}
-	return sirens, err
+	return siren, err
 }
 
 // GetSirenListAll - get all siren for list
