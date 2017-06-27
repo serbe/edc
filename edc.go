@@ -16,7 +16,7 @@ type Edb struct {
 
 // SelectItem - struct for select element
 type SelectItem struct {
-	ID   int64  `json:"id" form:"id" query:"id"`
+	ID   int64  `json:"id"   form:"id"   query:"id"`
 	Name string `json:"name" form:"name" query:"name"`
 }
 

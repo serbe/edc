@@ -103,7 +103,7 @@ func (e *Edb) tccCreateTable() error {
 				address    text,
 				contact_id bigint,
 				company_id bigint,
-				note        text,
+				note       text,
 				created_at TIMESTAMP without time zone,
 				updated_at TIMESTAMP without time zone default now(),
 				UNIQUE(num_id, num_pass, type_id)
