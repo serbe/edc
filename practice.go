@@ -159,7 +159,7 @@ func (e *Edb) GetPracticeNear() ([]PracticeList, error) {
 	LEFT JOIN
 		kinds AS k ON k.id = p.kind_id
 	WHERE
-		p.date_of_practice > TIMESTAMP 'yesterday'
+		p.date_of_practice > TIMESTAMP 'now'::timestamp - '1 month'::interval
 	ORDER BY
 		date_of_practice DESC
 	LIMIT 10`)
