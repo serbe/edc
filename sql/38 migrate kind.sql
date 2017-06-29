@@ -1,0 +1,1 @@
+ALTER TABLE kinds ADD COLUMN short_name text;

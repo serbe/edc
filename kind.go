@@ -2,18 +2,20 @@ package edc
 
 // Kind - struct for kind
 type Kind struct {
-	ID        int64  `sql:"id"         json:"id"   form:"id"   query:"id"`
-	Name      string `sql:"name"       json:"name" form:"name" query:"name"`
-	Note      string `sql:"note,null"  json:"note" form:"note" query:"note"`
+	ID        int64  `sql:"id"         json:"id"         form:"id"         query:"id"`
+	Name      string `sql:"name"       json:"name"       form:"name"       query:"name"`
+	ShortName string `sql:"short_name" json:"short_name" form:"short_name" query:"short_name"`
+	Note      string `sql:"note,null"  json:"note"       form:"note"       query:"note"`
 	CreatedAt string `sql:"created_at" json:"-"`
 	UpdatedAt string `sql:"updated_at" json:"-"`
 }
 
 // KindList - struct for kind list
 type KindList struct {
-	ID   int64  `sql:"id"        json:"id"   form:"id"   query:"id"`
-	Name string `sql:"name"      json:"name" form:"name" query:"name"`
-	Note string `sql:"note,null" json:"note" form:"note" query:"note"`
+	ID        int64  `sql:"id"         json:"id"         form:"id"         query:"id"`
+	Name      string `sql:"name"       json:"name"       form:"name"       query:"name"`
+	ShortName string `sql:"short_name" json:"short_name" form:"short_name" query:"short_name"`
+	Note      string `sql:"note,null"  json:"note"       form:"note"       query:"note"`
 }
 
 // GetKind - get one kind by id
@@ -35,7 +37,7 @@ func (e *Edb) GetKind(id int64) (Kind, error) {
 func (e *Edb) GetKindList(id int64) (KindList, error) {
 	var kind KindList
 	err := e.db.Model(&Kind{}).
-		Column("id", "name", "note").
+		Column("id", "name", "short_name", "note").
 		Where("id = ?").
 		Select(&kind)
 	if err != nil {
@@ -48,7 +50,7 @@ func (e *Edb) GetKindList(id int64) (KindList, error) {
 func (e *Edb) GetKindListAll() ([]KindList, error) {
 	var kinds []KindList
 	err := e.db.Model(&Kind{}).
-		Column("id", "name", "note").
+		Column("id", "name", "short_name", "note").
 		Order("name ASC").
 		Select(&kinds)
 	if err != nil {
@@ -108,6 +110,7 @@ func (e *Edb) kindCreateTable() error {
 			kinds (
 				id bigserial primary key,
 				name text,
+				short_name text,
 				note text,
 				created_at TIMESTAMP without time zone,
 				updated_at TIMESTAMP without time zone default now(),
