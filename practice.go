@@ -22,6 +22,7 @@ type PracticeList struct {
 	CompanyName    string `sql:"company_name,null"     json:"company_name"     form:"company_name"     query:"company_name"`
 	KindID         int64  `sql:"kind_id"               json:"kind_id"          form:"kind_id"          query:"kind_id"`
 	KindName       string `sql:"-"                     json:"kind_name"        form:"kind_name"        query:"kind_name"`
+	KindShortName  string `sql:"-"                     json:"kind_short_name"  form:"kind_short_name"  query:"kind_short_name"`
 	Topic          string `sql:"topic,null"            json:"topic"            form:"topic"            query:"topic"`
 	DateOfPractice string `sql:"date_of_practice,null" json:"date_of_practice" form:"date_of_practice" query:"date_of_practice"`
 	DateStr        string `sql:"-"                     json:"date_str"         form:"date_str"         query:"date_str"`
@@ -63,6 +64,7 @@ func (e *Edb) GetPracticeList(id int64) (PracticeList, error) {
 		c.name AS company_name,
 		p.kind_id,
 		k.name AS kind_name,
+		k.short_name AS kind_short_name,
 		p.date_of_practice,
 		p.topic
 	FROM
@@ -89,6 +91,7 @@ func (e *Edb) GetPracticeListAll() ([]PracticeList, error) {
 		p.company_id,
 		c.name AS company_name,
 		k.name AS kind_name,
+		k.short_name AS kind_short_name,
 		p.date_of_practice,
 		p.topic
 	FROM
@@ -120,6 +123,7 @@ func (e *Edb) GetPracticeCompany(id int64) ([]PracticeList, error) {
 		p.company_id,
 		c.name AS company_name,
 		k.name AS kind_name,
+		k.short_name AS kind_short_name,
 		p.date_of_practice,
 		p.topic
 	FROM
@@ -150,6 +154,7 @@ func (e *Edb) GetPracticeNear() ([]PracticeList, error) {
 		p.company_id,
 		c.name AS company_name,
 		k.name AS kind_name,
+		k.short_name AS kind_short_name,
 		p.topic,
 		p.date_of_practice
 	FROM
