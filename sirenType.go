@@ -59,10 +59,24 @@ func (e *Edb) GetSirenTypeListAll() ([]SirenTypeList, error) {
 	return sirenTypes, err
 }
 
-// GetSirenTypeSelect - get all sirenType for select
-func (e *Edb) GetSirenTypeSelect() ([]SelectItem, error) {
+// GetSirenTypeSelect - get sirenType for select by id
+func (e *Edb) GetSirenTypeSelect(id int64) ([]SelectItem, error) {
 	var sirenTypes []SelectItem
 	err := e.db.Model(&SirenType{}).
+		Column("id", "name").
+		Where("id = ?", id).
+		Select(&sirenTypes)
+	if err != nil {
+		errmsg("GetSirenTypeSelect Select", err)
+	}
+	return sirenTypes, err
+}
+
+// GetSirenTypeSelectAll - get all sirenType for select
+func (e *Edb) GetSirenTypeSelectAll() ([]SelectItem, error) {
+	var sirenTypes []SelectItem
+	err := e.db.Model(&SirenType{}).
+		Column("id", "name").
 		Order("name ASC").
 		Select(&sirenTypes)
 	if err != nil {
