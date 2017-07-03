@@ -27,7 +27,7 @@ type Siren struct {
 type SirenList struct {
 	ID            int64  `sql:"id"              json:"id"              form:"id"              query:"id"`
 	SyrenTypeID   int64  `sql:"type_id"         json:"siren_type_id"   form:"siren_type_id"   query:"siren_type_id"`
-	SyrenTypeName int64  `sql:"type_name"       json:"siren_type_name" form:"siren_type_name" query:"siren_type_name"`
+	SyrenTypeName string `sql:"type_name"       json:"siren_type_name" form:"siren_type_name" query:"siren_type_name"`
 	Address       string `sql:"address,null"    json:"address"         form:"address"         query:"address"`
 	Note          string `sql:"note,null"       json:"note"            form:"note"            query:"note"`
 }

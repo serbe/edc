@@ -1,0 +1,1 @@
+ALTER TABLE educations ADD COLUMN contact_id bigint;
