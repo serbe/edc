@@ -25,11 +25,11 @@ type Siren struct {
 
 // SirenList - struct for siren list
 type SirenList struct {
-	ID            int64  `sql:"id"              json:"id"              form:"id"              query:"id"`
-	SyrenTypeID   int64  `sql:"type_id"         json:"siren_type_id"   form:"siren_type_id"   query:"siren_type_id"`
-	SyrenTypeName string `sql:"type_name"       json:"siren_type_name" form:"siren_type_name" query:"siren_type_name"`
-	Address       string `sql:"address,null"    json:"address"         form:"address"         query:"address"`
-	Note          string `sql:"note,null"       json:"note"            form:"note"            query:"note"`
+	ID            int64    `sql:"id"              json:"id"              form:"id"              query:"id"`
+	SyrenTypeName string   `sql:"siren_type_name" json:"siren_type_name" form:"siren_type_name" query:"siren_type_name"`
+	Address       string   `sql:"address"         json:"address"         form:"address"         query:"address"`
+	ContactName   string   `sql:"contact_name"    json:"contact_name"    form:"contact_name"    query:"contact_name"`
+	Phones        []string `sql:"phones"          json:"phones"          form:"phones"          query:"phones"          pg:",array"`
 }
 
 // GetSiren - get one siren by id
@@ -53,14 +53,22 @@ func (e *Edb) GetSirenList() ([]SirenList, error) {
 	_, err := e.db.Query(&sirens, `
 		SELECT
 			s.id,
-			s.type_id,
 			s.address,
-			t.name AS type_name,
-			s.note
+			t.name AS siren_type_name,
+			c.name AS contact_name,
+			array_agg(DISTINCT ph.phone) AS phones
         FROM
 			sirens AS s
 		LEFT JOIN
 			siren_types AS t ON s.type_id = t.id
+		LEFT JOIN
+			contacts AS c ON s.contact_id = c.id
+		LEFT JOIN
+			phones AS ph ON s.contact_id = ph.contact_id AND ph.fax = false
+		GROUP BY
+			s.id,
+			t.id,
+			c.id
 		ORDER BY
 			t.name ASC
 	`)
