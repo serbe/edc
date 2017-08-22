@@ -32,7 +32,7 @@ func InitDB(host string, dbname string, user string, password string, logsql boo
 		opt.Addr = host
 	}
 	e.db = pg.Connect(&opt)
-	if logsql == true {
+	if logsql {
 		e.db.OnQueryProcessed(func(event *pg.QueryProcessedEvent) {
 			query, err := event.FormattedQuery()
 			if err != nil {
@@ -101,6 +101,6 @@ func (e *Edb) createAllTables() error {
 	if err != nil {
 		return err
 	}
-
-	return nil
+	err = e.tccCreateTable()
+	return err
 }
