@@ -7,6 +7,7 @@ type Education struct {
 	EndDate   string `sql:"end_date"   json:"end_date"   form:"end_date"   query:"end_date"`
 	StartStr  string `sql:"-"          json:"start_str"  form:"start_str"  query:"start_str"`
 	EndStr    string `sql:"-"          json:"end_str"    form:"end_str"    query:"end_str"`
+	PostID    int64  `sql:"post_id"    json:"post_id"    form:"post_id"    query:"post_id"`
 	Note      string `sql:"note,null"  json:"note"       form:"note"       query:"note"`
 	CreatedAt string `sql:"created_at" json:"-"`
 	UpdatedAt string `sql:"updated_at" json:"-"`
@@ -21,6 +22,8 @@ type EducationList struct {
 	EndDate     string `sql:"end_date"     json:"end_date"     form:"end_date"     query:"end_date"`
 	StartStr    string `sql:"-"            json:"start_str"    form:"start_str"    query:"start_str"`
 	EndStr      string `sql:"-"            json:"end_str"      form:"end_str"      query:"end_str"`
+	PostID      int64  `sql:"post_id"      json:"post_id"      form:"post_id"      query:"post_id"`
+	PostName    string `sql:"post_name"    json:"post_name"    form:"post_name"    query:"post_name"`
 	Note        string `sql:"note,null"    json:"note"         form:"note"         query:"note"`
 }
 
@@ -43,17 +46,22 @@ func (e *Edb) GetEducation(id int64) (Education, error) {
 func (e *Edb) GetEducationListAll() ([]EducationList, error) {
 	var educations []EducationList
 	_, err := e.db.Query(&educations, `
-	SELECT
-		e.id,
-		e.start_date,
-		e.contact_id,
-		c.name AS contact_name
-	FROM
-		educations AS e
-	LEFT JOIN
-		contacts AS c ON c.id = e.contact_id
-	ORDER BY
-		start_date DESC`)
+		SELECT
+			e.id,
+			e.start_date,
+			e.contact_id,
+			c.name AS contact_name,
+			e.post_id,
+			p.name AS post_name
+		FROM
+			educations AS e
+		LEFT JOIN
+			contacts AS c ON c.id = e.contact_id
+		LEFT JOIN
+			posts AS p ON p.id = e.post_id
+		ORDER BY
+			start_date DESC
+	`)
 	for i := range educations {
 		educations[i].StartStr = setStrMonth(educations[i].StartDate)
 		educations[i].EndStr = setStrMonth(educations[i].EndDate)
@@ -65,20 +73,21 @@ func (e *Edb) GetEducationListAll() ([]EducationList, error) {
 func (e *Edb) GetEducationNear() ([]EducationList, error) {
 	var educations []EducationList
 	_, err := e.db.Query(&educations, `
-	SELECT
-		e.id,
-		e.start_date,
-		e.contact_id,
-		c.name AS contact_name
-	FROM
-		educations AS e
-	LEFT JOIN
-		contacts AS c ON c.id = e.contact_id
-	WHERE
-		e.start_date > TIMESTAMP 'now'::timestamp - '1 month'::interval
-	ORDER BY
-		start_date DESC
-	LIMIT 10`)
+		SELECT
+			e.id,
+			e.start_date,
+			e.contact_id,
+			c.name AS contact_name
+		FROM
+			educations AS e
+		LEFT JOIN
+			contacts AS c ON c.id = e.contact_id
+		WHERE
+			e.start_date > TIMESTAMP 'now'::timestamp - '1 month'::interval
+		ORDER BY
+			start_date DESC
+		LIMIT 10
+	`)
 	for i := range educations {
 		educations[i].StartStr = setStrMonth(educations[i].StartDate)
 	}
@@ -146,6 +155,7 @@ func (e *Edb) educationCreateTable() error {
 				start_date date,
 				end_date date,
 				note text,
+				post_id bigint,
 				created_at TIMESTAMP without time zone,
 				updated_at TIMESTAMP without time zone default now()
 			)
