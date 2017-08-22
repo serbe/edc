@@ -3,6 +3,7 @@ package edc
 // Education - struct for education
 type Education struct {
 	ID        int64  `sql:"id"         json:"id"         form:"id"         query:"id" `
+	ContactID int64  `sql:"contact_id" json:"contact_id" form:"contact_id" query:"contact_id"`
 	StartDate string `sql:"start_date" json:"start_date" form:"start_date" query:"start_date"`
 	EndDate   string `sql:"end_date"   json:"end_date"   form:"end_date"   query:"end_date"`
 	StartStr  string `sql:"-"          json:"start_str"  form:"start_str"  query:"start_str"`

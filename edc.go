@@ -98,9 +98,9 @@ func (e *Edb) createAllTables() error {
 		return err
 	}
 	err = e.sirenCreateTable()
-	if err != nil {
-		return err
-	}
-	err = e.tccCreateTable()
+	// if err != nil {
+	// 	return err
+	// }
+	// err = e.tccCreateTable()
 	return err
 }
