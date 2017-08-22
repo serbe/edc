@@ -97,7 +97,7 @@ func (e *Edb) CreateCompanyPhones(company Company, fax bool) error {
 	for _, value := range allPhones {
 		if value.Phone != 0 {
 			var id int64
-			err = e.db.Model(&Phone{}).
+			_ = e.db.Model(&Phone{}).
 				Column("id").
 				Where("company_id = ? and phone = ? and fax = ?", company.ID, value.Phone, fax).
 				Select(&id)
@@ -131,7 +131,7 @@ func (e *Edb) CreateContactPhones(contact Contact, fax bool) error {
 	for _, value := range allPhones {
 		if value.Phone != 0 {
 			var id int64
-			err = e.db.Model(&Phone{}).
+			_ = e.db.Model(&Phone{}).
 				Column("id").
 				Where("contact_id = ? and phone = ? and fax = ?", contact.ID, value.Phone, fax).
 				Select(&id)
