@@ -50,6 +50,7 @@ func (e *Edb) GetEducationListAll() ([]EducationList, error) {
 		SELECT
 			e.id,
 			e.start_date,
+			e.end_date,
 			e.contact_id,
 			c.name AS contact_name,
 			e.post_id,
@@ -77,6 +78,7 @@ func (e *Edb) GetEducationNear() ([]EducationList, error) {
 		SELECT
 			e.id,
 			e.start_date,
+			e.end_date,
 			e.contact_id,
 			c.name AS contact_name
 		FROM
