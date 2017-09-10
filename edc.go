@@ -98,6 +98,10 @@ func (e *Edb) createAllTables() error {
 		return err
 	}
 	err = e.sirenCreateTable()
+	if err != nil {
+		return err
+	}
+	err = e.certificateCreateTable()
 	// if err != nil {
 	// 	return err
 	// }
