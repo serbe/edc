@@ -1,1 +1,0 @@
-ALTER TABLE certificates OWNER TO eddsuser;

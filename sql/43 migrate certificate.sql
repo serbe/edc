@@ -1,1 +1,0 @@
-ALTER TABLE certificates ADD COLUMN company_id BIGINT;
