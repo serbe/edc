@@ -1,1 +1,1 @@
-ALTER TABLE certificates ADD COLUMN center_id BIGINT;
+ALTER TABLE certificates ADD COLUMN company_id BIGINT;

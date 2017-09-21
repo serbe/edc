@@ -6,6 +6,8 @@ type Certificate struct {
 	Num       string     `sql:"num"        json:"num"        form:"num"        query:"num"`
 	ContactID int64      `sql:"contact_id" json:"contact_id" form:"contact_id" query:"contact_id"`
 	Contact   SelectItem `sql:"-"          json:"contact"    form:"contact"    query:"contact"`
+	CompanyID int64      `sql:"company_id" json:"company_id" form:"company_id" query:"company_id"`
+	Company   SelectItem `sql:"-"          json:"company"    form:"company"    query:"company"`
 	CertDate  string     `sql:"cert_date"  json:"cert_date"  form:"cert_date"  query:"cert_date"`
 	CenterID  int64      `sql:"center_id"  json:"center_id"  form:"center_id"  query:"center_id"`
 	Note      string     `sql:"note,null"  json:"note"       form:"note"       query:"note"`
@@ -19,6 +21,8 @@ type CertificateList struct {
 	Num         string `sql:"num"          json:"num"          form:"num"          query:"num"`
 	ContactID   int64  `sql:"contact_id"   json:"contact_id"   form:"contact_id"   query:"contact_id"`
 	ContactName string `sql:"contact_name" json:"contact_name" form:"contact_name" query:"contact_name"`
+	CompanyID   int64  `sql:"company_id"   json:"company_id"   form:"company_id"   query:"company_id"`
+	CompanyName string `sql:"company_name" json:"company_name" form:"company_name" query:"company_name"`
 	CertDate    string `sql:"cert_date"    json:"cert_date"    form:"cert_date"    query:"cert_date"`
 	CenterID    int64  `sql:"center_id"    json:"center_id"    form:"center_id"    query:"center_id"`
 }
@@ -46,15 +50,19 @@ func (e *Edb) GetCertificateListAll() ([]CertificateList, error) {
 			c.id,
 			c.num,
 			c.contact_id,
-			co.name AS contact_name,
+			p.name AS contact_name,
+			c.company_id,
+			co.name AS company_name,
 			c.cert_date,
 			c.center_id
 		FROM
 			certificates AS c
 		LEFT JOIN
-			contacts AS co ON c.contact_id = co.id
+			contacts AS p ON c.contact_id = p.id
+			company AS co ON c.company_id = co.id
 		GROUP BY
 			c.id,
+			p.name,
 			co.name
 		ORDER BY
 			num ASC
@@ -104,6 +112,7 @@ func (e *Edb) certificateCreateTable() error {
 				id BIGSERIAL PRIMARY KEY,
 				num TEXT,
 				contact_id BIGINT,
+				company_id BIGINT,
 				cert_date DATE,
 				note TEXT,
 				center_id BIGINT,
