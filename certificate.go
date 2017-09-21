@@ -56,7 +56,8 @@ func (e *Edb) GetCertificateListAll() ([]CertificateList, error) {
 			certificates AS c
 		LEFT JOIN
 			contacts AS p ON c.contact_id = p.id
-			company AS co ON c.company_id = co.id
+		LEFT JOIN
+			companies AS co ON c.company_id = co.id
 		GROUP BY
 			c.id,
 			p.name,
