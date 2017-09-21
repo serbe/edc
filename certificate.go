@@ -9,7 +9,6 @@ type Certificate struct {
 	CompanyID int64      `sql:"company_id" json:"company_id" form:"company_id" query:"company_id"`
 	Company   SelectItem `sql:"-"          json:"company"    form:"company"    query:"company"`
 	CertDate  string     `sql:"cert_date"  json:"cert_date"  form:"cert_date"  query:"cert_date"`
-	CenterID  int64      `sql:"center_id"  json:"center_id"  form:"center_id"  query:"center_id"`
 	Note      string     `sql:"note,null"  json:"note"       form:"note"       query:"note"`
 	CreatedAt string     `sql:"created_at" json:"-"`
 	UpdatedAt string     `sql:"updated_at" json:"-"`
@@ -24,7 +23,6 @@ type CertificateList struct {
 	CompanyID   int64  `sql:"company_id"   json:"company_id"   form:"company_id"   query:"company_id"`
 	CompanyName string `sql:"company_name" json:"company_name" form:"company_name" query:"company_name"`
 	CertDate    string `sql:"cert_date"    json:"cert_date"    form:"cert_date"    query:"cert_date"`
-	CenterID    int64  `sql:"center_id"    json:"center_id"    form:"center_id"    query:"center_id"`
 }
 
 // GetCertificate - get one certificate by id
@@ -53,8 +51,7 @@ func (e *Edb) GetCertificateListAll() ([]CertificateList, error) {
 			p.name AS contact_name,
 			c.company_id,
 			co.name AS company_name,
-			c.cert_date,
-			c.center_id
+			c.cert_date
 		FROM
 			certificates AS c
 		LEFT JOIN
@@ -115,7 +112,6 @@ func (e *Edb) certificateCreateTable() error {
 				company_id BIGINT,
 				cert_date DATE,
 				note TEXT,
-				center_id BIGINT,
 				created_at TIMESTAMP without time zone,
 				updated_at TIMESTAMP without time zone default now(),
 				UNIQUE(num)
