@@ -37,6 +37,16 @@ func (e *Edb) GetCertificate(id int64) (Certificate, error) {
 	if err != nil {
 		errmsg("GetCertificate select", err)
 	}
+	certificate.Contact, err = e.GetContactSelect(certificate.ContactID)
+	if err != nil {
+		errmsg("GetCertificate GetContactSelect", err)
+		return certificate, err
+	}
+	certificate.Company, err = e.GetCompanySelect(certificate.CompanyID)
+	if err != nil {
+		errmsg("GetCertificate GetCompanySelect", err)
+		return certificate, err
+	}
 	return certificate, err
 }
 

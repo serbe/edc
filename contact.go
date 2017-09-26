@@ -140,6 +140,19 @@ func (e *Edb) GetContactList() ([]ContactList, error) {
 	return contacts, err
 }
 
+// GetContactSelect - get contact for select by id
+func (e *Edb) GetContactSelect(id int64) (SelectItem, error) {
+	var contact SelectItem
+	err := e.db.Model(&Contact{}).
+		Column("id", "name").
+		Where("id = ?", id).
+		Select(&contact)
+	if err != nil {
+		errmsg("GetContactSelect select", err)
+	}
+	return contact, err
+}
+
 // GetContactSelectAll - get all contacts for select
 func (e *Edb) GetContactSelectAll() ([]SelectItem, error) {
 	var contacts []SelectItem
