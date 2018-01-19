@@ -95,23 +95,23 @@ func (e *Edb) DeleteTcc(id int64) error {
 	return err
 }
 
-func (e *Edb) tccCreateTable() error {
-	str := `
-		CREATE TABLE IF NOT EXISTS
-			tccs (
-				id         bigserial PRIMARY KEY,
-				address    text,
-				contact_id bigint,
-				company_id bigint,
-				note       text,
-				created_at TIMESTAMP without time zone,
-				updated_at TIMESTAMP without time zone default now(),
-				UNIQUE(num_id, num_pass, type_id)
-			)
-	`
-	_, err := e.db.Exec(str)
-	if err != nil {
-		errmsg("tccCreateTable exec", err)
-	}
-	return err
-}
+// func (e *Edb) tccCreateTable() error {
+// 	str := `
+// 		CREATE TABLE IF NOT EXISTS
+// 			tccs (
+// 				id         bigserial PRIMARY KEY,
+// 				address    text,
+// 				contact_id bigint,
+// 				company_id bigint,
+// 				note       text,
+// 				created_at TIMESTAMP without time zone,
+// 				updated_at TIMESTAMP without time zone default now(),
+// 				UNIQUE(num_id, num_pass, type_id)
+// 			)
+// 	`
+// 	_, err := e.db.Exec(str)
+// 	if err != nil {
+// 		errmsg("tccCreateTable exec", err)
+// 	}
+// 	return err
+// }
