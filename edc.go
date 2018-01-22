@@ -21,15 +21,23 @@ type SelectItem struct {
 }
 
 // InitDB initialize database
-func InitDB(host string, dbname string, user string, password string, logsql bool, logerr bool) (*Edb, error) {
+func InitDB(
+	host string,
+	port string,
+	dbname string,
+	user string,
+	password string,
+	logsql bool,
+	logerr bool,
+) (*Edb, error) {
 	e := new(Edb)
 	opt := pg.Options{
 		User:     user,
 		Password: password,
 		Database: dbname,
 	}
-	if host != "" {
-		opt.Addr = host
+	if host != "" || port != "" {
+		opt.Addr = host + ":" + port
 	}
 	e.db = pg.Connect(&opt)
 	if logsql {
