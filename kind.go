@@ -38,7 +38,7 @@ func (e *Edb) GetKindList(id int64) (KindList, error) {
 	var kind KindList
 	err := e.db.Model(&Kind{}).
 		Column("id", "name", "short_name", "note").
-		Where("id = ?").
+		Where("id = ?", id).
 		Select(&kind)
 	if err != nil {
 		errmsg("GetKindList select", err)
