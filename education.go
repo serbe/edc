@@ -88,7 +88,7 @@ func (e *Edb) GetEducationNear() ([]EducationList, error) {
 		WHERE
 			e.start_date > TIMESTAMP 'now'::timestamp - '1 month'::interval
 		ORDER BY
-			start_date DESC
+			start_date ASC
 		LIMIT 10
 	`)
 	for i := range educations {
