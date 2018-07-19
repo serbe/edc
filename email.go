@@ -89,10 +89,10 @@ func (e *Edb) CreateCompanyEmails(company Company) error {
 		errmsg("CreateCompanyEmails DeleteCompanyEmails", err)
 		return err
 	}
-	for _, email := range company.Emails {
-		if email.Email != "" {
-			email.CompanyID = company.ID
-			_, err = e.CreateEmail(email)
+	for i := range company.Emails {
+		if company.Emails[i].Email != "" {
+			company.Emails[i].CompanyID = company.ID
+			_, err = e.CreateEmail(company.Emails[i])
 			if err != nil {
 				errmsg("CreateCompanyEmails CreateEmail", err)
 				return err
@@ -109,10 +109,10 @@ func (e *Edb) CreateContactEmails(contact Contact) error {
 		errmsg("CreateContactEmails DeleteContactEmails", err)
 		return err
 	}
-	for _, email := range contact.Emails {
-		if email.Email != "" {
-			email.ContactID = contact.ID
-			_, err = e.CreateEmail(email)
+	for i := range contact.Emails {
+		if contact.Emails[i].Email != "" {
+			contact.Emails[i].ContactID = contact.ID
+			_, err = e.CreateEmail(contact.Emails[i])
 			if err != nil {
 				errmsg("CreateContactEmails CreateEmail", err)
 				return err

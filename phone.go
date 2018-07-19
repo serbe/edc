@@ -94,17 +94,17 @@ func (e *Edb) CreateCompanyPhones(company Company, fax bool) error {
 	} else {
 		allPhones = company.Phones
 	}
-	for _, value := range allPhones {
-		if value.Phone != 0 {
+	for i := range allPhones {
+		if allPhones[i].Phone != 0 {
 			var id int64
 			_ = e.db.Model(&Phone{}).
 				Column("id").
-				Where("company_id = ? and phone = ? and fax = ?", company.ID, value.Phone, fax).
+				Where("company_id = ? and phone = ? and fax = ?", company.ID, allPhones[i].Phone, fax).
 				Select(&id)
 			if id == 0 {
-				value.CompanyID = company.ID
-				value.Fax = fax
-				_, err = e.CreatePhone(value)
+				allPhones[i].CompanyID = company.ID
+				allPhones[i].Fax = fax
+				_, err = e.CreatePhone(allPhones[i])
 				if err != nil {
 					errmsg("CreateCompanyPhones CreatePhone", err)
 					return err
@@ -128,17 +128,17 @@ func (e *Edb) CreateContactPhones(contact Contact, fax bool) error {
 	} else {
 		allPhones = contact.Phones
 	}
-	for _, value := range allPhones {
-		if value.Phone != 0 {
+	for i := range allPhones {
+		if allPhones[i].Phone != 0 {
 			var id int64
 			_ = e.db.Model(&Phone{}).
 				Column("id").
-				Where("contact_id = ? and phone = ? and fax = ?", contact.ID, value.Phone, fax).
+				Where("contact_id = ? and phone = ? and fax = ?", contact.ID, allPhones[i].Phone, fax).
 				Select(&id)
 			if id == 0 {
-				value.ContactID = contact.ID
-				value.Fax = fax
-				_, err = e.CreatePhone(value)
+				allPhones[i].ContactID = contact.ID
+				allPhones[i].Fax = fax
+				_, err = e.CreatePhone(allPhones[i])
 				if err != nil {
 					errmsg("CreateContactPhones CreatePhone", err)
 					return err
