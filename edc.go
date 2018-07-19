@@ -22,12 +22,12 @@ type SelectItem struct {
 
 // InitDB initialize database
 func InitDB(
-	host string,
-	port string,
-	dbname string,
-	user string,
+	host,
+	port,
+	dbname,
+	user,
 	password string,
-	logsql bool,
+	logsql,
 	logerr bool,
 ) (*Edb, error) {
 	e := new(Edb)
