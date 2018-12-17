@@ -9,7 +9,7 @@ type Certificate struct {
 	CompanyID int64      `sql:"company_id" json:"company_id" form:"company_id" query:"company_id"`
 	Company   SelectItem `sql:"-"          json:"company"    form:"company"    query:"company"`
 	CertDate  string     `sql:"cert_date"  json:"cert_date"  form:"cert_date"  query:"cert_date"`
-	Note      string     `sql:"note,null"  json:"note"       form:"note"       query:"note"`
+	Note      string     `sql:"note"       json:"note"       form:"note"       query:"note"`
 	CreatedAt string     `sql:"created_at" json:"-"`
 	UpdatedAt string     `sql:"updated_at" json:"-"`
 }

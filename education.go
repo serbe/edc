@@ -9,7 +9,7 @@ type Education struct {
 	StartStr  string `sql:"-"          json:"start_str"  form:"start_str"  query:"start_str"`
 	EndStr    string `sql:"-"          json:"end_str"    form:"end_str"    query:"end_str"`
 	PostID    int64  `sql:"post_id"    json:"post_id"    form:"post_id"    query:"post_id"`
-	Note      string `sql:"note,null"  json:"note"       form:"note"       query:"note"`
+	Note      string `sql:"note"       json:"note"       form:"note"       query:"note"`
 	CreatedAt string `sql:"created_at" json:"-"`
 	UpdatedAt string `sql:"updated_at" json:"-"`
 }
@@ -25,7 +25,7 @@ type EducationList struct {
 	EndStr      string `sql:"-"            json:"end_str"      form:"end_str"      query:"end_str"`
 	PostID      int64  `sql:"post_id"      json:"post_id"      form:"post_id"      query:"post_id"`
 	PostName    string `sql:"post_name"    json:"post_name"    form:"post_name"    query:"post_name"`
-	Note        string `sql:"note,null"    json:"note"         form:"note"         query:"note"`
+	Note        string `sql:"note"         json:"note"         form:"note"         query:"note"`
 }
 
 // GetEducation - get education by id

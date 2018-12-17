@@ -5,17 +5,17 @@ type SirenType struct {
 	ID        int64  `sql:"id"         json:"id"            form:"id"     query:"id"`
 	Name      string `sql:"name"       json:"name"          form:"name"   query:"name"`
 	Radius    int64  `sql:"radius"     json:"radius,string" form:"radius" query:"radius"`
-	Note      string `sql:"note,null"  json:"note"          form:"note"   query:"note"`
+	Note      string `sql:"note"       json:"note"          form:"note"   query:"note"`
 	CreatedAt string `sql:"created_at" json:"-"`
 	UpdatedAt string `sql:"updated_at" json:"-"`
 }
 
 // SirenTypeList - struct for sirenType list
 type SirenTypeList struct {
-	ID     int64  `sql:"id"         json:"id"            form:"id"     query:"id"`
-	Name   string `sql:"name"       json:"name"          form:"name"   query:"name"`
-	Radius int64  `sql:"radius"     json:"radius,string" form:"radius" query:"radius"`
-	Note   string `sql:"note,null"  json:"note"          form:"note"   query:"note"`
+	ID     int64  `sql:"id"     json:"id"            form:"id"     query:"id"`
+	Name   string `sql:"name"   json:"name"          form:"name"   query:"name"`
+	Radius int64  `sql:"radius" json:"radius,string" form:"radius" query:"radius"`
+	Note   string `sql:"note"   json:"note"          form:"note"   query:"note"`
 }
 
 // GetSirenType - get one sirenType by id

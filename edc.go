@@ -1,9 +1,6 @@
 package edc
 
 import (
-	"log"
-	"time"
-
 	"github.com/go-pg/pg"
 )
 
@@ -40,16 +37,6 @@ func InitDB(
 		opt.Addr = host + ":" + port
 	}
 	e.db = pg.Connect(&opt)
-	if logsql {
-		e.db.OnQueryProcessed(func(event *pg.QueryProcessedEvent) {
-			query, err := event.FormattedQuery()
-			if err != nil {
-				panic(err)
-			}
-
-			log.Printf("%s %s", time.Since(event.StartTime), query)
-		})
-	}
 	logErrors = logerr
 	err := e.createAllTables()
 

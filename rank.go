@@ -4,16 +4,16 @@ package edc
 type Rank struct {
 	ID        int64  `sql:"id"         json:"id"   form:"id"   query:"id"`
 	Name      string `sql:"name"       json:"name" form:"name" query:"name"`
-	Note      string `sql:"note,null"  json:"note" form:"note" query:"note"`
+	Note      string `sql:"note"       json:"note" form:"note" query:"note"`
 	CreatedAt string `sql:"created_at" json:"-"`
 	UpdatedAt string `sql:"updated_at" json:"-"`
 }
 
 // RankList - struct for rank list
 type RankList struct {
-	ID   int64  `sql:"id"        json:"id"   form:"id"   query:"id"`
-	Name string `sql:"name"      json:"name" form:"name" query:"name"`
-	Note string `sql:"note,null" json:"note" form:"note" query:"note"`
+	ID   int64  `sql:"id"   json:"id"   form:"id"   query:"id"`
+	Name string `sql:"name" json:"name" form:"name" query:"name"`
+	Note string `sql:"note" json:"note" form:"note" query:"note"`
 }
 
 // GetRank - get one rank by id

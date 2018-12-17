@@ -2,19 +2,19 @@ package edc
 
 // Company is struct for company
 type Company struct {
-	ID        int64          `sql:"id"            json:"id"        form:"id"        query:"id"`
-	Name      string         `sql:"name"          json:"name"      form:"name"      query:"name"`
-	Address   string         `sql:"address,null"  json:"address"   form:"address"   query:"address"`
-	Scope     SelectItem     `sql:"-"             json:"scope"     form:"scope"     query:"scope"`
-	ScopeID   int64          `sql:"scope_id,null" json:"scope_id"  form:"scope_id"  query:"scope_id"`
-	Note      string         `sql:"note,null"     json:"note"      form:"note"      query:"note"`
-	Emails    []Email        `sql:"-"             json:"emails"    form:"emails"    query:"emails"`
-	Phones    []Phone        `sql:"-"             json:"phones"    form:"phones"    query:"phones"`
-	Faxes     []Phone        `sql:"-"             json:"faxes"     form:"faxes"     query:"faxes"`
-	Practices []PracticeList `sql:"-"             json:"practices" form:"practices" query:"practices"`
-	Contacts  []ContactTiny  `sql:"-"             json:"contacts"  form:"contacts"  query:"contacts"`
-	CreatedAt string         `sql:"created_at"    json:"-"`
-	UpdatedAt string         `sql:"updated_at"    json:"-"`
+	ID        int64          `sql:"id"         json:"id"        form:"id"        query:"id"`
+	Name      string         `sql:"name"       json:"name"      form:"name"      query:"name"`
+	Address   string         `sql:"address"    json:"address"   form:"address"   query:"address"`
+	Scope     SelectItem     `sql:"-"          json:"scope"     form:"scope"     query:"scope"`
+	ScopeID   int64          `sql:"scope_id"   json:"scope_id"  form:"scope_id"  query:"scope_id"`
+	Note      string         `sql:"note"       json:"note"      form:"note"      query:"note"`
+	Emails    []Email        `sql:"-"          json:"emails"    form:"emails"    query:"emails"`
+	Phones    []Phone        `sql:"-"          json:"phones"    form:"phones"    query:"phones"`
+	Faxes     []Phone        `sql:"-"          json:"faxes"     form:"faxes"     query:"faxes"`
+	Practices []PracticeList `sql:"-"          json:"practices" form:"practices" query:"practices"`
+	Contacts  []ContactTiny  `sql:"-"          json:"contacts"  form:"contacts"  query:"contacts"`
+	CreatedAt string         `sql:"created_at" json:"-"`
+	UpdatedAt string         `sql:"updated_at" json:"-"`
 }
 
 // CompanyList is struct for list company

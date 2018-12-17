@@ -5,7 +5,7 @@ type Kind struct {
 	ID        int64  `sql:"id"         json:"id"         form:"id"         query:"id"`
 	Name      string `sql:"name"       json:"name"       form:"name"       query:"name"`
 	ShortName string `sql:"short_name" json:"short_name" form:"short_name" query:"short_name"`
-	Note      string `sql:"note,null"  json:"note"       form:"note"       query:"note"`
+	Note      string `sql:"note"       json:"note"       form:"note"       query:"note"`
 	CreatedAt string `sql:"created_at" json:"-"`
 	UpdatedAt string `sql:"updated_at" json:"-"`
 }
@@ -15,7 +15,7 @@ type KindList struct {
 	ID        int64  `sql:"id"         json:"id"         form:"id"         query:"id"`
 	Name      string `sql:"name"       json:"name"       form:"name"       query:"name"`
 	ShortName string `sql:"short_name" json:"short_name" form:"short_name" query:"short_name"`
-	Note      string `sql:"note,null"  json:"note"       form:"note"       query:"note"`
+	Note      string `sql:"note"       json:"note"       form:"note"       query:"note"`
 }
 
 // GetKind - get one kind by id

@@ -2,26 +2,26 @@ package edc
 
 // Contact is struct for contact
 type Contact struct {
-	ID           int64       `sql:"id"                 json:"id"            form:"id"            query:"id"`
-	Name         string      `sql:"name"               json:"name"          form:"name"          query:"name"`
-	Company      SelectItem  `sql:"-"                  json:"company"       form:"company"       query:"company"`
-	CompanyID    int64       `sql:"company_id,null"    json:"company_id"    form:"company_id"    query:"company_id"`
-	Department   SelectItem  `sql:"-"                  json:"department"    form:"department"    query:"department"`
-	DepartmentID int64       `sql:"department_id,null" json:"department_id" form:"department_id" query:"department_id"`
-	Post         SelectItem  `sql:"-"                  json:"post"          form:"post"          query:"post"`
-	PostID       int64       `sql:"post_id,null"       json:"post_id"       form:"post_id"       query:"post_id"`
-	PostGO       SelectItem  `sql:"-"                  json:"post_go"       form:"post_go"       query:"post_go"`
-	PostGOID     int64       `sql:"post_go_id,null"    json:"post_go_id"    form:"post_go_id"    query:"post_go_id"`
-	Rank         SelectItem  `sql:"-"                  json:"rank"          form:"rank"          query:"rank"`
-	RankID       int64       `sql:"rank_id,null"       json:"rank_id"       form:"rank_id"       query:"rank_id"`
-	Birthday     string      `sql:"birthday,null"      json:"birthday"      form:"birthday"      query:"birthday"`
-	Note         string      `sql:"note,null"          json:"note"          form:"note"          query:"note"`
-	Emails       []Email     `sql:"-"                  json:"emails"        form:"emails"        query:"emails"`
-	Phones       []Phone     `sql:"-"                  json:"phones"        form:"phones"        query:"phones"`
-	Faxes        []Phone     `sql:"-"                  json:"faxes"         form:"faxes"         query:"faxes"`
-	Educations   []Education `sql:"-"                  json:"educations"    form:"educations"    query:"educations"`
-	CreatedAt    string      `sql:"created_at"         json:"-"`
-	UpdatedAt    string      `sql:"updated_at"         json:"-"`
+	ID           int64       `sql:"id"            json:"id"            form:"id"            query:"id"`
+	Name         string      `sql:"name"          json:"name"          form:"name"          query:"name"`
+	Company      SelectItem  `sql:"-"             json:"company"       form:"company"       query:"company"`
+	CompanyID    int64       `sql:"company_id"    json:"company_id"    form:"company_id"    query:"company_id"`
+	Department   SelectItem  `sql:"-"             json:"department"    form:"department"    query:"department"`
+	DepartmentID int64       `sql:"department_id" json:"department_id" form:"department_id" query:"department_id"`
+	Post         SelectItem  `sql:"-"             json:"post"          form:"post"          query:"post"`
+	PostID       int64       `sql:"post_id"       json:"post_id"       form:"post_id"       query:"post_id"`
+	PostGO       SelectItem  `sql:"-"             json:"post_go"       form:"post_go"       query:"post_go"`
+	PostGOID     int64       `sql:"post_go_id"    json:"post_go_id"    form:"post_go_id"    query:"post_go_id"`
+	Rank         SelectItem  `sql:"-"             json:"rank"          form:"rank"          query:"rank"`
+	RankID       int64       `sql:"rank_id"       json:"rank_id"       form:"rank_id"       query:"rank_id"`
+	Birthday     string      `sql:"birthday"      json:"birthday"      form:"birthday"      query:"birthday"`
+	Note         string      `sql:"note"          json:"note"          form:"note"          query:"note"`
+	Emails       []Email     `sql:"-"             json:"emails"        form:"emails"        query:"emails"`
+	Phones       []Phone     `sql:"-"             json:"phones"        form:"phones"        query:"phones"`
+	Faxes        []Phone     `sql:"-"             json:"faxes"         form:"faxes"         query:"faxes"`
+	Educations   []Education `sql:"-"             json:"educations"    form:"educations"    query:"educations"`
+	CreatedAt    string      `sql:"created_at"    json:"-"`
+	UpdatedAt    string      `sql:"updated_at"    json:"-"`
 }
 
 // ContactList is struct for contact list
