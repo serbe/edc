@@ -5,7 +5,7 @@ type Siren struct {
 	ID          int64     `sql:"id"         json:"id"            form:"id"            query:"id"`
 	NumID       int64     `sql:"num_id"     json:"num_id"        form:"num_id"        query:"num_id"`
 	NumPass     string    `sql:"num_pass"   json:"num_pass"      form:"num_pass"      query:"num_pass"`
-	SirenTypeID int64     `sql:"type_id"    json:"siren_type_id" form:"siren_type_id" query:"siren_type_id"`
+	SirenTypeID int64     `sql:"siren_type_id"    json:"siren_type_id" form:"siren_type_id" query:"siren_type_id"`
 	SirenType   SirenType `sql:"-"          json:"siren_type"    form:"siren_type"    query:"siren_type"`
 	Address     string    `sql:"address"    json:"address"       form:"address"       query:"address"`
 	Radio       string    `sql:"radio"      json:"radio"         form:"radio"         query:"radio"`
