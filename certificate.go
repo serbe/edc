@@ -5,9 +5,7 @@ type Certificate struct {
 	ID        int64      `sql:"id"         json:"id"         form:"id"         query:"id"`
 	Num       string     `sql:"num"        json:"num"        form:"num"        query:"num"`
 	ContactID int64      `sql:"contact_id" json:"contact_id" form:"contact_id" query:"contact_id"`
-	Contact   SelectItem `sql:"-"          json:"contact"    form:"contact"    query:"contact"`
 	CompanyID int64      `sql:"company_id" json:"company_id" form:"company_id" query:"company_id"`
-	Company   SelectItem `sql:"-"          json:"company"    form:"company"    query:"company"`
 	CertDate  string     `sql:"cert_date"  json:"cert_date"  form:"cert_date"  query:"cert_date"`
 	Note      string     `sql:"note"       json:"note"       form:"note"       query:"note"`
 	CreatedAt string     `sql:"created_at" json:"-"`
@@ -23,6 +21,7 @@ type CertificateList struct {
 	CompanyID   int64  `sql:"company_id"   json:"company_id"   form:"company_id"   query:"company_id"`
 	CompanyName string `sql:"company_name" json:"company_name" form:"company_name" query:"company_name"`
 	CertDate    string `sql:"cert_date"    json:"cert_date"    form:"cert_date"    query:"cert_date"`
+	Note        string `sql:"note"         json:"note"         form:"note"         query:"note"`
 }
 
 // GetCertificate - get one certificate by id
@@ -36,16 +35,6 @@ func (e *Edb) GetCertificate(id int64) (Certificate, error) {
 		Select()
 	if err != nil {
 		errmsg("GetCertificate select", err)
-	}
-	certificate.Contact, err = e.GetContactSelect(certificate.ContactID)
-	if err != nil {
-		errmsg("GetCertificate GetContactSelect", err)
-		return certificate, err
-	}
-	certificate.Company, err = e.GetCompanySelect(certificate.CompanyID)
-	if err != nil {
-		errmsg("GetCertificate GetCompanySelect", err)
-		return certificate, err
 	}
 	return certificate, err
 }

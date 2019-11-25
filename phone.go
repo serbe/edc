@@ -11,65 +11,65 @@ type Phone struct {
 	UpdatedAt string `sql:"updated_at"    json:"-"`
 }
 
-// GetPhone - get one phone by id
-func (e *Edb) GetPhone(id int64) (Phone, error) {
-	var phone Phone
-	if id == 0 {
-		return phone, nil
-	}
-	err := e.db.Model(&phone).
-		Where("id = ?", id).
-		Select()
-	if err != nil {
-		errmsg("GetPhone select", err)
-	}
-	return phone, nil
-}
+// // GetPhone - get one phone by id
+// func (e *Edb) GetPhone(id int64) (Phone, error) {
+// 	var phone Phone
+// 	if id == 0 {
+// 		return phone, nil
+// 	}
+// 	err := e.db.Model(&phone).
+// 		Where("id = ?", id).
+// 		Select()
+// 	if err != nil {
+// 		errmsg("GetPhone select", err)
+// 	}
+// 	return phone, nil
+// }
 
-// GetPhoneList - get all phones for list
-func (e *Edb) GetPhoneList() ([]Phone, error) {
-	var phones []Phone
-	err := e.db.Model(&phones).
-		Column("id", "company_id", "contact_id", "phone", "fax").
-		Order("phone ASC").
-		Select()
-	if err != nil {
-		errmsg("GetPhoneList select", err)
-	}
-	return phones, err
-}
+// // GetPhoneList - get all phones for list
+// func (e *Edb) GetPhoneList() ([]Phone, error) {
+// 	var phones []Phone
+// 	err := e.db.Model(&phones).
+// 		Column("id", "company_id", "contact_id", "phone", "fax").
+// 		Order("phone ASC").
+// 		Select()
+// 	if err != nil {
+// 		errmsg("GetPhoneList select", err)
+// 	}
+// 	return phones, err
+// }
 
-// GetCompanyPhones - get all phones by company id
-func (e *Edb) GetCompanyPhones(id int64, fax bool) ([]Phone, error) {
-	var phones []Phone
-	if id == 0 {
-		return phones, nil
-	}
-	err := e.db.Model(&phones).
-		Where("company_id = ? AND fax = ?", id, fax).
-		Order("phone ASC").
-		Select()
-	if err != nil {
-		errmsg("GetCompanyPhones select", err)
-	}
-	return phones, err
-}
+// // GetCompanyPhones - get all phones by company id
+// func (e *Edb) GetCompanyPhones(id int64, fax bool) ([]Phone, error) {
+// 	var phones []Phone
+// 	if id == 0 {
+// 		return phones, nil
+// 	}
+// 	err := e.db.Model(&phones).
+// 		Where("company_id = ? AND fax = ?", id, fax).
+// 		Order("phone ASC").
+// 		Select()
+// 	if err != nil {
+// 		errmsg("GetCompanyPhones select", err)
+// 	}
+// 	return phones, err
+// }
 
-// GetContactPhones - get all phones by contact id
-func (e *Edb) GetContactPhones(id int64, fax bool) ([]Phone, error) {
-	var phones []Phone
-	if id == 0 {
-		return phones, nil
-	}
-	err := e.db.Model(&phones).
-		Where("contact_id = ? AND fax = ?", id, fax).
-		Order("phone ASC").
-		Select()
-	if err != nil {
-		errmsg("GetContactPhones select", err)
-	}
-	return phones, nil
-}
+// // GetContactPhones - get all phones by contact id
+// func (e *Edb) GetContactPhones(id int64, fax bool) ([]Phone, error) {
+// 	var phones []Phone
+// 	if id == 0 {
+// 		return phones, nil
+// 	}
+// 	err := e.db.Model(&phones).
+// 		Where("contact_id = ? AND fax = ?", id, fax).
+// 		Order("phone ASC").
+// 		Select()
+// 	if err != nil {
+// 		errmsg("GetContactPhones select", err)
+// 	}
+// 	return phones, nil
+// }
 
 // CreatePhone - create new phone
 func (e *Edb) CreatePhone(phone Phone) (int64, error) {
@@ -81,69 +81,55 @@ func (e *Edb) CreatePhone(phone Phone) (int64, error) {
 	return phone.ID, nil
 }
 
-// CreateCompanyPhones - create new phones to company
-func (e *Edb) CreateCompanyPhones(company Company, fax bool) error {
+// UpdateCompanyPhones - update company phones
+func (e *Edb) UpdateCompanyPhones(company Company, fax bool) error {
 	err := e.DeleteCompanyPhones(company.ID, fax)
 	if err != nil {
-		errmsg("CreateCompanyPhones DeleteCompanyPhones", err)
+		errmsg("UpdateCompanyPhones DeleteCompanyPhones", err)
 		return err
 	}
-	var allPhones []Phone
+	var allPhones []int64
 	if fax {
 		allPhones = company.Faxes
 	} else {
 		allPhones = company.Phones
 	}
 	for i := range allPhones {
-		if allPhones[i].Phone != 0 {
-			var id int64
-			_ = e.db.Model(&Phone{}).
-				Column("id").
-				Where("company_id = ? and phone = ? and fax = ?", company.ID, allPhones[i].Phone, fax).
-				Select(&id)
-			if id == 0 {
-				allPhones[i].CompanyID = company.ID
-				allPhones[i].Fax = fax
-				_, err = e.CreatePhone(allPhones[i])
-				if err != nil {
-					errmsg("CreateCompanyPhones CreatePhone", err)
-					return err
-				}
-			}
+		var phone Phone
+		phone.CompanyID = company.ID
+		phone.Phone = allPhones[i]
+		phone.Fax = fax
+		_, err = e.CreatePhone(phone)
+		if err != nil {
+			errmsg("UpdateCompanyPhones CreatePhone", err)
+			return err
 		}
 	}
 	return nil
 }
 
-// CreateContactPhones - create new phones to contact
-func (e *Edb) CreateContactPhones(contact Contact, fax bool) error {
+// UpdateContactPhones - update contact phones
+func (e *Edb) UpdateContactPhones(contact Contact, fax bool) error {
 	err := e.DeleteContactPhones(contact.ID, fax)
 	if err != nil {
 		errmsg("CreateContactPhones DeleteContactPhones", err)
 		return err
 	}
-	var allPhones []Phone
+	var allPhones []int64
 	if fax {
 		allPhones = contact.Faxes
 	} else {
 		allPhones = contact.Phones
 	}
 	for i := range allPhones {
-		if allPhones[i].Phone != 0 {
-			var id int64
-			_ = e.db.Model(&Phone{}).
-				Column("id").
-				Where("contact_id = ? and phone = ? and fax = ?", contact.ID, allPhones[i].Phone, fax).
-				Select(&id)
-			if id == 0 {
-				allPhones[i].ContactID = contact.ID
-				allPhones[i].Fax = fax
-				_, err = e.CreatePhone(allPhones[i])
-				if err != nil {
-					errmsg("CreateContactPhones CreatePhone", err)
-					return err
-				}
-			}
+		var phone Phone
+		phone.ContactID = contact.ID
+		phone.Phone = allPhones[i]
+		phone.Fax = fax
+		_, err = e.CreatePhone(phone)
+		if err != nil {
+			errmsg("UpdateContactPhones CreatePhone", err)
+			return err
 		}
 	}
 	return nil

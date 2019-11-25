@@ -2,17 +2,14 @@ package edc
 
 // Practice - struct for practice
 type Practice struct {
-	ID             int64      `sql:"id"               json:"id"               form:"id"               query:"id"`
-	Company        SelectItem `sql:"-"                json:"company"          form:"company"          query:"company"`
-	CompanyID      int64      `sql:"company_id"       json:"company_id"       form:"company_id"       query:"company_id"`
-	Kind           Kind       `sql:"-"                json:"kind"             form:"kind"             query:"kind"`
-	KindID         int64      `sql:"kind_id"          json:"kind_id"          form:"kind_id"          query:"kind_id"`
-	Topic          string     `sql:"topic"            json:"topic"            form:"topic"            query:"topic"`
-	DateOfPractice string     `sql:"date_of_practice" json:"date_of_practice" form:"date_of_practice" query:"date_of_practice"`
-	DateStr        string     `sql:"-"                json:"date_str"         form:"date_str"         query:"date_str"`
-	Note           string     `sql:"note"             json:"note"             form:"note"             query:"note"`
-	CreatedAt      string     `sql:"created_at"       json:"-"`
-	UpdatedAt      string     `sql:"updated_at"       json:"-"`
+	ID             int64  `sql:"id"               json:"id"               form:"id"               query:"id"`
+	CompanyID      int64  `sql:"company_id"       json:"company_id"       form:"company_id"       query:"company_id"`
+	KindID         int64  `sql:"kind_id"          json:"kind_id"          form:"kind_id"          query:"kind_id"`
+	Topic          string `sql:"topic"            json:"topic"            form:"topic"            query:"topic"`
+	DateOfPractice string `sql:"date_of_practice" json:"date_of_practice" form:"date_of_practice" query:"date_of_practice"`
+	Note           string `sql:"note"             json:"note"             form:"note"             query:"note"`
+	CreatedAt      string `sql:"created_at"       json:"-"`
+	UpdatedAt      string `sql:"updated_at"       json:"-"`
 }
 
 // PracticeList is struct for practice list
@@ -28,6 +25,16 @@ type PracticeList struct {
 	DateStr        string `sql:"-"                json:"date_str"         form:"date_str"         query:"date_str"`
 }
 
+// PracticeShort - short struct for practice
+type PracticeShort struct {
+	ID             int64  `sql:"id"               json:"id"               form:"id"               query:"id"`
+	CompanyID      int64  `sql:"company_id"       json:"company_id"       form:"company_id"       query:"company_id"`
+	CompanyName    string `sql:"company_name"     json:"company_name"     form:"company_name"     query:"company_name"`
+	KindID         int64  `sql:"kind_id"          json:"kind_id"          form:"kind_id"          query:"kind_id"`
+	KindShortName  string `sql:"-"                json:"kind_short_name"  form:"kind_short_name"  query:"kind_short_name"`
+	DateOfPractice string `sql:"date_of_practice" json:"date_of_practice" form:"date_of_practice" query:"date_of_practice"`
+}
+
 // GetPractice - get one practice by id
 func (e *Edb) GetPractice(id int64) (Practice, error) {
 	var practice Practice
@@ -39,16 +46,6 @@ func (e *Edb) GetPractice(id int64) (Practice, error) {
 		Select()
 	if err != nil {
 		errmsg("GetPractice select", err)
-		return practice, err
-	}
-	practice.Company, err = e.GetCompanySelect(practice.CompanyID)
-	if err != nil {
-		errmsg("GetPractice GetCompanySelect", err)
-		return practice, err
-	}
-	practice.Kind, err = e.GetKind(practice.KindID)
-	if err != nil {
-		errmsg("GetPractice GetKind", err)
 		return practice, err
 	}
 	return practice, err
@@ -146,31 +143,27 @@ func (e *Edb) GetPracticeCompany(id int64) ([]PracticeList, error) {
 }
 
 // GetPracticeNear - get 10 nearest practices
-func (e *Edb) GetPracticeNear() ([]PracticeList, error) {
-	var practices []PracticeList
+func (e *Edb) GetPracticeNear() ([]PracticeShort, error) {
+	var practices []PracticeShort
 	_, err := e.db.Query(&practices, `
-	SELECT
-		p.id,
-		p.company_id,
-		c.name AS company_name,
-		k.name AS kind_name,
-		k.short_name AS kind_short_name,
-		p.topic,
-		p.date_of_practice
-	FROM
-		practices AS p
-	LEFT JOIN
-		companies AS c ON c.id = p.company_id
-	LEFT JOIN
-		kinds AS k ON k.id = p.kind_id
-	WHERE
-		p.date_of_practice > TIMESTAMP 'now'::timestamp - '1 month'::interval
-	ORDER BY
-		date_of_practice ASC
-	LIMIT 10`)
-	for i := range practices {
-		practices[i].DateStr = setStrMonth(practices[i].DateOfPractice)
-	}
+		SELECT
+			p.id,
+			p.company_id,
+			c.name AS company_name,
+			p.kind_id,
+			k.short_name AS kind_short_name,
+			p.date_of_practice
+		FROM
+			practices AS p
+		LEFT JOIN
+			companies AS c ON c.id = p.company_id
+		LEFT JOIN
+			kinds AS k ON k.id = p.kind_id
+		WHERE
+			p.date_of_practice > TIMESTAMP 'now'::timestamp - '1 month'::interval
+		ORDER BY
+			date_of_practice ASC
+		LIMIT 10`)
 	if err != nil {
 		errmsg("GetPracticeNear query", err)
 	}

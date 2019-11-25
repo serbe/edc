@@ -10,67 +10,67 @@ type Email struct {
 	UpdatedAt string `sql:"updated_at"    json:"-"`
 }
 
-// GetEmail - get one email by id
-func (e *Edb) GetEmail(id int64) (Email, error) {
-	var email Email
-	if id == 0 {
-		return email, nil
-	}
-	err := e.db.Model(&email).
-		Where("id = ?", id).
-		Select()
-	if err != nil {
-		errmsg("GetEmail select", err)
-	}
-	return email, nil
-}
+// // GetEmail - get one email by id
+// func (e *Edb) GetEmail(id int64) (Email, error) {
+// 	var email Email
+// 	if id == 0 {
+// 		return email, nil
+// 	}
+// 	err := e.db.Model(&email).
+// 		Where("id = ?", id).
+// 		Select()
+// 	if err != nil {
+// 		errmsg("GetEmail select", err)
+// 	}
+// 	return email, nil
+// }
 
-// GetEmails - get all emails for list
-func (e *Edb) GetEmails() ([]Email, error) {
-	var emails []Email
-	err := e.db.Model(&emails).
-		Column("id", "email").
-		Order("email ASC").
-		Select()
-	if err != nil {
-		errmsg("GetEmailList select", err)
-	}
-	return emails, err
-}
+// // GetEmails - get all emails for list
+// func (e *Edb) GetEmails() ([]Email, error) {
+// 	var emails []Email
+// 	err := e.db.Model(&emails).
+// 		Column("id", "email").
+// 		Order("email ASC").
+// 		Select()
+// 	if err != nil {
+// 		errmsg("GetEmailList select", err)
+// 	}
+// 	return emails, err
+// }
 
-// GetCompanyEmails - get all emails by company id
-func (e *Edb) GetCompanyEmails(id int64) ([]Email, error) {
-	var emails []Email
-	if id == 0 {
-		return emails, nil
-	}
-	err := e.db.Model(&emails).
-		Column("id", "email").
-		Order("email ASC").
-		Where("company_id = ?", id).
-		Select()
-	if err != nil {
-		errmsg("GetCompanyEmails select", err)
-	}
-	return emails, err
-}
+// // GetCompanyEmails - get all emails by company id
+// func (e *Edb) GetCompanyEmails(id int64) ([]Email, error) {
+// 	var emails []Email
+// 	if id == 0 {
+// 		return emails, nil
+// 	}
+// 	err := e.db.Model(&emails).
+// 		Column("id", "email").
+// 		Order("email ASC").
+// 		Where("company_id = ?", id).
+// 		Select()
+// 	if err != nil {
+// 		errmsg("GetCompanyEmails select", err)
+// 	}
+// 	return emails, err
+// }
 
-// GetContactEmails - get all emails by contact id
-func (e *Edb) GetContactEmails(id int64) ([]Email, error) {
-	var emails []Email
-	if id == 0 {
-		return emails, nil
-	}
-	err := e.db.Model(&emails).
-		Column("id", "email").
-		Order("email ASC").
-		Where("contact_id = ?", id).
-		Select()
-	if err != nil {
-		errmsg("GetContactEmails select", err)
-	}
-	return emails, err
-}
+// // GetContactEmails - get all emails by contact id
+// func (e *Edb) GetContactEmails(id int64) ([]Email, error) {
+// 	var emails []Email
+// 	if id == 0 {
+// 		return emails, nil
+// 	}
+// 	err := e.db.Model(&emails).
+// 		Column("id", "email").
+// 		Order("email ASC").
+// 		Where("contact_id = ?", id).
+// 		Select()
+// 	if err != nil {
+// 		errmsg("GetContactEmails select", err)
+// 	}
+// 	return emails, err
+// }
 
 // CreateEmail - create new email
 func (e *Edb) CreateEmail(email Email) (int64, error) {
@@ -82,41 +82,41 @@ func (e *Edb) CreateEmail(email Email) (int64, error) {
 	return email.ID, nil
 }
 
-// CreateCompanyEmails - create new company email
-func (e *Edb) CreateCompanyEmails(company Company) error {
+// UpdateCompanyEmails - update company emails
+func (e *Edb) UpdateCompanyEmails(company Company) error {
 	err := e.DeleteCompanyEmails(company.ID)
 	if err != nil {
-		errmsg("CreateCompanyEmails DeleteCompanyEmails", err)
+		errmsg("UpdateCompanyEmails DeleteCompanyEmails", err)
 		return err
 	}
 	for i := range company.Emails {
-		if company.Emails[i].Email != "" {
-			company.Emails[i].CompanyID = company.ID
-			_, err = e.CreateEmail(company.Emails[i])
-			if err != nil {
-				errmsg("CreateCompanyEmails CreateEmail", err)
-				return err
-			}
+		var email Email
+		email.CompanyID = company.ID
+		email.Email = company.Emails[i]
+		_, err = e.CreateEmail(email)
+		if err != nil {
+			errmsg("UpdateCompanyEmails CreateEmail", err)
+			return err
 		}
 	}
 	return nil
 }
 
-// CreateContactEmails - create new contact email
-func (e *Edb) CreateContactEmails(contact Contact) error {
+// UpdateContactEmails - update contact emails
+func (e *Edb) UpdateContactEmails(contact Contact) error {
 	err := e.DeleteContactEmails(contact.ID)
 	if err != nil {
-		errmsg("CreateContactEmails DeleteContactEmails", err)
+		errmsg("UpdateContactEmails DeleteContactEmails", err)
 		return err
 	}
 	for i := range contact.Emails {
-		if contact.Emails[i].Email != "" {
-			contact.Emails[i].ContactID = contact.ID
-			_, err = e.CreateEmail(contact.Emails[i])
-			if err != nil {
-				errmsg("CreateContactEmails CreateEmail", err)
-				return err
-			}
+		var email Email
+		email.ContactID = contact.ID
+		email.Email = contact.Emails[i]
+		_, err = e.CreateEmail(email)
+		if err != nil {
+			errmsg("UpdateContactEmails CreateEmail", err)
+			return err
 		}
 	}
 	return nil

@@ -5,16 +5,15 @@ type Company struct {
 	ID        int64          `sql:"id"         json:"id"        form:"id"        query:"id"`
 	Name      string         `sql:"name"       json:"name"      form:"name"      query:"name"`
 	Address   string         `sql:"address"    json:"address"   form:"address"   query:"address"`
-	Scope     SelectItem     `sql:"-"          json:"scope"     form:"scope"     query:"scope"`
 	ScopeID   int64          `sql:"scope_id"   json:"scope_id"  form:"scope_id"  query:"scope_id"`
 	Note      string         `sql:"note"       json:"note"      form:"note"      query:"note"`
-	Emails    []Email        `sql:"-"          json:"emails"    form:"emails"    query:"emails"`
-	Phones    []Phone        `sql:"-"          json:"phones"    form:"phones"    query:"phones"`
-	Faxes     []Phone        `sql:"-"          json:"faxes"     form:"faxes"     query:"faxes"`
-	Practices []PracticeList `sql:"-"          json:"practices" form:"practices" query:"practices"`
-	Contacts  []ContactTiny  `sql:"-"          json:"contacts"  form:"contacts"  query:"contacts"`
 	CreatedAt string         `sql:"created_at" json:"-"`
 	UpdatedAt string         `sql:"updated_at" json:"-"`
+	Emails    []string       `sql:"-"          json:"emails"    form:"emails"    query:"emails"`
+	Phones    []int64        `sql:"-"          json:"phones"    form:"phones"    query:"phones"`
+	Faxes     []int64        `sql:"-"          json:"faxes"     form:"faxes"     query:"faxes"`
+	Practices []PracticeList `sql:"-"          json:"practices" form:"practices" query:"practices"`
+	Contacts  []ContactShort `sql:"-"          json:"contacts"  form:"contacts"  query:"contacts"`
 }
 
 // CompanyList is struct for list company
@@ -24,8 +23,8 @@ type CompanyList struct {
 	Address   string   `json:"address"    form:"address"    query:"address"`
 	ScopeName string   `json:"scope_name" form:"scope_name" query:"scope_name"`
 	Emails    []string `json:"emails"     form:"emails"     query:"emails"      pg:",array"`
-	Phones    []string `json:"phones"     form:"phones"     query:"phones"      pg:",array"`
-	Faxes     []string `json:"faxes"      form:"faxes"      query:"faxes"       pg:",array"`
+	Phones    []int64  `json:"phones"     form:"phones"     query:"phones"      pg:",array"`
+	Faxes     []int64  `json:"faxes"      form:"faxes"      query:"faxes"       pg:",array"`
 	Practices []string `json:"practices"  form:"practices"  query:"practices"   pg:",array"`
 }
 
@@ -35,44 +34,46 @@ func (e *Edb) GetCompany(id int64) (Company, error) {
 	if id == 0 {
 		return company, nil
 	}
-	err := e.db.Model(&company).
-		Where("id = ?", id).
-		Select()
+	_, err := e.db.Query(&company, `
+		SELECT
+			c.name,
+			c.address,
+			c.scope_id,
+			c.note,
+			c.created_at,
+			c.updated_at,
+			array_agg(DISTINCT e.email) AS emails,
+			array_agg(DISTINCT ph.phone) AS phones,
+			array_agg(DISTINCT f.phone) AS faxes
+		FROM
+			companies AS c
+		LEFT JOIN
+			emails AS e ON c.id = e.company_id
+		LEFT JOIN
+			phones AS ph ON c.id = ph.company_id AND ph.fax = false
+		LEFT JOIN
+			phones AS f ON c.id = f.company_id AND f.fax = true
+		WHERE
+			c.id = ?
+		GROUP BY
+			c.id
+	`, id)
 	if err != nil {
 		errmsg("GetCompany select", err)
 		return company, err
 	}
-	if company.ScopeID > 0 {
-		company.Scope, err = e.GetScopeSelect(company.ScopeID)
-		if err != nil {
-			errmsg("GetCompany e.GetScope ", err)
-			return company, err
-		}
-	}
-	company.Emails, err = e.GetCompanyEmails(company.ID)
+	practices, err := e.GetPracticeCompany(id)
 	if err != nil {
-		errmsg("GetCompany e.GetCompanyEmails ", err)
+		errmsg("GetPracticeCompany", err)
 		return company, err
 	}
-	company.Phones, err = e.GetCompanyPhones(company.ID, false)
+	company.Practices = practices
+	contacts, err := e.GetContactCompany(id)
 	if err != nil {
-		errmsg("GetCompany e.GetCompanyPhones false ", err)
+		errmsg("GetContactCompany", err)
 		return company, err
 	}
-	company.Faxes, err = e.GetCompanyPhones(company.ID, true)
-	if err != nil {
-		errmsg("GetCompany e.GetCompanyPhones true ", err)
-		return company, err
-	}
-	company.Practices, err = e.GetPracticeCompany(id)
-	if err != nil {
-		errmsg("GetCompany e.GetPracticeCompany", err)
-	}
-	company.Contacts, err = e.GetContactCompany(company.ID)
-	if err != nil {
-		errmsg("GetCompany e.GetContactCompany ", err)
-		return company, err
-	}
+	company.Contacts = contacts
 	return company, err
 }
 
@@ -149,9 +150,9 @@ func (e *Edb) CreateCompany(company Company) (int64, error) {
 		errmsg("CreateCompany insert", err)
 		return 0, err
 	}
-	_ = e.CreateCompanyEmails(company)
-	_ = e.CreateCompanyPhones(company, false)
-	_ = e.CreateCompanyPhones(company, true)
+	_ = e.UpdateCompanyEmails(company)
+	_ = e.UpdateCompanyPhones(company, false)
+	_ = e.UpdateCompanyPhones(company, true)
 	return company.ID, nil
 }
 
@@ -162,9 +163,9 @@ func (e *Edb) UpdateCompany(company Company) error {
 		errmsg("UpdateCompany update", err)
 		return err
 	}
-	_ = e.CreateCompanyEmails(company)
-	_ = e.CreateCompanyPhones(company, false)
-	_ = e.CreateCompanyPhones(company, true)
+	_ = e.UpdateCompanyEmails(company)
+	_ = e.UpdateCompanyPhones(company, false)
+	_ = e.UpdateCompanyPhones(company, true)
 	return nil
 }
 

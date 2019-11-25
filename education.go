@@ -6,8 +6,6 @@ type Education struct {
 	ContactID int64  `sql:"contact_id" json:"contact_id" form:"contact_id" query:"contact_id"`
 	StartDate string `sql:"start_date" json:"start_date" form:"start_date" query:"start_date"`
 	EndDate   string `sql:"end_date"   json:"end_date"   form:"end_date"   query:"end_date"`
-	StartStr  string `sql:"-"          json:"start_str"  form:"start_str"  query:"start_str"`
-	EndStr    string `sql:"-"          json:"end_str"    form:"end_str"    query:"end_str"`
 	PostID    int64  `sql:"post_id"    json:"post_id"    form:"post_id"    query:"post_id"`
 	Note      string `sql:"note"       json:"note"       form:"note"       query:"note"`
 	CreatedAt string `sql:"created_at" json:"-"`
@@ -26,6 +24,14 @@ type EducationList struct {
 	PostID      int64  `sql:"post_id"      json:"post_id"      form:"post_id"      query:"post_id"`
 	PostName    string `sql:"post_name"    json:"post_name"    form:"post_name"    query:"post_name"`
 	Note        string `sql:"note"         json:"note"         form:"note"         query:"note"`
+}
+
+// EducationShort - short struct for education
+type EducationShort struct {
+	ID          int64  `sql:"id"           json:"id"           form:"id"           query:"id"`
+	ContactID   int64  `sql:"contact_id"   json:"contact_id"   form:"contact_id"   query:"contact_id"`
+	ContactName string `sql:"contact_name" json:"contact_name" form:"contact_name" query:"contact_name"`
+	StartDate   string `sql:"start_date"   json:"start_date"   form:"start_date"   query:"start_date"`
 }
 
 // GetEducation - get education by id
@@ -49,12 +55,13 @@ func (e *Edb) GetEducationListAll() ([]EducationList, error) {
 	_, err := e.db.Query(&educations, `
 		SELECT
 			e.id,
-			e.start_date,
-			e.end_date,
 			e.contact_id,
 			c.name AS contact_name,
+			e.start_date,
+			e.end_date,
 			e.post_id,
-			p.name AS post_name
+			p.name AS post_name,
+			e.note
 		FROM
 			educations AS e
 		LEFT JOIN
@@ -72,15 +79,14 @@ func (e *Edb) GetEducationListAll() ([]EducationList, error) {
 }
 
 // GetEducationNear - get 10 nearest educations
-func (e *Edb) GetEducationNear() ([]EducationList, error) {
-	var educations []EducationList
+func (e *Edb) GetEducationNear() ([]EducationShort, error) {
+	var educations []EducationShort
 	_, err := e.db.Query(&educations, `
 		SELECT
 			e.id,
-			e.start_date,
-			e.end_date,
 			e.contact_id,
-			c.name AS contact_name
+			c.name AS contact_name,
+			e.start_date
 		FROM
 			educations AS e
 		LEFT JOIN
@@ -91,9 +97,6 @@ func (e *Edb) GetEducationNear() ([]EducationList, error) {
 			start_date ASC
 		LIMIT 10
 	`)
-	for i := range educations {
-		educations[i].StartStr = setStrMonth(educations[i].StartDate)
-	}
 	if err != nil {
 		errmsg("GetEducationNear query", err)
 	}

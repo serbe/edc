@@ -2,41 +2,36 @@ package edc
 
 // Contact is struct for contact
 type Contact struct {
-	ID           int64       `sql:"id"            json:"id"            form:"id"            query:"id"`
-	Name         string      `sql:"name"          json:"name"          form:"name"          query:"name"`
-	Company      SelectItem  `sql:"-"             json:"company"       form:"company"       query:"company"`
-	CompanyID    int64       `sql:"company_id"    json:"company_id"    form:"company_id"    query:"company_id"`
-	Department   SelectItem  `sql:"-"             json:"department"    form:"department"    query:"department"`
-	DepartmentID int64       `sql:"department_id" json:"department_id" form:"department_id" query:"department_id"`
-	Post         SelectItem  `sql:"-"             json:"post"          form:"post"          query:"post"`
-	PostID       int64       `sql:"post_id"       json:"post_id"       form:"post_id"       query:"post_id"`
-	PostGO       SelectItem  `sql:"-"             json:"post_go"       form:"post_go"       query:"post_go"`
-	PostGOID     int64       `sql:"post_go_id"    json:"post_go_id"    form:"post_go_id"    query:"post_go_id"`
-	Rank         SelectItem  `sql:"-"             json:"rank"          form:"rank"          query:"rank"`
-	RankID       int64       `sql:"rank_id"       json:"rank_id"       form:"rank_id"       query:"rank_id"`
-	Birthday     string      `sql:"birthday"      json:"birthday"      form:"birthday"      query:"birthday"`
-	Note         string      `sql:"note"          json:"note"          form:"note"          query:"note"`
-	Emails       []Email     `sql:"-"             json:"emails"        form:"emails"        query:"emails"`
-	Phones       []Phone     `sql:"-"             json:"phones"        form:"phones"        query:"phones"`
-	Faxes        []Phone     `sql:"-"             json:"faxes"         form:"faxes"         query:"faxes"`
-	Educations   []Education `sql:"-"             json:"educations"    form:"educations"    query:"educations"`
-	CreatedAt    string      `sql:"created_at"    json:"-"`
-	UpdatedAt    string      `sql:"updated_at"    json:"-"`
+	ID           int64    `sql:"id"            json:"id"            form:"id"            query:"id"`
+	Name         string   `sql:"name"          json:"name"          form:"name"          query:"name"`
+	CompanyID    int64    `sql:"company_id"    json:"company_id"    form:"company_id"    query:"company_id"`
+	DepartmentID int64    `sql:"department_id" json:"department_id" form:"department_id" query:"department_id"`
+	PostID       int64    `sql:"post_id"       json:"post_id"       form:"post_id"       query:"post_id"`
+	PostGOID     int64    `sql:"post_go_id"    json:"post_go_id"    form:"post_go_id"    query:"post_go_id"`
+	RankID       int64    `sql:"rank_id"       json:"rank_id"       form:"rank_id"       query:"rank_id"`
+	Birthday     string   `sql:"birthday"      json:"birthday"      form:"birthday"      query:"birthday"`
+	Note         string   `sql:"note"          json:"note"          form:"note"          query:"note"`
+	CreatedAt    string   `sql:"created_at"    json:"-"`
+	UpdatedAt    string   `sql:"updated_at"    json:"-"`
+	Emails       []string `sql:"-"             json:"emails"        form:"emails"        query:"emails"`
+	Phones       []int64  `sql:"-"             json:"phones"        form:"phones"        query:"phones"`
+	Faxes        []int64  `sql:"-"             json:"faxes"         form:"faxes"         query:"faxes"`
+	Educations   []string `sql:"-"             json:"educations"    form:"educations"    query:"educations"`
 }
 
 // ContactList is struct for contact list
 type ContactList struct {
-	ID          int64    `json:"id"           form:"id"           query:"id"`
-	Name        string   `json:"name"         form:"name"         query:"name"`
-	CompanyID   int64    `json:"company_id"   form:"company_id"   query:"company_id"`
-	CompanyName string   `json:"company_name" form:"company_name" query:"company_name"`
-	PostName    string   `json:"post_name"    form:"post_name"    query:"post_name"`
-	Phones      []string `json:"phones"       form:"phones"       query:"phones"       pg:",array"`
-	Faxes       []string `json:"faxes"        form:"faxes"        query:"faxes"        pg:",array"`
+	ID          int64   `json:"id"           form:"id"           query:"id"`
+	Name        string  `json:"name"         form:"name"         query:"name"`
+	CompanyID   int64   `json:"company_id"   form:"company_id"   query:"company_id"`
+	CompanyName string  `json:"company_name" form:"company_name" query:"company_name"`
+	PostName    string  `json:"post_name"    form:"post_name"    query:"post_name"`
+	Phones      []int64 `json:"phones"       form:"phones"       query:"phones"       pg:",array"`
+	Faxes       []int64 `json:"faxes"        form:"faxes"        query:"faxes"        pg:",array"`
 }
 
-// ContactTiny is struct of contact for another parents
-type ContactTiny struct {
+// ContactShort is struct of contact for another parents
+type ContactShort struct {
 	ID             int64  `json:"id"              form:"id"              query:"id"`
 	Name           string `json:"name"            form:"name"            query:"name"`
 	DepartmentName string `json:"department_name" form:"department_name" query:"department_name"`
@@ -55,46 +50,6 @@ func (e *Edb) GetContact(id int64) (Contact, error) {
 		Select()
 	if err != nil {
 		errmsg("GetContact select", err)
-		return contact, err
-	}
-	contact.Company, err = e.GetCompanySelect(contact.CompanyID)
-	if err != nil {
-		errmsg("GetContact GetCompanySelect", err)
-		return contact, err
-	}
-	contact.Department, err = e.GetDepartmentSelect(contact.DepartmentID)
-	if err != nil {
-		errmsg("GetContact GetDepartmentSelect", err)
-		return contact, err
-	}
-	contact.Post, err = e.GetPostSelect(contact.PostID)
-	if err != nil {
-		errmsg("GetContact GetPostSelect", err)
-		return contact, err
-	}
-	contact.PostGO, err = e.GetPostGOSelect(contact.PostGOID)
-	if err != nil {
-		errmsg("GetContact GetPostGOSelect", err)
-		return contact, err
-	}
-	contact.Rank, err = e.GetRankSelect(contact.RankID)
-	if err != nil {
-		errmsg("GetContact GetRank", err)
-		return contact, err
-	}
-	contact.Phones, err = e.GetContactPhones(contact.ID, false)
-	if err != nil {
-		errmsg("GetContact GetContactPhones", err)
-		return contact, err
-	}
-	contact.Faxes, err = e.GetContactPhones(contact.ID, true)
-	if err != nil {
-		errmsg("GetContact GetContactPhones", err)
-		return contact, err
-	}
-	contact.Emails, err = e.GetContactEmails(contact.ID)
-	if err != nil {
-		errmsg("GetContact GetContactEmails", err)
 		return contact, err
 	}
 	// contact.Educations, err = e.ContactEducations(contact.ID)
@@ -167,8 +122,8 @@ func (e *Edb) GetContactSelectAll() ([]SelectItem, error) {
 }
 
 // GetContactCompany - get all contacts from company
-func (e *Edb) GetContactCompany(id int64) ([]ContactTiny, error) {
-	var contacts []ContactTiny
+func (e *Edb) GetContactCompany(id int64) ([]ContactShort, error) {
+	var contacts []ContactShort
 	if id == 0 {
 		return contacts, nil
 	}
@@ -202,9 +157,9 @@ func (e *Edb) CreateContact(contact Contact) (int64, error) {
 		errmsg("CreateContact insert", err)
 		return 0, err
 	}
-	_ = e.CreateContactEmails(contact)
-	_ = e.CreateContactPhones(contact, false)
-	_ = e.CreateContactPhones(contact, true)
+	_ = e.UpdateContactEmails(contact)
+	_ = e.UpdateContactPhones(contact, false)
+	_ = e.UpdateContactPhones(contact, true)
 	// CreateContactEducations(contact)
 	return contact.ID, nil
 }
@@ -216,9 +171,9 @@ func (e *Edb) UpdateContact(contact Contact) error {
 		errmsg("UpdateContact update", err)
 		return err
 	}
-	_ = e.CreateContactEmails(contact)
-	_ = e.CreateContactPhones(contact, false)
-	_ = e.CreateContactPhones(contact, true)
+	_ = e.UpdateContactEmails(contact)
+	_ = e.UpdateContactPhones(contact, false)
+	_ = e.UpdateContactPhones(contact, true)
 	// CreateContactEducations(contact)
 	return nil
 }
