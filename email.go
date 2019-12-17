@@ -1,13 +1,18 @@
 package edc
 
+import (
+	"context"
+	"time"
+)
+
 // Email - struct for email
 type Email struct {
 	ID        int64  `sql:"id"            json:"id"         form:"id"         query:"id"`
 	CompanyID int64  `sql:"company_id,pk" json:"company_id" form:"company_id" query:"company_id"`
 	ContactID int64  `sql:"contact_id,pk" json:"contact_id" form:"contact_id" query:"contact_id"`
 	Email     string `sql:"email"         json:"email"      form:"email"      query:"email"`
- 	CreatedAt string `sql:"created_at"    json:"-"`
- 	UpdatedAt string `sql:"updated_at"    json:"-"`
+	CreatedAt string `sql:"created_at"    json:"-"`
+	UpdatedAt string `sql:"updated_at"    json:"-"`
 }
 
 // // EmailGet - get one email by id
@@ -75,27 +80,44 @@ type Email struct {
 // EmailInsert - create new email
 func EmailInsert(email Email) (int64, error) {
 	email.ID = 0
-	err := pool.Insert(&email)
+	err := pool.QueryRow(context.Background(), `
+		INSERT INTO emails
+		(
+			company_id,
+			contact_id,
+			email,
+			created_at,
+			updated_at
+		)
+		VALUES
+		(
+			$1,
+			$2,
+			$3,
+			$4,
+			$5
+		)
+	`, email.CompanyID, email.ContactID, email.Email, time.Now(), time.Now()).Scan(&email.ID)
 	if err != nil {
 		errmsg("CreateEmail insert", err)
 	}
 	return email.ID, nil
 }
 
-// CompanyEmailsUpdate - update company emails
-func CompanyEmailsUpdate(company Company) error {
-	err := e.DeleteCompanyEmails(company.ID)
+// EmailsCompanyUpdate - update company emails
+func EmailsCompanyUpdate(id int64, emails []string) error {
+	err := EmailsCompanyDelete(id)
 	if err != nil {
-		errmsg("UpdateCompanyEmails DeleteCompanyEmails", err)
+		errmsg("EmailsCompanyUpdate DeleteCompanyEmails", err)
 		return err
 	}
-	for i := range company.Emails {
+	for i := range emails {
 		var email Email
-		email.CompanyID = company.ID
-		email.Email = company.Emails[i]
-		_, err = e.CreateEmail(email)
+		email.CompanyID = id
+		email.Email = emails[i]
+		_, err = EmailInsert(email)
 		if err != nil {
-			errmsg("UpdateCompanyEmails CreateEmail", err)
+			errmsg("EmailsCompanyUpdate CreateEmail", err)
 			return err
 		}
 	}
@@ -103,17 +125,17 @@ func CompanyEmailsUpdate(company Company) error {
 }
 
 // ContactEmailsUpdate - update contact emails
-func ContactEmailsUpdate(contact Contact) error {
-	err := e.DeleteContactEmails(contact.ID)
+func ContactEmailsUpdate(id int64, emails []string) error {
+	err := EmailsContactDelete(id)
 	if err != nil {
 		errmsg("UpdateContactEmails DeleteContactEmails", err)
 		return err
 	}
-	for i := range contact.Emails {
+	for i := range emails {
 		var email Email
-		email.ContactID = contact.ID
-		email.Email = contact.Emails[i]
-		_, err = e.CreateEmail(email)
+		email.ContactID = id
+		email.Email = emails[i]
+		_, err = EmailInsert(email)
 		if err != nil {
 			errmsg("UpdateContactEmails CreateEmail", err)
 			return err
@@ -122,53 +144,36 @@ func ContactEmailsUpdate(contact Contact) error {
 	return nil
 }
 
-// EmailUpdate - save email changes
-func EmailUpdate(email Email) error {
-	err := pool.Update(&email)
+// EmailsCompanyDelete - delete all emails by company id
+func EmailsCompanyDelete(id int64) error {
+	if id == 0 {
+		return nil
+	}
+	_, err := pool.Exec(context.Background(), `
+		DELETE FROM
+			emails
+		WHERE
+			company_id = $1
+	`, id)
 	if err != nil {
-		errmsg("UpdateEmail update", err)
+		errmsg("EmailsCompanyDelete delete", err)
 	}
 	return err
 }
 
-// EmailDelete - delete email by id
-func EmailDelete(id int64) error {
+// EmailsContactDelete - delete all emails by contact id
+func EmailsContactDelete(id int64) error {
 	if id == 0 {
 		return nil
 	}
-	_, err := pool.QueryRow(context.Background(), &Email{}).
-		Where("id = ?", id).
-		Delete()
+	_, err := pool.Exec(context.Background(), `
+		DELETE FROM
+			emails
+		WHERE
+			contact_id = $1
+	`, id)
 	if err != nil {
-		errmsg("DeleteEmail delete", err)
-	}
-	return err
-}
-
-// CompanyEmailsDelete - delete all emails by company id
-func CompanyEmailsDelete(id int64) error {
-	if id == 0 {
-		return nil
-	}
-	_, err := pool.QueryRow(context.Background(), &Email{}).
-		Where("company_id = ?", id).
-		Delete()
-	if err != nil {
-		errmsg("DeleteCompanyEmails delete", err)
-	}
-	return err
-}
-
-// ContactEmailsDelete - delete all emails by contact id
-func ContactEmailsDelete(id int64) error {
-	if id == 0 {
-		return nil
-	}
-	_, err := pool.QueryRow(context.Background(), &Email{}).
-		Where("contact_id = ?", id).
-		Delete()
-	if err != nil {
-		errmsg("DeleteContactEmails delete", err)
+		errmsg("EmailsContactDelete delete", err)
 	}
 	return err
 }
@@ -182,11 +187,10 @@ func emailCreateTable() error {
 				contact_id bigint,
 				email text,
 				created_at timestamp without time zone,
-				updated_at
- timestamp without time zone default now()
+				updated_at timestamp without time zone default now()
 			)
 	`
-	_, err := pool.Exec(str)
+	_, err := pool.Exec(context.Background(), str)
 	if err != nil {
 		errmsg("emailCreateTable exec", err)
 	}

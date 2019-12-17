@@ -1,13 +1,15 @@
 package edc
 
+import "context"
+
 // SirenType - struct for sirenType
 type SirenType struct {
 	ID        int64  `sql:"id"         json:"id"            form:"id"     query:"id"`
 	Name      string `sql:"name"       json:"name"          form:"name"   query:"name"`
 	Radius    int64  `sql:"radius"     json:"radius,string" form:"radius" query:"radius"`
 	Note      string `sql:"note"       json:"note"          form:"note"   query:"note"`
- 	CreatedAt string `sql:"created_at" json:"-"`
- 	UpdatedAt string `sql:"updated_at" json:"-"`
+	CreatedAt string `sql:"created_at" json:"-"`
+	UpdatedAt string `sql:"updated_at" json:"-"`
 }
 
 // SirenTypeList - struct for sirenType list
@@ -33,41 +35,15 @@ func SirenTypeGet(id int64) (SirenType, error) {
 	return sirenType, err
 }
 
-// SirenTypeListGet - get sirenType for list by id
-func SirenTypeListGet(id int64) (SirenTypeList, error) {
-	var sirenType SirenTypeList
-	err := pool.QueryRow(context.Background(), &SirenType{}).
-		Column("id", "name", "radius", "note").
-		Where("id = ?", id).
-		Select(&sirenType)
-	if err != nil {
-		errmsg("GetSirenTypeList select", err)
-	}
-	return sirenType, err
-}
-
-// SirenTypeListAllGet - get all sirenType for list
-func SirenTypeListAllGet() ([]SirenTypeList, error) {
+// SirenTypeListGet - get all sirenType for list
+func SirenTypeListGet() ([]SirenTypeList, error) {
 	var sirenTypes []SirenTypeList
 	err := pool.QueryRow(context.Background(), &SirenType{}).
 		Column("id", "name", "radius", "note").
 		Order("name ASC").
 		Select(&sirenTypes)
 	if err != nil {
-		errmsg("GetSirenTypeList select", err)
-	}
-	return sirenTypes, err
-}
-
-// SirenTypeSelectGet - get sirenType for select by id
-func SirenTypeSelectGet(id int64) ([]SelectItem, error) {
-	var sirenTypes []SelectItem
-	err := pool.QueryRow(context.Background(), &SirenType{}).
-		Column("id", "name").
-		Where("id = ?", id).
-		Select(&sirenTypes)
-	if err != nil {
-		errmsg("GetSirenTypeSelect Select", err)
+		errmsg("SirenTypeListGet select", err)
 	}
 	return sirenTypes, err
 }
@@ -80,8 +56,30 @@ func SirenTypeSelectGet() ([]SelectItem, error) {
 		Order("name ASC").
 		Select(&sirenTypes)
 	if err != nil {
-		errmsg("GetSirenTypeSelect Select", err)
+		errmsg("SirenTypeSelectGet Select", err)
 	}
+	rows, err := pool.Query(context.Background(), `
+		SELECT
+			id,
+			name
+		FROM
+			companies
+		ORDER BY
+			name ASC
+	`)
+	if err != nil {
+		errmsg("CompanySelectGet Query", err)
+	}
+	for rows.Next() {
+		var company SelectItem
+		err := rows.Scan(&company.ID, &company.Name)
+		if err != nil {
+			errmsg("CompanySelectGet select", err)
+			return companies, err
+		}
+		companies = append(companies, company)
+	}
+	return companies, rows.Err()
 	return sirenTypes, err
 }
 
@@ -89,7 +87,7 @@ func SirenTypeSelectGet() ([]SelectItem, error) {
 func SirenTypeInsert(sirenType SirenType) (int64, error) {
 	err := pool.Insert(&sirenType)
 	if err != nil {
-		errmsg("CreateSirenType insert", err)
+		errmsg("SirenTypeInsert insert", err)
 	}
 	return sirenType.ID, nil
 }
@@ -98,7 +96,7 @@ func SirenTypeInsert(sirenType SirenType) (int64, error) {
 func SirenTypeUpdate(sirenType SirenType) error {
 	err := pool.Update(&sirenType)
 	if err != nil {
-		errmsg("UpdateSirenType update", err)
+		errmsg("SirenTypeUpdate update", err)
 	}
 	return err
 }
@@ -112,7 +110,7 @@ func SirenTypeDelete(id int64) error {
 		Where("id = ?", id).
 		Delete()
 	if err != nil {
-		errmsg("DeleteSirenTypedelete", err)
+		errmsg("SirenTypeDelete", err)
 	}
 	return err
 }
@@ -126,8 +124,7 @@ func sirenTypeCreateTable() error {
 				radius     bigint,
 				note       text,
 				created_at TIMESTAMP without time zone,
-				updated_at
- TIMESTAMP without time zone default now(),
+				updated_at TIMESTAMP without time zone default now(),
 				UNIQUE(name, radius)
 			);`
 	_, err := pool.Exec(str)

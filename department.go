@@ -1,12 +1,14 @@
 package edc
 
+import "context"
+
 // Department - struct for department
 type Department struct {
 	ID        int64  `sql:"id"         json:"id"   form:"id"   query:"id"`
 	Name      string `sql:"name"       json:"name" form:"name" query:"name"`
 	Note      string `sql:"note"       json:"note" form:"note" query:"note"`
- 	CreatedAt string `sql:"created_at" json:"-"    form:"-"    query:"-"`
- 	UpdatedAt string `sql:"updated_at" json:"-"    form:"-"    query:"-"`
+	CreatedAt string `sql:"created_at" json:"-"    form:"-"    query:"-"`
+	UpdatedAt string `sql:"updated_at" json:"-"    form:"-"    query:"-"`
 }
 
 // DepartmentList - struct for list of departments
@@ -31,21 +33,8 @@ func DepartmentGet(id int64) (Department, error) {
 	return department, err
 }
 
-// DepartmentListGet - get department for list by id
-func DepartmentListGet(id int64) (DepartmentList, error) {
-	var department DepartmentList
-	err := pool.QueryRow(context.Background(), &Department{}).
-		Column("id", "name", "note").
-		Where("id = ?", id).
-		Select(&department)
-	if err != nil {
-		errmsg("GetDepartmentList select", err)
-	}
-	return department, err
-}
-
-// DepartmentListAllGet - get all department for list
-func DepartmentListAllGet() ([]DepartmentList, error) {
+// DepartmentListGet - get all department for list
+func DepartmentListGet() ([]DepartmentList, error) {
 	var departments []DepartmentList
 	err := pool.QueryRow(context.Background(), &Department{}).
 		Column("id", "name", "note").
@@ -55,22 +44,6 @@ func DepartmentListAllGet() ([]DepartmentList, error) {
 		errmsg("GetDepartmentList select", err)
 	}
 	return departments, err
-}
-
-// DepartmentSelectGet - get department for select
-func DepartmentSelectGet(id int64) (SelectItem, error) {
-	var department SelectItem
-	if id == 0 {
-		return department, nil
-	}
-	err := pool.QueryRow(context.Background(), &Department{}).
-		Column("id", "name").
-		Where("id = ?", id).
-		Select(&department)
-	if err != nil {
-		errmsg("GetDepartmentSelect select", err)
-	}
-	return department, err
 }
 
 // DepartmentSelectGet - get all department for select
@@ -83,6 +56,28 @@ func DepartmentSelectGet() ([]SelectItem, error) {
 	if err != nil {
 		errmsg("GetDepartmentSelectAll select", err)
 	}
+	rows, err := pool.Query(context.Background(), `
+		SELECT
+			id,
+			name
+		FROM
+			companies
+		ORDER BY
+			name ASC
+	`)
+	if err != nil {
+		errmsg("CompanySelectGet Query", err)
+	}
+	for rows.Next() {
+		var company SelectItem
+		err := rows.Scan(&company.ID, &company.Name)
+		if err != nil {
+			errmsg("CompanySelectGet select", err)
+			return companies, err
+		}
+		companies = append(companies, company)
+	}
+	return companies, rows.Err()
 	return departments, err
 }
 

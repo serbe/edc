@@ -1,12 +1,14 @@
 package edc
 
+import "context"
+
 // Rank - struct for rank
 type Rank struct {
 	ID        int64  `sql:"id"         json:"id"   form:"id"   query:"id"`
 	Name      string `sql:"name"       json:"name" form:"name" query:"name"`
 	Note      string `sql:"note"       json:"note" form:"note" query:"note"`
- 	CreatedAt string `sql:"created_at" json:"-"`
- 	UpdatedAt string `sql:"updated_at" json:"-"`
+	CreatedAt string `sql:"created_at" json:"-"`
+	UpdatedAt string `sql:"updated_at" json:"-"`
 }
 
 // RankList - struct for rank list
@@ -31,21 +33,8 @@ func RankGet(id int64) (Rank, error) {
 	return rank, err
 }
 
-// RankListGet - get rank for list by id
-func RankListGet(id int64) (RankList, error) {
-	var rank RankList
-	err := pool.QueryRow(context.Background(), &Rank{}).
-		Column("id", "name", "note").
-		Where("id = ?", id).
-		Select(&rank)
-	if err != nil {
-		errmsg("GetRankList query", err)
-	}
-	return rank, err
-}
-
-// RankListAllGet - get all rank for list
-func RankListAllGet() ([]RankList, error) {
+// RankListGet - get all rank for list
+func RankListGet() ([]RankList, error) {
 	var ranks []RankList
 	err := pool.QueryRow(context.Background(), &Rank{}).
 		Column("id", "name", "note").
@@ -58,23 +47,6 @@ func RankListAllGet() ([]RankList, error) {
 }
 
 // RankSelectGet - get all rank for select
-func RankSelectGet(id int64) (SelectItem, error) {
-	var rank SelectItem
-	if id == 0 {
-		return rank, nil
-	}
-	err := pool.QueryRow(context.Background(), &Rank{}).
-		Column("id", "name").
-		Where("id = ?", id).
-		Order("name ASC").
-		Select(&rank)
-	if err != nil {
-		errmsg("GetRankSelect query", err)
-	}
-	return rank, err
-}
-
-// RankSelectGet - get all rank for select
 func RankSelectGet() ([]SelectItem, error) {
 	var ranks []SelectItem
 	err := pool.QueryRow(context.Background(), &Rank{}).
@@ -84,6 +56,28 @@ func RankSelectGet() ([]SelectItem, error) {
 	if err != nil {
 		errmsg("GetRankSelectAll query", err)
 	}
+	rows, err := pool.Query(context.Background(), `
+		SELECT
+			id,
+			name
+		FROM
+			companies
+		ORDER BY
+			name ASC
+	`)
+	if err != nil {
+		errmsg("CompanySelectGet Query", err)
+	}
+	for rows.Next() {
+		var company SelectItem
+		err := rows.Scan(&company.ID, &company.Name)
+		if err != nil {
+			errmsg("CompanySelectGet select", err)
+			return companies, err
+		}
+		companies = append(companies, company)
+	}
+	return companies, rows.Err()
 	return ranks, err
 }
 

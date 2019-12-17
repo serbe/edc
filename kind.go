@@ -1,13 +1,15 @@
 package edc
 
+import "context"
+
 // Kind - struct for kind
 type Kind struct {
 	ID        int64  `sql:"id"         json:"id"         form:"id"         query:"id"`
 	Name      string `sql:"name"       json:"name"       form:"name"       query:"name"`
 	ShortName string `sql:"short_name" json:"short_name" form:"short_name" query:"short_name"`
 	Note      string `sql:"note"       json:"note"       form:"note"       query:"note"`
- 	CreatedAt string `sql:"created_at" json:"-"`
- 	UpdatedAt string `sql:"updated_at" json:"-"`
+	CreatedAt string `sql:"created_at" json:"-"`
+	UpdatedAt string `sql:"updated_at" json:"-"`
 }
 
 // KindList - struct for kind list
@@ -33,21 +35,8 @@ func KindGet(id int64) (Kind, error) {
 	return kind, err
 }
 
-// KindListGet - get kind for list by id
-func KindListGet(id int64) (KindList, error) {
-	var kind KindList
-	err := pool.QueryRow(context.Background(), &Kind{}).
-		Column("id", "name", "short_name", "note").
-		Where("id = ?", id).
-		Select(&kind)
-	if err != nil {
-		errmsg("GetKindList select", err)
-	}
-	return kind, err
-}
-
-// KindListAllGet - get all kind for list
-func KindListAllGet() ([]KindList, error) {
+// KindListGet - get all kind for list
+func KindListGet() ([]KindList, error) {
 	var kinds []KindList
 	err := pool.QueryRow(context.Background(), &Kind{}).
 		Column("id", "name", "short_name", "note").
@@ -69,6 +58,28 @@ func KindSelectGet() ([]SelectItem, error) {
 	if err != nil {
 		errmsg("GetKindSelectAll select", err)
 	}
+	rows, err := pool.Query(context.Background(), `
+		SELECT
+			id,
+			name
+		FROM
+			companies
+		ORDER BY
+			name ASC
+	`)
+	if err != nil {
+		errmsg("CompanySelectGet Query", err)
+	}
+	for rows.Next() {
+		var company SelectItem
+		err := rows.Scan(&company.ID, &company.Name)
+		if err != nil {
+			errmsg("CompanySelectGet select", err)
+			return companies, err
+		}
+		companies = append(companies, company)
+	}
+	return companies, rows.Err()
 	return kinds, err
 }
 

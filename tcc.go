@@ -38,20 +38,7 @@ func TccGet(id int64) (Tcc, error) {
 }
 
 // TccListGet - get all tcc for list
-func TccListGet(id int64) (TccList, error) {
-	var tccs TccList
-	err := pool.QueryRow(context.Background(), &Tcc{}).
-		Column("id", "address", "contact_id", "note").
-		Where("id = ?", id).
-		Select(&tccs)
-	if err != nil {
-		errmsg("GetTccList select", err)
-	}
-	return tccs, err
-}
-
-// TccListAllGet - get all tcc for list
-func TccListAllGet() ([]TccList, error) {
+func TccListGet() ([]TccList, error) {
 	var tccs []TccList
 	err := pool.QueryRow(context.Background(), &Tcc{}).
 		Column("id", "address", "contact_id", "note").

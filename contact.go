@@ -13,8 +13,8 @@ type Contact struct {
 	RankID       int64    `sql:"rank_id"       json:"rank_id"       form:"rank_id"       query:"rank_id"`
 	Birthday     string   `sql:"birthday"      json:"birthday"      form:"birthday"      query:"birthday"`
 	Note         string   `sql:"note"          json:"note"          form:"note"          query:"note"`
- 	CreatedAt    string   `sql:"created_at"    json:"-"`
- 	UpdatedAt    string   `sql:"updated_at"    json:"-"`
+	CreatedAt    string   `sql:"created_at"    json:"-"`
+	UpdatedAt    string   `sql:"updated_at"    json:"-"`
 	Emails       []string `sql:"-"             json:"emails"        form:"emails"        query:"emails"`
 	Phones       []int64  `sql:"-"             json:"phones"        form:"phones"        query:"phones"`
 	Faxes        []int64  `sql:"-"             json:"faxes"         form:"faxes"         query:"faxes"`
@@ -65,7 +65,7 @@ func ContactGet(id int64) (Contact, error) {
 // ContactListGet - get all contacts for list
 func ContactListGet() ([]ContactList, error) {
 	var contacts []ContactList
-	_, err := pool.Query(&contacts, `
+	_, err := pool.Query(context.Background(), `
 		SELECT
 			c.id,
 			c.name,
@@ -97,30 +97,31 @@ func ContactListGet() ([]ContactList, error) {
 	return contacts, err
 }
 
-// ContactSelectGet - get contact for select by id
-func ContactSelectGet(id int64) (SelectItem, error) {
-	var contact SelectItem
-	err := pool.QueryRow(context.Background(), &Contact{}).
-		Column("id", "name").
-		Where("id = ?", id).
-		Select(&contact)
-	if err != nil {
-		errmsg("GetContactSelect select", err)
-	}
-	return contact, err
-}
-
 // ContactSelectGet - get all contacts for select
 func ContactSelectGet() ([]SelectItem, error) {
 	var contacts []SelectItem
-	err := pool.QueryRow(context.Background(), &Contact{}).
-		Column("id", "name").
-		Order("name ASC").
-		Select(&contacts)
+	rows, err := pool.Query(context.Background(), `
+		SELECT
+			id,
+			name
+		FROM
+			contacts
+		ORDER BY
+			name ASC
+	`)
 	if err != nil {
-		errmsg("GetContactSelectAll select", err)
+		errmsg("ContactSelectGet Query", err)
 	}
-	return contacts, err
+	for rows.Next() {
+		var contact SelectItem
+		err := rows.Scan(&contact.ID, &contact.Name)
+		if err != nil {
+			errmsg("ContactSelectGet select", err)
+			return contacts, err
+		}
+		contacts = append(contacts, contact)
+	}
+	return contacts, rows.Err()
 }
 
 // ContactCompanyGet - get all contacts from company
@@ -129,7 +130,7 @@ func ContactCompanyGet(id int64) ([]ContactShort, error) {
 	if id == 0 {
 		return contacts, nil
 	}
-	_, err := pool.Query(&contacts, `
+	_, err := pool.Query(context.Background(), `
 		SELECT
 			c.id,
 			c.name,
@@ -187,14 +188,14 @@ func ContactDelete(id int64) error {
 	}
 	err := e.DeleteAllContactPhones(id)
 	if err != nil {
-		errmsg("DeleteContact DeleteAllContactPhones", err)
+		errmsg("ContactDelete DeleteAllContactPhones", err)
 		return err
 	}
 	_, err = pool.Model(&Contact{}).
 		Where("id = ?", id).
 		Delete()
 	if err != nil {
-		errmsg("DeleteContact delete", err)
+		errmsg("ContactDelete delete", err)
 	}
 	return err
 }

@@ -1,5 +1,7 @@
 package edc
 
+import "context"
+
 // Hideout       - защитное сооружение
 // ID            - номер в базе данных
 // Num           - Номер убежища в реестре имущества
@@ -74,8 +76,8 @@ type Hideout struct {
 	Contact       Contact     `sql:"-"               json:"contact"         form:"contact"         query:"contact"`
 	Condition     string      `sql:"condition"       json:"condition"       form:"condition"       query:"condition"`
 	Note          string      `sql:"note"            json:"note"            form:"note"            query:"note"`
- 	CreatedAt     string      `sql:"created_at"      json:"-"`
- 	UpdatedAt     string      `sql:"updated_at"      json:"-"`
+	CreatedAt     string      `sql:"created_at"      json:"-"`
+	UpdatedAt     string      `sql:"updated_at"      json:"-"`
 }
 
 // HideoutList - struct for hideout list
@@ -105,7 +107,7 @@ func HideoutGet(id int64) (Hideout, error) {
 // HideoutListGet - get all hideout for list
 func HideoutListGet() ([]HideoutList, error) {
 	var hideouts []HideoutList
-	_, err := pool.Query(&hideouts, `
+	_, err := pool.Query(context.Background(), `
 		SELECT
 			s.id,
 			s.address,

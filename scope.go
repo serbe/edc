@@ -1,12 +1,14 @@
 package edc
 
+import "context"
+
 // Scope - struct for scope
 type Scope struct {
 	ID        int64  `sql:"id"         json:"id"   form:"id"   query:"id"`
 	Name      string `sql:"name"       json:"name" form:"name" query:"name"`
 	Note      string `sql:"note"       json:"note" form:"note" query:"note"`
- 	CreatedAt string `sql:"created_at" json:"-"`
- 	UpdatedAt string `sql:"updated_at" json:"-"`
+	CreatedAt string `sql:"created_at" json:"-"`
+	UpdatedAt string `sql:"updated_at" json:"-"`
 }
 
 // ScopeList - struct for scope list
@@ -31,21 +33,8 @@ func ScopeGet(id int64) (Scope, error) {
 	return scope, err
 }
 
-// ScopeListGet - get scope for list by id
-func ScopeListGet(id int64) (ScopeList, error) {
-	var scope ScopeList
-	err := pool.QueryRow(context.Background(), &Scope{}).
-		Column("id", "name", "note").
-		Where("id = ?", id).
-		Select(&scope)
-	if err != nil {
-		errmsg("GetScopeList select", err)
-	}
-	return scope, err
-}
-
-// ScopeListAllGet - get all scope for list
-func ScopeListAllGet() ([]ScopeList, error) {
+// ScopeListGet - get all scope for list
+func ScopeListGet() ([]ScopeList, error) {
 	var scopes []ScopeList
 	err := pool.QueryRow(context.Background(), &Scope{}).
 		Column("id", "name", "note").
@@ -55,22 +44,6 @@ func ScopeListAllGet() ([]ScopeList, error) {
 		errmsg("GetScopeListAll select", err)
 	}
 	return scopes, err
-}
-
-// ScopeSelectGet - get scope for select
-func ScopeSelectGet(id int64) (SelectItem, error) {
-	var scope SelectItem
-	if id == 0 {
-		return scope, nil
-	}
-	err := pool.QueryRow(context.Background(), &Scope{}).
-		Column("id", "name").
-		Where("id = ?", id).
-		Select(&scope)
-	if err != nil {
-		errmsg("GetScopeSelect select", err)
-	}
-	return scope, err
 }
 
 // ScopeSelectGet - get all scope for select
@@ -83,6 +56,28 @@ func ScopeSelectGet() ([]SelectItem, error) {
 	if err != nil {
 		errmsg("GetScopeSelectAll query", err)
 	}
+	rows, err := pool.Query(context.Background(), `
+		SELECT
+			id,
+			name
+		FROM
+			companies
+		ORDER BY
+			name ASC
+	`)
+	if err != nil {
+		errmsg("CompanySelectGet Query", err)
+	}
+	for rows.Next() {
+		var company SelectItem
+		err := rows.Scan(&company.ID, &company.Name)
+		if err != nil {
+			errmsg("CompanySelectGet select", err)
+			return companies, err
+		}
+		companies = append(companies, company)
+	}
+	return companies, rows.Err()
 	return scopes, err
 }
 

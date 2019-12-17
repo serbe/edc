@@ -1,5 +1,7 @@
 package edc
 
+import "context"
+
 // Siren - struct for siren
 type Siren struct {
 	ID          int64  `sql:"id"            json:"id"            form:"id"            query:"id"`
@@ -16,8 +18,8 @@ type Siren struct {
 	Stage       int64  `sql:"stage"         json:"stage"         form:"stage"         query:"stage"`
 	Own         string `sql:"own"           json:"own"           form:"own"           query:"own"`
 	Note        string `sql:"note"          json:"note"          form:"note"          query:"note"`
- 	CreatedAt   string `sql:"created_at"    json:"-"`
- 	UpdatedAt   string `sql:"updated_at"    json:"-"`
+	CreatedAt   string `sql:"created_at"    json:"-"`
+	UpdatedAt   string `sql:"updated_at"    json:"-"`
 }
 
 // SirenList - struct for siren list
@@ -47,7 +49,7 @@ func SirenGet(id int64) (Siren, error) {
 // SirenListGet - get all siren for list
 func SirenListGet() ([]SirenList, error) {
 	var sirens []SirenList
-	_, err := pool.Query(&sirens, `
+	_, err := pool.Query(context.Background(), `
 		SELECT
 			s.id,
 			s.address,

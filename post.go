@@ -1,13 +1,15 @@
 package edc
 
+import "context"
+
 // Post - struct for post
 type Post struct {
 	ID        int64  `sql:"id"         json:"id"   form:"id"   query:"id"`
 	Name      string `sql:"name"       json:"name" form:"name" query:"name"`
 	GO        bool   `sql:"go"         json:"go"   form:"go"   query:"go"`
 	Note      string `sql:"note"       json:"note" form:"note" query:"note"`
- 	CreatedAt string `sql:"created_at" json:"-"`
- 	UpdatedAt string `sql:"updated_at" json:"-"`
+	CreatedAt string `sql:"created_at" json:"-"`
+	UpdatedAt string `sql:"updated_at" json:"-"`
 }
 
 // PostList - struct for post list
@@ -33,21 +35,8 @@ func PostGet(id int64) (Post, error) {
 	return post, nil
 }
 
-// PostListGet - get post for list by id
-func PostListGet(id int64) (PostList, error) {
-	var post PostList
-	err := pool.QueryRow(context.Background(), &Post{}).
-		Column("id", "name", "go", "note").
-		Where("id = ?", id).
-		Select(&post)
-	if err != nil {
-		errmsg("GetPostList select", err)
-	}
-	return post, nil
-}
-
-// PostListAllGet - get all post for list
-func PostListAllGet() ([]PostList, error) {
+// PostListGet - get all post for list
+func PostListGet() ([]PostList, error) {
 	var posts []PostList
 	err := pool.QueryRow(context.Background(), &Post{}).
 		Column("id", "name", "go", "note").
@@ -57,40 +46,6 @@ func PostListAllGet() ([]PostList, error) {
 		errmsg("GetPostListAll select", err)
 	}
 	return posts, nil
-}
-
-// PostSelectGet - get post for select
-func PostSelectGet(id int64) (SelectItem, error) {
-	var post SelectItem
-	if id == 0 {
-		return post, nil
-	}
-	err := pool.QueryRow(context.Background(), &Post{}).
-		Column("id", "name").
-		Where("go = false AND id = ?", id).
-		Order("name ASC").
-		Select(&post)
-	if err != nil {
-		errmsg("GetPostSelect query", err)
-	}
-	return post, nil
-}
-
-// PostGOSelectGet - get post go for select
-func PostGOSelectGet(id int64) (SelectItem, error) {
-	var post SelectItem
-	if id == 0 {
-		return post, nil
-	}
-	err := pool.QueryRow(context.Background(), &Post{}).
-		Column("id", "name").
-		Where("go = true AND id = ?", id).
-		Order("name ASC").
-		Select(&post)
-	if err != nil {
-		errmsg("GetPostGOSelect query", err)
-	}
-	return post, nil
 }
 
 // PostSelectGet - get all post for select
@@ -104,6 +59,28 @@ func PostSelectGet(g bool) ([]SelectItem, error) {
 	if err != nil {
 		errmsg("GetPostSelectAll query", err)
 	}
+	rows, err := pool.Query(context.Background(), `
+		SELECT
+			id,
+			name
+		FROM
+			companies
+		ORDER BY
+			name ASC
+	`)
+	if err != nil {
+		errmsg("CompanySelectGet Query", err)
+	}
+	for rows.Next() {
+		var company SelectItem
+		err := rows.Scan(&company.ID, &company.Name)
+		if err != nil {
+			errmsg("CompanySelectGet select", err)
+			return companies, err
+		}
+		companies = append(companies, company)
+	}
+	return companies, rows.Err()
 	return posts, nil
 }
 

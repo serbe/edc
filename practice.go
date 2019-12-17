@@ -1,5 +1,7 @@
 package edc
 
+import "context"
+
 // Practice - struct for practice
 type Practice struct {
 	ID             int64  `sql:"id"               json:"id"               form:"id"               query:"id"`
@@ -8,8 +10,8 @@ type Practice struct {
 	Topic          string `sql:"topic"            json:"topic"            form:"topic"            query:"topic"`
 	DateOfPractice string `sql:"date_of_practice" json:"date_of_practice" form:"date_of_practice" query:"date_of_practice"`
 	Note           string `sql:"note"             json:"note"             form:"note"             query:"note"`
- 	CreatedAt      string `sql:"created_at"       json:"-"`
- 	UpdatedAt      string `sql:"updated_at"       json:"-"`
+	CreatedAt      string `sql:"created_at"       json:"-"`
+	UpdatedAt      string `sql:"updated_at"       json:"-"`
 }
 
 // PracticeList is struct for practice list
@@ -51,38 +53,10 @@ func PracticeGet(id int64) (Practice, error) {
 	return practice, err
 }
 
-// PracticeListGet - get practice by id for list
-func PracticeListGet(id int64) (PracticeList, error) {
-	var practice PracticeList
-	_, err := pool.Query(practice, `
-	SELECT
-		p.id,
-		p.company_id,
-		c.name AS company_name,
-		p.kind_id,
-		k.name AS kind_name,
-		k.short_name AS kind_short_name,
-		p.date_of_practice,
-		p.topic
-	FROM
-		practices AS p
-	LEFT JOIN
-		companies AS c ON c.id = p.company_id
-	LEFT JOIN
-		kinds AS k ON k.id = p.kind_id
-	WHERE
-		id = ?`, id)
-	if err != nil {
-		errmsg("GetPracticeList query", err)
-	}
-	practice.DateStr = setStrMonth(practice.DateOfPractice)
-	return practice, err
-}
-
-// PracticeListAllGet - get all practices for list
-func PracticeListAllGet() ([]PracticeList, error) {
+// PracticeListGet - get all practices for list
+func PracticeListGet() ([]PracticeList, error) {
 	var practices []PracticeList
-	_, err := pool.Query(&practices, `
+	_, err := pool.Query(context.Background(), `
 	SELECT
 		p.id,
 		p.company_id,
@@ -114,38 +88,49 @@ func PracticeCompanyGet(id int64) ([]PracticeList, error) {
 	if id == 0 {
 		return practices, nil
 	}
-	_, err := pool.Query(&practices, `
-	SELECT
-		p.id,
-		p.company_id,
-		c.name AS company_name,
-		k.name AS kind_name,
-		k.short_name AS kind_short_name,
-		p.date_of_practice,
-		p.topic
-	FROM
-		practices AS p
-	LEFT JOIN
-		companies AS c ON c.id = p.company_id
-	LEFT JOIN
-		kinds AS k ON k.id = p.kind_id
-	WHERE
-		p.company_id = ?
-	ORDER BY
-		date_of_practice DESC`, id)
-	for i := range practices {
-		practices[i].DateStr = setStrMonth(practices[i].DateOfPractice)
-	}
+	rows, err := pool.Query(context.Background(), `
+		SELECT
+			p.id,
+			p.company_id,
+			c.name AS company_name,
+			p.kind_id,
+			k.name AS kind_name,
+			k.short_name AS kind_short_name,
+			p.date_of_practice,
+			p.topic
+		FROM
+			practices AS p
+		LEFT JOIN
+			companies AS c ON c.id = p.company_id
+		LEFT JOIN
+			kinds AS k ON k.id = p.kind_id
+		WHERE
+			p.company_id = $1
+		ORDER BY
+			date_of_practice DESC
+	`, id)
 	if err != nil {
-		errmsg("GetPracticeCompany select", err)
+		errmsg("GetPracticeCompany query", err)
+		return practices, err
 	}
-	return practices, err
+	for rows.Next() {
+		var practice PracticeList
+		err := rows.Scan(&practice.ID, &practice.CompanyID, &practice.CompanyName,
+			&practice.KindID, &practice.KindName, &practice.KindShortName, &practice.DateOfPractice, &practice.Topic)
+		if err != nil {
+			errmsg("GetPracticeCompany select", err)
+			return practices, err
+		}
+		practice.DateStr = setStrMonth(practice.DateOfPractice)
+		practices = append(practices, practice)
+	}
+	return practices, rows.Err()
 }
 
 // PracticeNearGet - get 10 nearest practices
 func PracticeNearGet() ([]PracticeShort, error) {
 	var practices []PracticeShort
-	_, err := pool.Query(&practices, `
+	_, err := pool.Query(context.Background(), `
 		SELECT
 			p.id,
 			p.company_id,

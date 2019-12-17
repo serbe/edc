@@ -1,12 +1,14 @@
 package edc
 
+import "context"
+
 // HideoutType - struct for hideoutType
 type HideoutType struct {
 	ID        int64  `sql:"id"         json:"id"   form:"id"   query:"id"`
 	Name      string `sql:"name"       json:"name" form:"name" query:"name"`
 	Note      string `sql:"note"       json:"note" form:"note" query:"note"`
- 	CreatedAt string `sql:"created_at" json:"-"`
- 	UpdatedAt string `sql:"updated_at" json:"-"`
+	CreatedAt string `sql:"created_at" json:"-"`
+	UpdatedAt string `sql:"updated_at" json:"-"`
 }
 
 // HideoutTypeList - struct for hideoutType list
@@ -31,21 +33,8 @@ func HideoutTypeGet(id int64) (HideoutType, error) {
 	return hideoutType, err
 }
 
-// HideoutTypeListGet - get hideoutType for list by id
-func HideoutTypeListGet(id int64) (HideoutTypeList, error) {
-	var hideoutType HideoutTypeList
-	err := pool.QueryRow(context.Background(), &HideoutType{}).
-		Column("id", "name", "note").
-		Where("id = ?", id).
-		Select(&hideoutType)
-	if err != nil {
-		errmsg("GetHideoutTypeList select", err)
-	}
-	return hideoutType, err
-}
-
-// HideoutTypeListAllGet - get all hideoutType for list
-func HideoutTypeListAllGet() ([]HideoutTypeList, error) {
+// HideoutTypeListGet - get all hideoutType for list
+func HideoutTypeListGet() ([]HideoutTypeList, error) {
 	var hideoutTypes []HideoutTypeList
 	err := pool.QueryRow(context.Background(), &HideoutType{}).
 		Column("id", "name", "note").
@@ -53,19 +42,6 @@ func HideoutTypeListAllGet() ([]HideoutTypeList, error) {
 		Select(&hideoutTypes)
 	if err != nil {
 		errmsg("GetHideoutTypeList select", err)
-	}
-	return hideoutTypes, err
-}
-
-// HideoutTypeSelectGet - get hideoutType for select by id
-func HideoutTypeSelectGet(id int64) ([]SelectItem, error) {
-	var hideoutTypes []SelectItem
-	err := pool.QueryRow(context.Background(), &HideoutType{}).
-		Column("id", "name").
-		Where("id = ?", id).
-		Select(&hideoutTypes)
-	if err != nil {
-		errmsg("GetHideoutTypeSelect Select", err)
 	}
 	return hideoutTypes, err
 }
@@ -80,6 +56,28 @@ func HideoutTypeSelectGet() ([]SelectItem, error) {
 	if err != nil {
 		errmsg("GetHideoutTypeSelect Select", err)
 	}
+	rows, err := pool.Query(context.Background(), `
+		SELECT
+			id,
+			name
+		FROM
+			companies
+		ORDER BY
+			name ASC
+	`)
+	if err != nil {
+		errmsg("CompanySelectGet Query", err)
+	}
+	for rows.Next() {
+		var company SelectItem
+		err := rows.Scan(&company.ID, &company.Name)
+		if err != nil {
+			errmsg("CompanySelectGet select", err)
+			return companies, err
+		}
+		companies = append(companies, company)
+	}
+	return companies, rows.Err()
 	return hideoutTypes, err
 }
 
