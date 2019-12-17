@@ -2,14 +2,14 @@ package edc
 
 // Certificate - struct for certificate
 type Certificate struct {
-	ID        int64      `sql:"id"         json:"id"         form:"id"         query:"id"`
-	Num       string     `sql:"num"        json:"num"        form:"num"        query:"num"`
-	ContactID int64      `sql:"contact_id" json:"contact_id" form:"contact_id" query:"contact_id"`
-	CompanyID int64      `sql:"company_id" json:"company_id" form:"company_id" query:"company_id"`
-	CertDate  string     `sql:"cert_date"  json:"cert_date"  form:"cert_date"  query:"cert_date"`
-	Note      string     `sql:"note"       json:"note"       form:"note"       query:"note"`
-	CreatedAt string     `sql:"created_at" json:"-"`
-	UpdatedAt string     `sql:"updated_at" json:"-"`
+	ID        int64  `sql:"id"         json:"id"         form:"id"         query:"id"`
+	Num       string `sql:"num"        json:"num"        form:"num"        query:"num"`
+	ContactID int64  `sql:"contact_id" json:"contact_id" form:"contact_id" query:"contact_id"`
+	CompanyID int64  `sql:"company_id" json:"company_id" form:"company_id" query:"company_id"`
+	CertDate  string `sql:"cert_date"  json:"cert_date"  form:"cert_date"  query:"cert_date"`
+	Note      string `sql:"note"       json:"note"       form:"note"       query:"note"`
+	CreatedAt string `sql:"created_at" json:"-"`
+	UpdatedAt string `sql:"updated_at" json:"-"`
 }
 
 // CertificateList - struct for certificate list
