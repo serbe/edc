@@ -1,6 +1,9 @@
 package edc
 
-import "context"
+import (
+	"context"
+	"time"
+)
 
 // Certificate - struct for certificate
 type Certificate struct {
@@ -26,8 +29,8 @@ type CertificateList struct {
 	Note        string `sql:"note"         json:"note"         form:"note"         query:"note"`
 }
 
-// GetCertificate - get one certificate by id
-func GetCertificate(id int64) (Certificate, error) {
+// CertificateGet - get one certificate by id
+func CertificateGet(id int64) (Certificate, error) {
 	var certificate Certificate
 	if id == 0 {
 		return certificate, nil
@@ -48,13 +51,13 @@ func GetCertificate(id int64) (Certificate, error) {
 			id = $1
 	`, id).Scan(&certificate.Num, &certificate.ContactID, &certificate.CompanyID, &certificate.CertDate, &certificate.Note, &certificate.CreatedAt, &certificate.UpdatedAt)
 	if err != nil {
-		errmsg("GetCertificate select", err)
+		errmsg("CertificateGet select", err)
 	}
 	return certificate, err
 }
 
-// GetCertificateListAll - get all certificate for list
-func GetCertificateListAll() ([]CertificateList, error) {
+// CertificateListGetAll - get all certificate for list
+func CertificateListGetAll() ([]CertificateList, error) {
 	var certificates []CertificateList
 	rows, err := pool.Query(context.Background(), `
 		SELECT
@@ -80,7 +83,7 @@ func GetCertificateListAll() ([]CertificateList, error) {
 			num ASC
 	`)
 	if err != nil {
-		errmsg("GetCertificateListAll select", err)
+		errmsg("CertificateListGetAll select", err)
 	}
 	for rows.Next() {
 		var certificate CertificateList
@@ -93,34 +96,81 @@ func GetCertificateListAll() ([]CertificateList, error) {
 	return certificates, rows.Err()
 }
 
-// CreateCertificate - create new certificate
-func CreateCertificate(certificate Certificate) (int64, error) {
-	err := pool.Insert(&certificate)
+// CertificateCreate - create new certificate
+func CertificateCreate(certificate Certificate) (int64, error) {
+	err := pool.QueryRow(context.Background(), `
+		INSERT INTO certificates
+		(
+			num,
+			contact_id,
+			company_id,
+			cert_date,
+			note,
+			created_at,
+			updated_at
+		)
+		VALUES
+		(
+			$1,
+			$2,
+			$3,
+			$4,
+			$5,
+			$6,
+			$7
+		)
+		RETURNING
+			id
+	`, certificate.Num,
+		certificate.ContactID,
+		certificate.CompanyID,
+		certificate.CertDate,
+		certificate.Note,
+		time.Now(),
+		time.Now()).Scan(&certificate.ID)
 	if err != nil {
-		errmsg("CreateCertificate insert", err)
+		errmsg("CertificateCreate insert", err)
 	}
 	return certificate.ID, nil
 }
 
-// UpdateCertificate - save certificate changes
-func UpdateCertificate(certificate Certificate) error {
-	err := pool.Update(&certificate)
+// CertificateUpdate - save certificate changes
+func CertificateUpdate(certificate Certificate) error {
+	_, err := pool.Exec(context.Background(), `
+		UPDATE certificates SET
+			num = $2,
+			contact_id = $3,
+			company_id = $4,
+			cert_date = $5,
+			note = $6,
+			updated_at = $7
+		WHERE
+			id = $1
+	`, certificate.ID, certificate.Num,
+		certificate.ContactID,
+		certificate.CompanyID,
+		certificate.CertDate,
+		certificate.Note,
+		time.Now())
 	if err != nil {
-		errmsg("UpdateCertificate update", err)
+		errmsg("CertificateUpdate update", err)
 	}
 	return err
 }
 
-// DeleteCertificate - delete certificate by id
-func DeleteCertificate(id int64) error {
+// CertificateDelete - delete certificate by id
+func CertificateDelete(id int64) error {
 	if id == 0 {
 		return nil
 	}
-	_, err := pool.Model(&Certificate{}).
-		Where("id = ?", id).
-		Delete()
+	_, err := pool.Exec(context.Background(), `
+		DELETE FROM
+			certificates
+		WHERE
+			id = $1
+	`, id)
 	if err != nil {
-		errmsg("DeleteCertificate delete", err)
+		errmsg("CertificateDelete delete", err)
 	}
 	return err
 }
@@ -140,7 +190,7 @@ func certificateCreateTable() error {
 				UNIQUE(num)
 			)
 	`
-	_, err := pool.Exec(str)
+	_, err := pool.Exec(context.Background(), str)
 	if err != nil {
 		errmsg("certificateCreateTable exec", err)
 	}

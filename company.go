@@ -1,5 +1,7 @@
 package edc
 
+import "context"
+
 // Company is struct for company
 type Company struct {
 	ID        int64          `sql:"id"         json:"id"        form:"id"        query:"id"`
@@ -28,13 +30,14 @@ type CompanyList struct {
 	Practices []string `json:"practices"  form:"practices"  query:"practices"   pg:",array"`
 }
 
-// GetCompany - get one company by id
-func GetCompany(id int64) (Company, error) {
+// CompanyGet - get one company by id
+func CompanyGet(id int64) (Company, error) {
 	var company Company
 	if id == 0 {
 		return company, nil
 	}
-	_, err := pool.Query(&company, `
+	company.ID = id
+	err := pool.QueryRow(context.Background(), `
 		SELECT
 			c.name,
 			c.address,
@@ -54,10 +57,14 @@ func GetCompany(id int64) (Company, error) {
 		LEFT JOIN
 			phones AS f ON c.id = f.company_id AND f.fax = true
 		WHERE
-			c.id = ?
+			c.id = $1
 		GROUP BY
 			c.id
-	`, id)
+	`, id).Scan(&company.Name, &company.Address, &company.ScopeID, &company.Note, &company.CreatedAt, &company.UpdatedAt,&emails,
+		&phones,
+		&faxes,
+		&practices,
+		&contacts)
 	if err != nil {
 		errmsg("GetCompany select", err)
 		return company, err
