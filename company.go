@@ -1,6 +1,9 @@
 package edc
 
-import "context"
+import (
+	"context"
+	"time"
+)
 
 // Company is struct for company
 type Company struct {
@@ -76,15 +79,15 @@ func CompanyGet(id int64) (Company, error) {
 		errmsg("GetCompany select", err)
 		return company, err
 	}
-	practices, err := e.GetPracticeCompany(id)
+	practices, err = PracticeCompanyGet(id)
 	if err != nil {
-		errmsg("GetPracticeCompany", err)
+		errmsg("PracticeCompanyGet", err)
 		return company, err
 	}
 	company.Practices = practices
-	contacts, err := e.GetContactCompany(id)
+	contacts, err = ContactCompanyGet(id)
 	if err != nil {
-		errmsg("GetContactCompany", err)
+		errmsg("ContactCompanyGet", err)
 		return company, err
 	}
 	company.Contacts = contacts
@@ -94,7 +97,7 @@ func CompanyGet(id int64) (Company, error) {
 // CompanyListGet - get all companyes for list
 func CompanyListGet() ([]CompanyList, error) {
 	var companies []CompanyList
-	_, err := pool.Query(&companies, `
+	rows, err := pool.Query(context.Background(), `
 		SELECT
 			c.id,
 			c.name,
@@ -125,61 +128,108 @@ func CompanyListGet() ([]CompanyList, error) {
 	if err != nil {
 		errmsg("GetCompanyList query", err)
 	}
-	return companies, err
-}
-
-// CompanySelectGet - get company for contact
-func CompanySelectGet(id int64) (SelectItem, error) {
-	var company SelectItem
-	if id == 0 {
-		return company, nil
+	for rows.Next() {
+		var company CompanyList
+		err := rows.Scan(&company.ID, &company.Name, &company.Address, &company.ScopeName,
+			&company.Emails, &company.Phones, &company.Faxes, &company.Practices)
+		if err != nil {
+			errmsg("GetCompanyList select", err)
+			return companies, err
+		}
+		companies = append(companies, company)
 	}
-	err := pool.QueryRow(context.Background(), &Company{}).
-		Column("id", "name").
-		Where("id = ?", id).
-		Select(&company)
-	if err != nil {
-		errmsg("GetCompanySelect select", err)
-	}
-	return company, err
+	return companies, rows.Err()
 }
 
 // CompanySelectGet - get all companyes for select
 func CompanySelectGet() ([]SelectItem, error) {
 	var companies []SelectItem
-	err := pool.QueryRow(context.Background(), &Company{}).
-		Column("id", "name").
-		Order("name ASC").
-		Select(&companies)
+	rows, err := pool.Query(context.Background(), `
+		SELECT
+			id,
+			name
+		FROM
+			companies
+		ORDER BY
+			name ASC
+	`)
 	if err != nil {
-		errmsg("GetCompanySelectAll select", err)
+		errmsg("CompanySelectGet Query", err)
 	}
-	return companies, err
+	for rows.Next() {
+		var company SelectItem
+		err := rows.Scan(&company.ID, &company.Name)
+		if err != nil {
+			errmsg("CompanySelectGet select", err)
+			return companies, err
+		}
+		companies = append(companies, company)
+	}
+	return companies, rows.Err()
 }
 
 // CompanyInsert - create new company
 func CompanyInsert(company Company) (int64, error) {
-	err := pool.Insert(&company)
+	err := pool.QueryRow(context.Background(), `
+		INSERT INTO companies
+		(
+			name,
+			address,
+			scope_id,
+			note,
+			created_at,
+			updated_at
+		)
+		VALUES
+		(
+			$1,
+			$2,
+			$3,
+			$4,
+			$5,
+			$6
+		)
+		RETURNING
+			id
+	`, company.Name,
+		company.Address,
+		company.ScopeID,
+		company.Note,
+		time.Now(),
+		time.Now()).Scan(&company.ID)
 	if err != nil {
 		errmsg("CreateCompany insert", err)
 		return 0, err
 	}
-	_ = e.UpdateCompanyEmails(company)
-	_ = e.UpdateCompanyPhones(company, false)
-	_ = e.UpdateCompanyPhones(company, true)
+	_ = EmailsCompanyUpdate(company.ID, company.Emails)
+	_ = PhonesCompanyUpdate(company.ID, company.Phones, false)
+	_ = PhonesCompanyUpdate(company.ID, company.Faxes, true)
 	return company.ID, nil
 }
 
 // CompanyUpdate - save company changes
 func CompanyUpdate(company Company) error {
-	err := pool.Update(&company)
+	_, err := pool.Exec(context.Background(), `
+		UPDATE companies SET
+			name = $2,
+			address = $3,
+			scope_id = $4,
+			note = $5,
+			updated_at = $6
+		WHERE
+			id = $1
+	`, company.ID, company.Name,
+		company.Address,
+		company.ScopeID,
+		company.Note,
+		time.Now())
 	if err != nil {
-		errmsg("UpdateCompany update", err)
+		errmsg("CompanyUpdate update", err)
 		return err
 	}
-	_ = e.UpdateCompanyEmails(company)
-	_ = e.UpdateCompanyPhones(company, false)
-	_ = e.UpdateCompanyPhones(company, true)
+	_ = EmailsCompanyUpdate(company.ID, company.Emails)
+	_ = PhonesCompanyUpdate(company.ID, company.Phones, false)
+	_ = PhonesCompanyUpdate(company.ID, company.Faxes, true)
 	return nil
 }
 
@@ -188,16 +238,18 @@ func CompanyDelete(id int64) error {
 	if id == 0 {
 		return nil
 	}
-	err := e.DeleteAllCompanyPhones(id)
-	if err != nil {
-		errmsg("DeleteCompany DeleteAllCompanyPhones", err)
-	}
-	_, err = pool.Model(&Company{}).
-		Where("id = ?", id).
-		Delete()
+	_, err := pool.Exec(context.Background(), `
+		DELETE FROM
+			companyes
+		WHERE
+			id = $1
+	`, id)
 	if err != nil {
 		errmsg("DeleteCompany delete", err)
 	}
+	_ = EmailsCompanyDelete(id)
+	_ = PhonesCompanyDelete(id, false)
+	_ = PhonesCompanyDelete(id, true)
 	return err
 }
 
@@ -211,12 +263,11 @@ func companyCreateTable() error {
 				scope_id BIGINT,
 				note TEXT,
 				created_at timestamp without time zone,
-				updated_at
- timestamp without time zone default now(),
+				updated_at timestamp without time zone default now(),
 				UNIQUE(name, scope_id)
 			)
 	`
-	_, err := pool.Exec(str)
+	_, err := pool.Exec(context.Background(), str)
 	if err != nil {
 		errmsg("companyCreateTable exec", err)
 	}
