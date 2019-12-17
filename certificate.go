@@ -83,12 +83,13 @@ func CertificateListGet() ([]CertificateList, error) {
 			num ASC
 	`)
 	if err != nil {
-		errmsg("CertificateListGetAll select", err)
+		errmsg("CertificateListGet select", err)
 	}
 	for rows.Next() {
 		var certificate CertificateList
 		err := rows.Scan(&certificate.ID, &certificate.Num, &certificate.ContactID, &certificate.ContactName, &certificate.CompanyID, &certificate.CompanyName, &certificate.CertDate, &certificate.Note)
 		if err != nil {
+			errmsg("CertificateListGet select", err)
 			return certificates, err
 		}
 		certificates = append(certificates, certificate)
