@@ -5,8 +5,8 @@ type Scope struct {
 	ID        int64  `sql:"id"         json:"id"   form:"id"   query:"id"`
 	Name      string `sql:"name"       json:"name" form:"name" query:"name"`
 	Note      string `sql:"note"       json:"note" form:"note" query:"note"`
-	CreatedAt string `sql:"created_at" json:"-"`
-	UpdatedAt string `sql:"updated_at" json:"-"`
+ 	CreatedAt string `sql:"created_at" json:"-"`
+ 	UpdatedAt string `sql:"updated_at" json:"-"`
 }
 
 // ScopeList - struct for scope list
@@ -16,13 +16,13 @@ type ScopeList struct {
 	Note string `sql:"note" json:"note" form:"note" query:"note"`
 }
 
-// GetScope - get one scope by id
-func GetScope(id int64) (Scope, error) {
+// ScopeGet - get one scope by id
+func ScopeGet(id int64) (Scope, error) {
 	var scope Scope
 	if id == 0 {
 		return scope, nil
 	}
-	err := pool.Model(&scope).
+	err := pool.QueryRow(context.Background(), &scope).
 		Where("id = ?", id).
 		Select()
 	if err != nil {
@@ -31,10 +31,10 @@ func GetScope(id int64) (Scope, error) {
 	return scope, err
 }
 
-// GetScopeList - get scope for list by id
-func GetScopeList(id int64) (ScopeList, error) {
+// ScopeListGet - get scope for list by id
+func ScopeListGet(id int64) (ScopeList, error) {
 	var scope ScopeList
-	err := pool.Model(&Scope{}).
+	err := pool.QueryRow(context.Background(), &Scope{}).
 		Column("id", "name", "note").
 		Where("id = ?", id).
 		Select(&scope)
@@ -44,10 +44,10 @@ func GetScopeList(id int64) (ScopeList, error) {
 	return scope, err
 }
 
-// GetScopeListAll - get all scope for list
-func GetScopeListAll() ([]ScopeList, error) {
+// ScopeListAllGet - get all scope for list
+func ScopeListAllGet() ([]ScopeList, error) {
 	var scopes []ScopeList
-	err := pool.Model(&Scope{}).
+	err := pool.QueryRow(context.Background(), &Scope{}).
 		Column("id", "name", "note").
 		Order("name ASC").
 		Select(&scopes)
@@ -57,13 +57,13 @@ func GetScopeListAll() ([]ScopeList, error) {
 	return scopes, err
 }
 
-// GetScopeSelect - get scope for select
-func GetScopeSelect(id int64) (SelectItem, error) {
+// ScopeSelectGet - get scope for select
+func ScopeSelectGet(id int64) (SelectItem, error) {
 	var scope SelectItem
 	if id == 0 {
 		return scope, nil
 	}
-	err := pool.Model(&Scope{}).
+	err := pool.QueryRow(context.Background(), &Scope{}).
 		Column("id", "name").
 		Where("id = ?", id).
 		Select(&scope)
@@ -73,10 +73,10 @@ func GetScopeSelect(id int64) (SelectItem, error) {
 	return scope, err
 }
 
-// GetScopeSelectAll - get all scope for select
-func GetScopeSelectAll() ([]SelectItem, error) {
+// ScopeSelectGet - get all scope for select
+func ScopeSelectGet() ([]SelectItem, error) {
 	var scopes []SelectItem
-	err := pool.Model(&Scope{}).
+	err := pool.QueryRow(context.Background(), &Scope{}).
 		Column("id", "name").
 		Order("name ASC").
 		Select(&scopes)
@@ -86,8 +86,8 @@ func GetScopeSelectAll() ([]SelectItem, error) {
 	return scopes, err
 }
 
-// CreateScope - create new scope
-func CreateScope(scope Scope) (int64, error) {
+// ScopeInsert - create new scope
+func ScopeInsert(scope Scope) (int64, error) {
 	err := pool.Insert(&scope)
 	if err != nil {
 		errmsg("CreateScope insert", err)
@@ -95,8 +95,8 @@ func CreateScope(scope Scope) (int64, error) {
 	return scope.ID, err
 }
 
-// UpdateScope - save scope changes
-func UpdateScope(scope Scope) error {
+// ScopeUpdate - save scope changes
+func ScopeUpdate(scope Scope) error {
 	err := pool.Update(&scope)
 	if err != nil {
 		errmsg("UpdateScope update", err)
@@ -104,12 +104,12 @@ func UpdateScope(scope Scope) error {
 	return err
 }
 
-// DeleteScope - delete scope by id
-func DeleteScope(id int64) error {
+// ScopeDelete - delete scope by id
+func ScopeDelete(id int64) error {
 	if id == 0 {
 		return nil
 	}
-	_, err := pool.Model(&Scope{}).
+	_, err := pool.QueryRow(context.Background(), &Scope{}).
 		Where("id = ?", id).
 		Delete()
 	if err != nil {
@@ -126,7 +126,8 @@ func scopeCreateTable() error {
 				name text,
 				note text,
 				created_at TIMESTAMP without time zone,
-				updated_at TIMESTAMP without time zone default now(),
+				updated_at
+ TIMESTAMP without time zone default now(),
 				UNIQUE (name)
 			)
 	`

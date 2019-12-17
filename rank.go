@@ -5,8 +5,8 @@ type Rank struct {
 	ID        int64  `sql:"id"         json:"id"   form:"id"   query:"id"`
 	Name      string `sql:"name"       json:"name" form:"name" query:"name"`
 	Note      string `sql:"note"       json:"note" form:"note" query:"note"`
-	CreatedAt string `sql:"created_at" json:"-"`
-	UpdatedAt string `sql:"updated_at" json:"-"`
+ 	CreatedAt string `sql:"created_at" json:"-"`
+ 	UpdatedAt string `sql:"updated_at" json:"-"`
 }
 
 // RankList - struct for rank list
@@ -16,13 +16,13 @@ type RankList struct {
 	Note string `sql:"note" json:"note" form:"note" query:"note"`
 }
 
-// GetRank - get one rank by id
-func GetRank(id int64) (Rank, error) {
+// RankGet - get one rank by id
+func RankGet(id int64) (Rank, error) {
 	var rank Rank
 	if id == 0 {
 		return rank, nil
 	}
-	err := pool.Model(&rank).
+	err := pool.QueryRow(context.Background(), &rank).
 		Where("id = ?", id).
 		Select()
 	if err != nil {
@@ -31,10 +31,10 @@ func GetRank(id int64) (Rank, error) {
 	return rank, err
 }
 
-// GetRankList - get rank for list by id
-func GetRankList(id int64) (RankList, error) {
+// RankListGet - get rank for list by id
+func RankListGet(id int64) (RankList, error) {
 	var rank RankList
-	err := pool.Model(&Rank{}).
+	err := pool.QueryRow(context.Background(), &Rank{}).
 		Column("id", "name", "note").
 		Where("id = ?", id).
 		Select(&rank)
@@ -44,10 +44,10 @@ func GetRankList(id int64) (RankList, error) {
 	return rank, err
 }
 
-// GetRankListAll - get all rank for list
-func GetRankListAll() ([]RankList, error) {
+// RankListAllGet - get all rank for list
+func RankListAllGet() ([]RankList, error) {
 	var ranks []RankList
-	err := pool.Model(&Rank{}).
+	err := pool.QueryRow(context.Background(), &Rank{}).
 		Column("id", "name", "note").
 		Order("name ASC").
 		Select(&ranks)
@@ -57,13 +57,13 @@ func GetRankListAll() ([]RankList, error) {
 	return ranks, err
 }
 
-// GetRankSelect - get all rank for select
-func GetRankSelect(id int64) (SelectItem, error) {
+// RankSelectGet - get all rank for select
+func RankSelectGet(id int64) (SelectItem, error) {
 	var rank SelectItem
 	if id == 0 {
 		return rank, nil
 	}
-	err := pool.Model(&Rank{}).
+	err := pool.QueryRow(context.Background(), &Rank{}).
 		Column("id", "name").
 		Where("id = ?", id).
 		Order("name ASC").
@@ -74,10 +74,10 @@ func GetRankSelect(id int64) (SelectItem, error) {
 	return rank, err
 }
 
-// GetRankSelectAll - get all rank for select
-func GetRankSelectAll() ([]SelectItem, error) {
+// RankSelectGet - get all rank for select
+func RankSelectGet() ([]SelectItem, error) {
 	var ranks []SelectItem
-	err := pool.Model(&Rank{}).
+	err := pool.QueryRow(context.Background(), &Rank{}).
 		Column("id", "name").
 		Order("name ASC").
 		Select(&ranks)
@@ -87,8 +87,8 @@ func GetRankSelectAll() ([]SelectItem, error) {
 	return ranks, err
 }
 
-// CreateRank - create new rank
-func CreateRank(rank Rank) (int64, error) {
+// RankInsert - create new rank
+func RankInsert(rank Rank) (int64, error) {
 	err := pool.Insert(&rank)
 	if err != nil {
 		errmsg("CreateRank insert", err)
@@ -96,8 +96,8 @@ func CreateRank(rank Rank) (int64, error) {
 	return rank.ID, err
 }
 
-// UpdateRank - save rank changes
-func UpdateRank(rank Rank) error {
+// RankUpdate - save rank changes
+func RankUpdate(rank Rank) error {
 	err := pool.Update(&rank)
 	if err != nil {
 		errmsg("UpdateRank update", err)
@@ -105,12 +105,12 @@ func UpdateRank(rank Rank) error {
 	return err
 }
 
-// DeleteRank - delete rank by id
-func DeleteRank(id int64) error {
+// RankDelete - delete rank by id
+func RankDelete(id int64) error {
 	if id == 0 {
 		return nil
 	}
-	_, err := pool.Model(&Rank{}).
+	_, err := pool.QueryRow(context.Background(), &Rank{}).
 		Where("id = ?", id).
 		Delete()
 	if err != nil {
@@ -127,7 +127,8 @@ func rankCreateTable() error {
 				name text,
 				note text,
 				created_at TIMESTAMP without time zone,
-				updated_at TIMESTAMP without time zone default now(),
+				updated_at
+ TIMESTAMP without time zone default now(),
 				UNIQUE (name)
 			)
 	`

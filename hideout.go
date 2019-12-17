@@ -36,8 +36,8 @@ package edc
 // Contact       - контактное лицо
 // Condition     - готовность к приему укрываемых
 // Note          - заметки
-// CreatedAt     - время создания записи в базе данных
-// UpdatedAt     - время изменения записи в базе данных
+// 	CreatedAt     - время создания записи в базе данных
+// 	UpdatedAt     - время изменения записи в базе данных
 type Hideout struct {
 	ID            int64       `sql:"id"              json:"id"              form:"id"              query:"id"`
 	Num           int64       `sql:"num"             json:"num"             form:"num"             query:"num"`
@@ -74,8 +74,8 @@ type Hideout struct {
 	Contact       Contact     `sql:"-"               json:"contact"         form:"contact"         query:"contact"`
 	Condition     string      `sql:"condition"       json:"condition"       form:"condition"       query:"condition"`
 	Note          string      `sql:"note"            json:"note"            form:"note"            query:"note"`
-	CreatedAt     string      `sql:"created_at"      json:"-"`
-	UpdatedAt     string      `sql:"updated_at"      json:"-"`
+ 	CreatedAt     string      `sql:"created_at"      json:"-"`
+ 	UpdatedAt     string      `sql:"updated_at"      json:"-"`
 }
 
 // HideoutList - struct for hideout list
@@ -87,13 +87,13 @@ type HideoutList struct {
 	Phones          []string `sql:"phones"            json:"phones"            form:"phones"            query:"phones"            pg:",array"`
 }
 
-// GetHideout - get one hideout by id
-func GetHideout(id int64) (Hideout, error) {
+// HideoutGet - get one hideout by id
+func HideoutGet(id int64) (Hideout, error) {
 	var hideout Hideout
 	if id == 0 {
 		return hideout, nil
 	}
-	err := pool.Model(&hideout).
+	err := pool.QueryRow(context.Background(), &hideout).
 		Where("id = ?", id).
 		Select()
 	if err != nil {
@@ -102,8 +102,8 @@ func GetHideout(id int64) (Hideout, error) {
 	return hideout, err
 }
 
-// GetHideoutList - get all hideout for list
-func GetHideoutList() ([]HideoutList, error) {
+// HideoutListGet - get all hideout for list
+func HideoutListGet() ([]HideoutList, error) {
 	var hideouts []HideoutList
 	_, err := pool.Query(&hideouts, `
 		SELECT
@@ -133,8 +133,8 @@ func GetHideoutList() ([]HideoutList, error) {
 	return hideouts, err
 }
 
-// CreateHideout - create new hideout
-func CreateHideout(hideout Hideout) (int64, error) {
+// HideoutInsert - create new hideout
+func HideoutInsert(hideout Hideout) (int64, error) {
 	err := pool.Insert(&hideout)
 	if err != nil {
 		errmsg("CreateHideout insert", err)
@@ -142,8 +142,8 @@ func CreateHideout(hideout Hideout) (int64, error) {
 	return hideout.ID, err
 }
 
-// UpdateHideout - save hideout changes
-func UpdateHideout(hideout Hideout) error {
+// HideoutUpdate - save hideout changes
+func HideoutUpdate(hideout Hideout) error {
 	err := pool.Update(&hideout)
 	if err != nil {
 		errmsg("UpdateHideout update", err)
@@ -151,12 +151,12 @@ func UpdateHideout(hideout Hideout) error {
 	return err
 }
 
-// DeleteHideout - delete hideout by id
-func DeleteHideout(id int64) error {
+// HideoutDelete - delete hideout by id
+func HideoutDelete(id int64) error {
 	if id == 0 {
 		return nil
 	}
-	_, err := pool.Model(&Hideout{}).
+	_, err := pool.QueryRow(context.Background(), &Hideout{}).
 		Where("id = ?", id).
 		Delete()
 	if err != nil {
@@ -200,7 +200,8 @@ func hideoutCreateTable() error {
 				condition       text,
 				note            text,
 				created_at      TIMESTAMP without time zone,
-				updated_at      TIMESTAMP without time zone default now(),
+				updated_at
+      TIMESTAMP without time zone default now(),
 				UNIQUE(num, inv_num, inv_add)
 			)
 	`

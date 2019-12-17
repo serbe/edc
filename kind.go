@@ -6,8 +6,8 @@ type Kind struct {
 	Name      string `sql:"name"       json:"name"       form:"name"       query:"name"`
 	ShortName string `sql:"short_name" json:"short_name" form:"short_name" query:"short_name"`
 	Note      string `sql:"note"       json:"note"       form:"note"       query:"note"`
-	CreatedAt string `sql:"created_at" json:"-"`
-	UpdatedAt string `sql:"updated_at" json:"-"`
+ 	CreatedAt string `sql:"created_at" json:"-"`
+ 	UpdatedAt string `sql:"updated_at" json:"-"`
 }
 
 // KindList - struct for kind list
@@ -18,13 +18,13 @@ type KindList struct {
 	Note      string `sql:"note"       json:"note"       form:"note"       query:"note"`
 }
 
-// GetKind - get one kind by id
-func GetKind(id int64) (Kind, error) {
+// KindGet - get one kind by id
+func KindGet(id int64) (Kind, error) {
 	var kind Kind
 	if id == 0 {
 		return kind, nil
 	}
-	err := pool.Model(&kind).
+	err := pool.QueryRow(context.Background(), &kind).
 		Where("id = ?", id).
 		Select()
 	if err != nil {
@@ -33,10 +33,10 @@ func GetKind(id int64) (Kind, error) {
 	return kind, err
 }
 
-// GetKindList - get kind for list by id
-func GetKindList(id int64) (KindList, error) {
+// KindListGet - get kind for list by id
+func KindListGet(id int64) (KindList, error) {
 	var kind KindList
-	err := pool.Model(&Kind{}).
+	err := pool.QueryRow(context.Background(), &Kind{}).
 		Column("id", "name", "short_name", "note").
 		Where("id = ?", id).
 		Select(&kind)
@@ -46,10 +46,10 @@ func GetKindList(id int64) (KindList, error) {
 	return kind, err
 }
 
-// GetKindListAll - get all kind for list
-func GetKindListAll() ([]KindList, error) {
+// KindListAllGet - get all kind for list
+func KindListAllGet() ([]KindList, error) {
 	var kinds []KindList
-	err := pool.Model(&Kind{}).
+	err := pool.QueryRow(context.Background(), &Kind{}).
 		Column("id", "name", "short_name", "note").
 		Order("name ASC").
 		Select(&kinds)
@@ -59,10 +59,10 @@ func GetKindListAll() ([]KindList, error) {
 	return kinds, err
 }
 
-// GetKindSelectAll - get all kind for select
-func GetKindSelectAll() ([]SelectItem, error) {
+// KindSelectGet - get all kind for select
+func KindSelectGet() ([]SelectItem, error) {
 	var kinds []SelectItem
-	err := pool.Model(&Kind{}).
+	err := pool.QueryRow(context.Background(), &Kind{}).
 		Column("id", "name").
 		Order("name ASC").
 		Select(&kinds)
@@ -72,8 +72,8 @@ func GetKindSelectAll() ([]SelectItem, error) {
 	return kinds, err
 }
 
-// CreateKind - create new kind
-func CreateKind(kind Kind) (int64, error) {
+// KindInsert - create new kind
+func KindInsert(kind Kind) (int64, error) {
 	err := pool.Insert(&kind)
 	if err != nil {
 		errmsg("CreateKind insert", err)
@@ -81,8 +81,8 @@ func CreateKind(kind Kind) (int64, error) {
 	return kind.ID, nil
 }
 
-// UpdateKind - save kind changes
-func UpdateKind(kind Kind) error {
+// KindUpdate - save kind changes
+func KindUpdate(kind Kind) error {
 	err := pool.Update(&kind)
 	if err != nil {
 		errmsg("UpdateKind update", err)
@@ -90,12 +90,12 @@ func UpdateKind(kind Kind) error {
 	return err
 }
 
-// DeleteKind - delete kind by id
-func DeleteKind(id int64) error {
+// KindDelete - delete kind by id
+func KindDelete(id int64) error {
 	if id == 0 {
 		return nil
 	}
-	_, err := pool.Model(&Kind{}).
+	_, err := pool.QueryRow(context.Background(), &Kind{}).
 		Where("id = ?", id).
 		Delete()
 	if err != nil {
@@ -113,7 +113,8 @@ func kindCreateTable() error {
 				short_name text,
 				note text,
 				created_at TIMESTAMP without time zone,
-				updated_at TIMESTAMP without time zone default now(),
+				updated_at
+ TIMESTAMP without time zone default now(),
 				UNIQUE(name)
 			)
 	`

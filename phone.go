@@ -7,17 +7,17 @@ type Phone struct {
 	ContactID int64  `sql:"contact_id,pk" json:"contact_id"   form:"contact_id" query:"contact_id"`
 	Phone     int64  `sql:"phone"         json:"phone,string" form:"phone"      query:"phone"`
 	Fax       bool   `sql:"fax"           json:"fax"          form:"fax"        query:"fax"`
-	CreatedAt string `sql:"created_at"    json:"-"`
-	UpdatedAt string `sql:"updated_at"    json:"-"`
+ 	CreatedAt string `sql:"created_at"    json:"-"`
+ 	UpdatedAt string `sql:"updated_at"    json:"-"`
 }
 
-// // GetPhone - get one phone by id
-// func GetPhone(id int64) (Phone, error) {
+// // PhoneGet - get one phone by id
+// func PhoneGet(id int64) (Phone, error) {
 // 	var phone Phone
 // 	if id == 0 {
 // 		return phone, nil
 // 	}
-// 	err := pool.Model(&phone).
+// 	err := pool.QueryRow(context.Background(), &phone).
 // 		Where("id = ?", id).
 // 		Select()
 // 	if err != nil {
@@ -26,10 +26,10 @@ type Phone struct {
 // 	return phone, nil
 // }
 
-// // GetPhoneList - get all phones for list
-// func GetPhoneList() ([]Phone, error) {
+// // PhoneListGet - get all phones for list
+// func PhoneListGet() ([]Phone, error) {
 // 	var phones []Phone
-// 	err := pool.Model(&phones).
+// 	err := pool.QueryRow(context.Background(), &phones).
 // 		Column("id", "company_id", "contact_id", "phone", "fax").
 // 		Order("phone ASC").
 // 		Select()
@@ -39,13 +39,13 @@ type Phone struct {
 // 	return phones, err
 // }
 
-// // GetCompanyPhones - get all phones by company id
-// func GetCompanyPhones(id int64, fax bool) ([]Phone, error) {
+// // CompanyPhonesGet - get all phones by company id
+// func CompanyPhonesGet(id int64, fax bool) ([]Phone, error) {
 // 	var phones []Phone
 // 	if id == 0 {
 // 		return phones, nil
 // 	}
-// 	err := pool.Model(&phones).
+// 	err := pool.QueryRow(context.Background(), &phones).
 // 		Where("company_id = ? AND fax = ?", id, fax).
 // 		Order("phone ASC").
 // 		Select()
@@ -55,13 +55,13 @@ type Phone struct {
 // 	return phones, err
 // }
 
-// // GetContactPhones - get all phones by contact id
-// func GetContactPhones(id int64, fax bool) ([]Phone, error) {
+// // ContactPhonesGet - get all phones by contact id
+// func ContactPhonesGet(id int64, fax bool) ([]Phone, error) {
 // 	var phones []Phone
 // 	if id == 0 {
 // 		return phones, nil
 // 	}
-// 	err := pool.Model(&phones).
+// 	err := pool.QueryRow(context.Background(), &phones).
 // 		Where("contact_id = ? AND fax = ?", id, fax).
 // 		Order("phone ASC").
 // 		Select()
@@ -71,8 +71,8 @@ type Phone struct {
 // 	return phones, nil
 // }
 
-// CreatePhone - create new phone
-func CreatePhone(phone Phone) (int64, error) {
+// PhoneInsert - create new phone
+func PhoneInsert(phone Phone) (int64, error) {
 	phone.ID = 0
 	err := pool.Insert(&phone)
 	if err != nil {
@@ -81,8 +81,8 @@ func CreatePhone(phone Phone) (int64, error) {
 	return phone.ID, nil
 }
 
-// UpdateCompanyPhones - update company phones
-func UpdateCompanyPhones(company Company, fax bool) error {
+// CompanyPhonesUpdate - update company phones
+func CompanyPhonesUpdate(company Company, fax bool) error {
 	err := e.DeleteCompanyPhones(company.ID, fax)
 	if err != nil {
 		errmsg("UpdateCompanyPhones DeleteCompanyPhones", err)
@@ -108,8 +108,8 @@ func UpdateCompanyPhones(company Company, fax bool) error {
 	return nil
 }
 
-// UpdateContactPhones - update contact phones
-func UpdateContactPhones(contact Contact, fax bool) error {
+// ContactPhonesUpdate - update contact phones
+func ContactPhonesUpdate(contact Contact, fax bool) error {
 	err := e.DeleteContactPhones(contact.ID, fax)
 	if err != nil {
 		errmsg("CreateContactPhones DeleteContactPhones", err)
@@ -135,12 +135,12 @@ func UpdateContactPhones(contact Contact, fax bool) error {
 	return nil
 }
 
-// DeleteCompanyPhones - delete all unnecessary phones by company id
-func DeleteCompanyPhones(id int64, fax bool) error {
+// CompanyPhonesDelete - delete all unnecessary phones by company id
+func CompanyPhonesDelete(id int64, fax bool) error {
 	if id == 0 {
 		return nil
 	}
-	_, err := pool.Model(&Phone{}).
+	_, err := pool.QueryRow(context.Background(), &Phone{}).
 		Where("company_id = ? and fax = ?", id, fax).
 		Delete()
 	if err != nil {
@@ -149,12 +149,12 @@ func DeleteCompanyPhones(id int64, fax bool) error {
 	return err
 }
 
-// DeleteContactPhones - delete all unnecessary phones by contact id
-func DeleteContactPhones(id int64, fax bool) error {
+// ContactPhonesDelete - delete all unnecessary phones by contact id
+func ContactPhonesDelete(id int64, fax bool) error {
 	if id == 0 {
 		return nil
 	}
-	_, err := pool.Model(&Phone{}).
+	_, err := pool.QueryRow(context.Background(), &Phone{}).
 		Where("contact_id = ? and fax = ?", id, fax).
 		Delete()
 	if err != nil {
@@ -163,12 +163,12 @@ func DeleteContactPhones(id int64, fax bool) error {
 	return err
 }
 
-// DeleteAllCompanyPhones - delete all phones and faxes by company id
-func DeleteAllCompanyPhones(id int64) error {
+// AllCompanyPhonesDelete - delete all phones and faxes by company id
+func AllCompanyPhonesDelete(id int64) error {
 	if id == 0 {
 		return nil
 	}
-	_, err := pool.Model(&Phone{}).
+	_, err := pool.QueryRow(context.Background(), &Phone{}).
 		Where("company_id = ?", id).
 		Delete()
 	if err != nil {
@@ -177,12 +177,12 @@ func DeleteAllCompanyPhones(id int64) error {
 	return err
 }
 
-// DeleteAllContactPhones - delete all phones and faxes by contact id
-func DeleteAllContactPhones(id int64) error {
+// AllContactPhonesDelete - delete all phones and faxes by contact id
+func AllContactPhonesDelete(id int64) error {
 	if id == 0 {
 		return nil
 	}
-	_, err := pool.Model(&Phone{}).
+	_, err := pool.QueryRow(context.Background(), &Phone{}).
 		Where("contact_id = ?", id).
 		Delete()
 	if err != nil {
@@ -201,7 +201,8 @@ func phoneCreateTable() error {
 				phone bigint,
 				fax bool NOT NULL DEFAULT false,
 				created_at TIMESTAMP without time zone,
-				updated_at TIMESTAMP without time zone default now()
+				updated_at
+ TIMESTAMP without time zone default now()
 			)
 	`
 	_, err := pool.Exec(str)

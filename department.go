@@ -5,8 +5,8 @@ type Department struct {
 	ID        int64  `sql:"id"         json:"id"   form:"id"   query:"id"`
 	Name      string `sql:"name"       json:"name" form:"name" query:"name"`
 	Note      string `sql:"note"       json:"note" form:"note" query:"note"`
-	CreatedAt string `sql:"created_at" json:"-"    form:"-"    query:"-"`
-	UpdatedAt string `sql:"updated_at" json:"-"    form:"-"    query:"-"`
+ 	CreatedAt string `sql:"created_at" json:"-"    form:"-"    query:"-"`
+ 	UpdatedAt string `sql:"updated_at" json:"-"    form:"-"    query:"-"`
 }
 
 // DepartmentList - struct for list of departments
@@ -16,13 +16,13 @@ type DepartmentList struct {
 	Note string `sql:"note" json:"note" form:"note" query:"note"`
 }
 
-// GetDepartment - get one department by id
-func GetDepartment(id int64) (Department, error) {
+// DepartmentGet - get one department by id
+func DepartmentGet(id int64) (Department, error) {
 	var department Department
 	if id == 0 {
 		return department, nil
 	}
-	err := pool.Model(&department).
+	err := pool.QueryRow(context.Background(), &department).
 		Where("id = ?", id).
 		Select()
 	if err != nil {
@@ -31,10 +31,10 @@ func GetDepartment(id int64) (Department, error) {
 	return department, err
 }
 
-// GetDepartmentList - get department for list by id
-func GetDepartmentList(id int64) (DepartmentList, error) {
+// DepartmentListGet - get department for list by id
+func DepartmentListGet(id int64) (DepartmentList, error) {
 	var department DepartmentList
-	err := pool.Model(&Department{}).
+	err := pool.QueryRow(context.Background(), &Department{}).
 		Column("id", "name", "note").
 		Where("id = ?", id).
 		Select(&department)
@@ -44,10 +44,10 @@ func GetDepartmentList(id int64) (DepartmentList, error) {
 	return department, err
 }
 
-// GetDepartmentListAll - get all department for list
-func GetDepartmentListAll() ([]DepartmentList, error) {
+// DepartmentListAllGet - get all department for list
+func DepartmentListAllGet() ([]DepartmentList, error) {
 	var departments []DepartmentList
-	err := pool.Model(&Department{}).
+	err := pool.QueryRow(context.Background(), &Department{}).
 		Column("id", "name", "note").
 		Order("name ASC").
 		Select(&departments)
@@ -57,13 +57,13 @@ func GetDepartmentListAll() ([]DepartmentList, error) {
 	return departments, err
 }
 
-// GetDepartmentSelect - get department for select
-func GetDepartmentSelect(id int64) (SelectItem, error) {
+// DepartmentSelectGet - get department for select
+func DepartmentSelectGet(id int64) (SelectItem, error) {
 	var department SelectItem
 	if id == 0 {
 		return department, nil
 	}
-	err := pool.Model(&Department{}).
+	err := pool.QueryRow(context.Background(), &Department{}).
 		Column("id", "name").
 		Where("id = ?", id).
 		Select(&department)
@@ -73,10 +73,10 @@ func GetDepartmentSelect(id int64) (SelectItem, error) {
 	return department, err
 }
 
-// GetDepartmentSelectAll - get all department for select
-func GetDepartmentSelectAll() ([]SelectItem, error) {
+// DepartmentSelectGet - get all department for select
+func DepartmentSelectGet() ([]SelectItem, error) {
 	var departments []SelectItem
-	err := pool.Model(&Department{}).
+	err := pool.QueryRow(context.Background(), &Department{}).
 		Column("id", "name").
 		Order("name ASC").
 		Select(&departments)
@@ -86,8 +86,8 @@ func GetDepartmentSelectAll() ([]SelectItem, error) {
 	return departments, err
 }
 
-// CreateDepartment - create new department
-func CreateDepartment(department Department) (int64, error) {
+// DepartmentInsert - create new department
+func DepartmentInsert(department Department) (int64, error) {
 	err := pool.Insert(&department)
 	if err != nil {
 		errmsg("CreateDepartment insert", err)
@@ -95,8 +95,8 @@ func CreateDepartment(department Department) (int64, error) {
 	return department.ID, nil
 }
 
-// UpdateDepartment - save department changes
-func UpdateDepartment(department Department) error {
+// DepartmentUpdate - save department changes
+func DepartmentUpdate(department Department) error {
 	err := pool.Update(&department)
 	if err != nil {
 		errmsg("UpdateDepartment update", err)
@@ -104,12 +104,12 @@ func UpdateDepartment(department Department) error {
 	return err
 }
 
-// DeleteDepartment - delete department by id
-func DeleteDepartment(id int64) error {
+// DepartmentDelete - delete department by id
+func DepartmentDelete(id int64) error {
 	if id == 0 {
 		return nil
 	}
-	_, err := pool.Model(&Department{}).
+	_, err := pool.QueryRow(context.Background(), &Department{}).
 		Where("id = ?", id).
 		Delete()
 	if err != nil {
@@ -126,7 +126,8 @@ func departmentCreateTable() error {
 				name text,
 				note text,
 				created_at TIMESTAMP without time zone,
-				updated_at TIMESTAMP without time zone default now(),
+				updated_at
+ TIMESTAMP without time zone default now(),
 				UNIQUE(name)
 			)
 	`

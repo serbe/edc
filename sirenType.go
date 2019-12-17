@@ -6,8 +6,8 @@ type SirenType struct {
 	Name      string `sql:"name"       json:"name"          form:"name"   query:"name"`
 	Radius    int64  `sql:"radius"     json:"radius,string" form:"radius" query:"radius"`
 	Note      string `sql:"note"       json:"note"          form:"note"   query:"note"`
-	CreatedAt string `sql:"created_at" json:"-"`
-	UpdatedAt string `sql:"updated_at" json:"-"`
+ 	CreatedAt string `sql:"created_at" json:"-"`
+ 	UpdatedAt string `sql:"updated_at" json:"-"`
 }
 
 // SirenTypeList - struct for sirenType list
@@ -18,13 +18,13 @@ type SirenTypeList struct {
 	Note   string `sql:"note"   json:"note"          form:"note"   query:"note"`
 }
 
-// GetSirenType - get one sirenType by id
-func GetSirenType(id int64) (SirenType, error) {
+// SirenTypeGet - get one sirenType by id
+func SirenTypeGet(id int64) (SirenType, error) {
 	var sirenType SirenType
 	if id == 0 {
 		return sirenType, nil
 	}
-	err := pool.Model(&sirenType).
+	err := pool.QueryRow(context.Background(), &sirenType).
 		Where("id = ?", id).
 		Select()
 	if err != nil {
@@ -33,10 +33,10 @@ func GetSirenType(id int64) (SirenType, error) {
 	return sirenType, err
 }
 
-// GetSirenTypeList - get sirenType for list by id
-func GetSirenTypeList(id int64) (SirenTypeList, error) {
+// SirenTypeListGet - get sirenType for list by id
+func SirenTypeListGet(id int64) (SirenTypeList, error) {
 	var sirenType SirenTypeList
-	err := pool.Model(&SirenType{}).
+	err := pool.QueryRow(context.Background(), &SirenType{}).
 		Column("id", "name", "radius", "note").
 		Where("id = ?", id).
 		Select(&sirenType)
@@ -46,10 +46,10 @@ func GetSirenTypeList(id int64) (SirenTypeList, error) {
 	return sirenType, err
 }
 
-// GetSirenTypeListAll - get all sirenType for list
-func GetSirenTypeListAll() ([]SirenTypeList, error) {
+// SirenTypeListAllGet - get all sirenType for list
+func SirenTypeListAllGet() ([]SirenTypeList, error) {
 	var sirenTypes []SirenTypeList
-	err := pool.Model(&SirenType{}).
+	err := pool.QueryRow(context.Background(), &SirenType{}).
 		Column("id", "name", "radius", "note").
 		Order("name ASC").
 		Select(&sirenTypes)
@@ -59,10 +59,10 @@ func GetSirenTypeListAll() ([]SirenTypeList, error) {
 	return sirenTypes, err
 }
 
-// GetSirenTypeSelect - get sirenType for select by id
-func GetSirenTypeSelect(id int64) ([]SelectItem, error) {
+// SirenTypeSelectGet - get sirenType for select by id
+func SirenTypeSelectGet(id int64) ([]SelectItem, error) {
 	var sirenTypes []SelectItem
-	err := pool.Model(&SirenType{}).
+	err := pool.QueryRow(context.Background(), &SirenType{}).
 		Column("id", "name").
 		Where("id = ?", id).
 		Select(&sirenTypes)
@@ -72,10 +72,10 @@ func GetSirenTypeSelect(id int64) ([]SelectItem, error) {
 	return sirenTypes, err
 }
 
-// GetSirenTypeSelectAll - get all sirenType for select
-func GetSirenTypeSelectAll() ([]SelectItem, error) {
+// SirenTypeSelectGet - get all sirenType for select
+func SirenTypeSelectGet() ([]SelectItem, error) {
 	var sirenTypes []SelectItem
-	err := pool.Model(&SirenType{}).
+	err := pool.QueryRow(context.Background(), &SirenType{}).
 		Column("id", "name").
 		Order("name ASC").
 		Select(&sirenTypes)
@@ -85,8 +85,8 @@ func GetSirenTypeSelectAll() ([]SelectItem, error) {
 	return sirenTypes, err
 }
 
-// CreateSirenType - create new sirenType
-func CreateSirenType(sirenType SirenType) (int64, error) {
+// SirenTypeInsert - create new sirenType
+func SirenTypeInsert(sirenType SirenType) (int64, error) {
 	err := pool.Insert(&sirenType)
 	if err != nil {
 		errmsg("CreateSirenType insert", err)
@@ -94,8 +94,8 @@ func CreateSirenType(sirenType SirenType) (int64, error) {
 	return sirenType.ID, nil
 }
 
-// UpdateSirenType - save sirenType changes
-func UpdateSirenType(sirenType SirenType) error {
+// SirenTypeUpdate - save sirenType changes
+func SirenTypeUpdate(sirenType SirenType) error {
 	err := pool.Update(&sirenType)
 	if err != nil {
 		errmsg("UpdateSirenType update", err)
@@ -103,12 +103,12 @@ func UpdateSirenType(sirenType SirenType) error {
 	return err
 }
 
-// DeleteSirenType - delete sirenType by id
-func DeleteSirenType(id int64) error {
+// SirenTypeDelete - delete sirenType by id
+func SirenTypeDelete(id int64) error {
 	if id == 0 {
 		return nil
 	}
-	_, err := pool.Model(&SirenType{}).
+	_, err := pool.QueryRow(context.Background(), &SirenType{}).
 		Where("id = ?", id).
 		Delete()
 	if err != nil {
@@ -126,7 +126,8 @@ func sirenTypeCreateTable() error {
 				radius     bigint,
 				note       text,
 				created_at TIMESTAMP without time zone,
-				updated_at TIMESTAMP without time zone default now(),
+				updated_at
+ TIMESTAMP without time zone default now(),
 				UNIQUE(name, radius)
 			);`
 	_, err := pool.Exec(str)

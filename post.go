@@ -6,8 +6,8 @@ type Post struct {
 	Name      string `sql:"name"       json:"name" form:"name" query:"name"`
 	GO        bool   `sql:"go"         json:"go"   form:"go"   query:"go"`
 	Note      string `sql:"note"       json:"note" form:"note" query:"note"`
-	CreatedAt string `sql:"created_at" json:"-"`
-	UpdatedAt string `sql:"updated_at" json:"-"`
+ 	CreatedAt string `sql:"created_at" json:"-"`
+ 	UpdatedAt string `sql:"updated_at" json:"-"`
 }
 
 // PostList - struct for post list
@@ -18,13 +18,13 @@ type PostList struct {
 	Note string `sql:"note" json:"note" form:"note" query:"note"`
 }
 
-// GetPost - get one post by id
-func GetPost(id int64) (Post, error) {
+// PostGet - get one post by id
+func PostGet(id int64) (Post, error) {
 	var post Post
 	if id == 0 {
 		return post, nil
 	}
-	err := pool.Model(&post).
+	err := pool.QueryRow(context.Background(), &post).
 		Where("id = ?", id).
 		Select()
 	if err != nil {
@@ -33,10 +33,10 @@ func GetPost(id int64) (Post, error) {
 	return post, nil
 }
 
-// GetPostList - get post for list by id
-func GetPostList(id int64) (PostList, error) {
+// PostListGet - get post for list by id
+func PostListGet(id int64) (PostList, error) {
 	var post PostList
-	err := pool.Model(&Post{}).
+	err := pool.QueryRow(context.Background(), &Post{}).
 		Column("id", "name", "go", "note").
 		Where("id = ?", id).
 		Select(&post)
@@ -46,10 +46,10 @@ func GetPostList(id int64) (PostList, error) {
 	return post, nil
 }
 
-// GetPostListAll - get all post for list
-func GetPostListAll() ([]PostList, error) {
+// PostListAllGet - get all post for list
+func PostListAllGet() ([]PostList, error) {
 	var posts []PostList
-	err := pool.Model(&Post{}).
+	err := pool.QueryRow(context.Background(), &Post{}).
 		Column("id", "name", "go", "note").
 		Order("name ASC").
 		Select(&posts)
@@ -59,13 +59,13 @@ func GetPostListAll() ([]PostList, error) {
 	return posts, nil
 }
 
-// GetPostSelect - get post for select
-func GetPostSelect(id int64) (SelectItem, error) {
+// PostSelectGet - get post for select
+func PostSelectGet(id int64) (SelectItem, error) {
 	var post SelectItem
 	if id == 0 {
 		return post, nil
 	}
-	err := pool.Model(&Post{}).
+	err := pool.QueryRow(context.Background(), &Post{}).
 		Column("id", "name").
 		Where("go = false AND id = ?", id).
 		Order("name ASC").
@@ -76,13 +76,13 @@ func GetPostSelect(id int64) (SelectItem, error) {
 	return post, nil
 }
 
-// GetPostGOSelect - get post go for select
-func GetPostGOSelect(id int64) (SelectItem, error) {
+// PostGOSelectGet - get post go for select
+func PostGOSelectGet(id int64) (SelectItem, error) {
 	var post SelectItem
 	if id == 0 {
 		return post, nil
 	}
-	err := pool.Model(&Post{}).
+	err := pool.QueryRow(context.Background(), &Post{}).
 		Column("id", "name").
 		Where("go = true AND id = ?", id).
 		Order("name ASC").
@@ -93,10 +93,10 @@ func GetPostGOSelect(id int64) (SelectItem, error) {
 	return post, nil
 }
 
-// GetPostSelectAll - get all post for select
-func GetPostSelectAll(g bool) ([]SelectItem, error) {
+// PostSelectGet - get all post for select
+func PostSelectGet(g bool) ([]SelectItem, error) {
 	var posts []SelectItem
-	err := pool.Model(&Post{}).
+	err := pool.QueryRow(context.Background(), &Post{}).
 		Column("id", "name").
 		Where("go = ?", g).
 		Order("name ASC").
@@ -107,8 +107,8 @@ func GetPostSelectAll(g bool) ([]SelectItem, error) {
 	return posts, nil
 }
 
-// CreatePost - create new post
-func CreatePost(post Post) (int64, error) {
+// PostInsert - create new post
+func PostInsert(post Post) (int64, error) {
 	err := pool.Insert(&post)
 	if err != nil {
 		errmsg("CreatePost insert", err)
@@ -116,8 +116,8 @@ func CreatePost(post Post) (int64, error) {
 	return post.ID, nil
 }
 
-// UpdatePost - save post changes
-func UpdatePost(post Post) error {
+// PostUpdate - save post changes
+func PostUpdate(post Post) error {
 	err := pool.Update(&post)
 	if err != nil {
 		errmsg("UpdatePost update", err)
@@ -125,12 +125,12 @@ func UpdatePost(post Post) error {
 	return err
 }
 
-// DeletePost - delete post by id
-func DeletePost(id int64) error {
+// PostDelete - delete post by id
+func PostDelete(id int64) error {
 	if id == 0 {
 		return nil
 	}
-	_, err := pool.Model(&Post{}).
+	_, err := pool.QueryRow(context.Background(), &Post{}).
 		Where("id = ?", id).
 		Delete()
 	if err != nil {
@@ -148,7 +148,8 @@ func postCreateTable() error {
 				go BOOL NOT NULL DEFAULT FALSE,
 				note TEXT,
 				created_at TIMESTAMP without time zone,
-				updated_at TIMESTAMP without time zone default now(),
+				updated_at
+ TIMESTAMP without time zone default now(),
 				UNIQUE (name, go)
 			)
 	`

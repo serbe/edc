@@ -16,8 +16,8 @@ type Siren struct {
 	Stage       int64  `sql:"stage"         json:"stage"         form:"stage"         query:"stage"`
 	Own         string `sql:"own"           json:"own"           form:"own"           query:"own"`
 	Note        string `sql:"note"          json:"note"          form:"note"          query:"note"`
-	CreatedAt   string `sql:"created_at"    json:"-"`
-	UpdatedAt   string `sql:"updated_at"    json:"-"`
+ 	CreatedAt   string `sql:"created_at"    json:"-"`
+ 	UpdatedAt   string `sql:"updated_at"    json:"-"`
 }
 
 // SirenList - struct for siren list
@@ -29,13 +29,13 @@ type SirenList struct {
 	Phones        []string `sql:"phones"          json:"phones"          form:"phones"          query:"phones"          pg:",array"`
 }
 
-// GetSiren - get one siren by id
-func GetSiren(id int64) (Siren, error) {
+// SirenGet - get one siren by id
+func SirenGet(id int64) (Siren, error) {
 	var siren Siren
 	if id == 0 {
 		return siren, nil
 	}
-	err := pool.Model(&siren).
+	err := pool.QueryRow(context.Background(), &siren).
 		Where("id = ?", id).
 		Select()
 	if err != nil {
@@ -44,8 +44,8 @@ func GetSiren(id int64) (Siren, error) {
 	return siren, err
 }
 
-// GetSirenList - get all siren for list
-func GetSirenList() ([]SirenList, error) {
+// SirenListGet - get all siren for list
+func SirenListGet() ([]SirenList, error) {
 	var sirens []SirenList
 	_, err := pool.Query(&sirens, `
 		SELECT
@@ -75,8 +75,8 @@ func GetSirenList() ([]SirenList, error) {
 	return sirens, err
 }
 
-// CreateSiren - create new siren
-func CreateSiren(siren Siren) (int64, error) {
+// SirenInsert - create new siren
+func SirenInsert(siren Siren) (int64, error) {
 	err := pool.Insert(&siren)
 	if err != nil {
 		errmsg("CreateSiren insert", err)
@@ -84,8 +84,8 @@ func CreateSiren(siren Siren) (int64, error) {
 	return siren.ID, err
 }
 
-// UpdateSiren - save siren changes
-func UpdateSiren(siren Siren) error {
+// SirenUpdate - save siren changes
+func SirenUpdate(siren Siren) error {
 	err := pool.Update(&siren)
 	if err != nil {
 		errmsg("UpdateSiren update", err)
@@ -93,12 +93,12 @@ func UpdateSiren(siren Siren) error {
 	return err
 }
 
-// DeleteSiren - delete siren by id
-func DeleteSiren(id int64) error {
+// SirenDelete - delete siren by id
+func SirenDelete(id int64) error {
 	if id == 0 {
 		return nil
 	}
-	_, err := pool.Model(&Siren{}).
+	_, err := pool.QueryRow(context.Background(), &Siren{}).
 		Where("id = ?", id).
 		Delete()
 	if err != nil {
@@ -126,7 +126,8 @@ func sirenCreateTable() error {
 				own        text,
 				note        text,
 				created_at TIMESTAMP without time zone,
-				updated_at TIMESTAMP without time zone default now(),
+				updated_at
+ TIMESTAMP without time zone default now(),
 				UNIQUE(num_id, num_pass, type_id)
 			)
 	`

@@ -9,8 +9,8 @@ type Tcc struct {
 	CompanyID int64   `sql:"company_id" json:"company_id" form:"company_id" query:"company_id"`
 	Company   Company `sql:"-"          json:"company"    form:"company"    query:"company"`
 	Note      string  `sql:"note"       json:"note"       form:"note"       query:"note"`
-	CreatedAt string  `sql:"created_at" json:"-"`
-	UpdatedAt string  `sql:"updated_at" json:"-"`
+ 	CreatedAt string  `sql:"created_at" json:"-"`
+ 	UpdatedAt string  `sql:"updated_at" json:"-"`
 }
 
 // TccList - struct for tcc list
@@ -22,13 +22,13 @@ type TccList struct {
 	Note      string  `sql:"note"       json:"note"       form:"note"       query:"note"`
 }
 
-// GetTcc - get one tcc by id
-func GetTcc(id int64) (Tcc, error) {
+// TccGet - get one tcc by id
+func TccGet(id int64) (Tcc, error) {
 	var tcc Tcc
 	if id == 0 {
 		return tcc, nil
 	}
-	err := pool.Model(&tcc).
+	err := pool.QueryRow(context.Background(), &tcc).
 		Where("id = ?", id).
 		Select()
 	if err != nil {
@@ -37,10 +37,10 @@ func GetTcc(id int64) (Tcc, error) {
 	return tcc, err
 }
 
-// GetTccList - get all tcc for list
-func GetTccList(id int64) (TccList, error) {
+// TccListGet - get all tcc for list
+func TccListGet(id int64) (TccList, error) {
 	var tccs TccList
-	err := pool.Model(&Tcc{}).
+	err := pool.QueryRow(context.Background(), &Tcc{}).
 		Column("id", "address", "contact_id", "note").
 		Where("id = ?", id).
 		Select(&tccs)
@@ -50,10 +50,10 @@ func GetTccList(id int64) (TccList, error) {
 	return tccs, err
 }
 
-// GetTccListAll - get all tcc for list
-func GetTccListAll() ([]TccList, error) {
+// TccListAllGet - get all tcc for list
+func TccListAllGet() ([]TccList, error) {
 	var tccs []TccList
-	err := pool.Model(&Tcc{}).
+	err := pool.QueryRow(context.Background(), &Tcc{}).
 		Column("id", "address", "contact_id", "note").
 		Order("name ASC").
 		Select(&tccs)
@@ -63,8 +63,8 @@ func GetTccListAll() ([]TccList, error) {
 	return tccs, err
 }
 
-// CreateTcc - create new tcc
-func CreateTcc(tcc Tcc) (int64, error) {
+// TccInsert - create new tcc
+func TccInsert(tcc Tcc) (int64, error) {
 	err := pool.Insert(&tcc)
 	if err != nil {
 		errmsg("CreateTcc insert", err)
@@ -72,8 +72,8 @@ func CreateTcc(tcc Tcc) (int64, error) {
 	return tcc.ID, err
 }
 
-// UpdateTcc - save tcc changes
-func UpdateTcc(tcc Tcc) error {
+// TccUpdate - save tcc changes
+func TccUpdate(tcc Tcc) error {
 	err := pool.Update(&tcc)
 	if err != nil {
 		errmsg("UpdateTcc update", err)
@@ -81,12 +81,12 @@ func UpdateTcc(tcc Tcc) error {
 	return err
 }
 
-// DeleteTcc - delete tcc by id
-func DeleteTcc(id int64) error {
+// TccDelete - delete tcc by id
+func TccDelete(id int64) error {
 	if id == 0 {
 		return nil
 	}
-	_, err := pool.Model(&Tcc{}).
+	_, err := pool.QueryRow(context.Background(), &Tcc{}).
 		Where("id = ?", id).
 		Delete()
 	if err != nil {
@@ -105,7 +105,8 @@ func DeleteTcc(id int64) error {
 // 				company_id bigint,
 // 				note       text,
 // 				created_at TIMESTAMP without time zone,
-// 				updated_at TIMESTAMP without time zone default now(),
+// 				updated_at
+ TIMESTAMP without time zone default now(),
 // 				UNIQUE(num_id, num_pass, type_id)
 // 			)
 // 	`

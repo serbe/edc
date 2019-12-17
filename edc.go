@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/jackc/pgx/v4"
 	"github.com/jackc/pgx/v4/pgxpool"
 )
 
@@ -27,16 +26,16 @@ func InitDB(
 	logerr bool,
 ) error {
 	var err error
-	pool, err = pgx.Connect(context.Background(), db_url)
+	pool, err = pgxpool.Connect(context.Background(), db_url)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Unable to connection to database: %v\n", err)
 		os.Exit(1)
 	}
 	logErrors = logerr
-	return createAllTables()
+	return AllTablesInsert()
 }
 
-func createAllTables() error {
+func AllTablesInsert() error {
 	err := educationCreateTable()
 	if err != nil {
 		return err
@@ -45,7 +44,7 @@ func createAllTables() error {
 	if err != nil {
 		return err
 	}
-	err = e.emailCreateTable()
+	err = emailCreateTable()
 	if err != nil {
 		return err
 	}

@@ -45,7 +45,7 @@ func CertificateGet(id int64) (Certificate, error) {
 			note,
 			created_at,
 			updated_at
-		FROM
+ 		FROM
 			certificates
 		WHERE
 			id = $1
@@ -56,8 +56,8 @@ func CertificateGet(id int64) (Certificate, error) {
 	return certificate, err
 }
 
-// CertificateListGetAll - get all certificate for list
-func CertificateListGetAll() ([]CertificateList, error) {
+// CertificateListGet - get all certificate for list
+func CertificateListGet() ([]CertificateList, error) {
 	var certificates []CertificateList
 	rows, err := pool.Query(context.Background(), `
 		SELECT
@@ -87,11 +87,11 @@ func CertificateListGetAll() ([]CertificateList, error) {
 	}
 	for rows.Next() {
 		var certificate CertificateList
-		var c_date string
 		err := rows.Scan(&certificate.ID, &certificate.Num, &certificate.ContactID, &certificate.ContactName, &certificate.CompanyID, &certificate.CompanyName, &certificate.CertDate, &certificate.Note)
 		if err != nil {
 			return certificates, err
 		}
+		certificates = append(certificates, certificate)
 	}
 	return certificates, rows.Err()
 }
@@ -108,7 +108,7 @@ func CertificateCreate(certificate Certificate) (int64, error) {
 			note,
 			created_at,
 			updated_at
-		)
+ 		)
 		VALUES
 		(
 			$1,

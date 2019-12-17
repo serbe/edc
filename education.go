@@ -8,8 +8,8 @@ type Education struct {
 	EndDate   string `sql:"end_date"   json:"end_date"   form:"end_date"   query:"end_date"`
 	PostID    int64  `sql:"post_id"    json:"post_id"    form:"post_id"    query:"post_id"`
 	Note      string `sql:"note"       json:"note"       form:"note"       query:"note"`
-	CreatedAt string `sql:"created_at" json:"-"`
-	UpdatedAt string `sql:"updated_at" json:"-"`
+ 	CreatedAt string `sql:"created_at" json:"-"`
+ 	UpdatedAt string `sql:"updated_at" json:"-"`
 }
 
 // EducationList - struct for list of education
@@ -34,13 +34,13 @@ type EducationShort struct {
 	StartDate   string `sql:"start_date"   json:"start_date"   form:"start_date"   query:"start_date"`
 }
 
-// GetEducation - get education by id
-func GetEducation(id int64) (Education, error) {
+// EducationGet - get education by id
+func EducationGet(id int64) (Education, error) {
 	var education Education
 	if id == 0 {
 		return education, nil
 	}
-	err := pool.Model(&education).
+	err := pool.QueryRow(context.Background(), &education).
 		Where("id = ?", id).
 		Select()
 	if err != nil {
@@ -49,8 +49,8 @@ func GetEducation(id int64) (Education, error) {
 	return education, err
 }
 
-// GetEducationListAll - get all education for list
-func GetEducationListAll() ([]EducationList, error) {
+// EducationListAllGet - get all education for list
+func EducationListAllGet() ([]EducationList, error) {
 	var educations []EducationList
 	_, err := pool.Query(&educations, `
 		SELECT
@@ -78,8 +78,8 @@ func GetEducationListAll() ([]EducationList, error) {
 	return educations, err
 }
 
-// GetEducationNear - get 10 nearest educations
-func GetEducationNear() ([]EducationShort, error) {
+// EducationNearGet - get 10 nearest educations
+func EducationNearGet() ([]EducationShort, error) {
 	var educations []EducationShort
 	_, err := pool.Query(&educations, `
 		SELECT
@@ -103,10 +103,10 @@ func GetEducationNear() ([]EducationShort, error) {
 	return educations, err
 }
 
-// // GetEducationSelectAll - get all education for select
-// func GetEducationSelectAll() ([]Education, error) {
+// // EducationSelectGet - get all education for select
+// func EducationSelectGet() ([]Education, error) {
 // 	var educations []Education
-// 	err := pool.Model(&educations).
+// 	err := pool.QueryRow(context.Background(), &educations).
 // 		C("id", "start_date", "end_date").
 // 		Order("start_date").
 // 		Select()
@@ -121,8 +121,8 @@ func GetEducationNear() ([]EducationShort, error) {
 // 	return educations, err
 // }
 
-// CreateEducation - create new education
-func CreateEducation(education Education) (int64, error) {
+// EducationInsert - create new education
+func EducationInsert(education Education) (int64, error) {
 	err := pool.Insert(&education)
 	if err != nil {
 		errmsg("CreateEducation insert", err)
@@ -130,8 +130,8 @@ func CreateEducation(education Education) (int64, error) {
 	return education.ID, err
 }
 
-// UpdateEducation - save changes to education
-func UpdateEducation(education Education) error {
+// EducationUpdate - save changes to education
+func EducationUpdate(education Education) error {
 	err := pool.Update(&education)
 	if err != nil {
 		errmsg("UpdateEducation update", err)
@@ -139,12 +139,12 @@ func UpdateEducation(education Education) error {
 	return err
 }
 
-// DeleteEducation - delete education by id
-func DeleteEducation(id int64) error {
+// EducationDelete - delete education by id
+func EducationDelete(id int64) error {
 	if id == 0 {
 		return nil
 	}
-	_, err := pool.Model(&Education{}).
+	_, err := pool.QueryRow(context.Background(), &Education{}).
 		Where("id = ?", id).
 		Delete()
 	if err != nil {
@@ -163,7 +163,8 @@ func educationCreateTable() error {
 				note text,
 				post_id bigint,
 				created_at TIMESTAMP without time zone,
-				updated_at TIMESTAMP without time zone default now()
+				updated_at
+ TIMESTAMP without time zone default now()
 			)
 	`
 	_, err := pool.Exec(str)

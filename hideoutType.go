@@ -5,8 +5,8 @@ type HideoutType struct {
 	ID        int64  `sql:"id"         json:"id"   form:"id"   query:"id"`
 	Name      string `sql:"name"       json:"name" form:"name" query:"name"`
 	Note      string `sql:"note"       json:"note" form:"note" query:"note"`
-	CreatedAt string `sql:"created_at" json:"-"`
-	UpdatedAt string `sql:"updated_at" json:"-"`
+ 	CreatedAt string `sql:"created_at" json:"-"`
+ 	UpdatedAt string `sql:"updated_at" json:"-"`
 }
 
 // HideoutTypeList - struct for hideoutType list
@@ -16,13 +16,13 @@ type HideoutTypeList struct {
 	Note string `sql:"note" json:"note" form:"note" query:"note"`
 }
 
-// GetHideoutType - get one hideoutType by id
-func GetHideoutType(id int64) (HideoutType, error) {
+// HideoutTypeGet - get one hideoutType by id
+func HideoutTypeGet(id int64) (HideoutType, error) {
 	var hideoutType HideoutType
 	if id == 0 {
 		return hideoutType, nil
 	}
-	err := pool.Model(&hideoutType).
+	err := pool.QueryRow(context.Background(), &hideoutType).
 		Where("id = ?", id).
 		Select()
 	if err != nil {
@@ -31,10 +31,10 @@ func GetHideoutType(id int64) (HideoutType, error) {
 	return hideoutType, err
 }
 
-// GetHideoutTypeList - get hideoutType for list by id
-func GetHideoutTypeList(id int64) (HideoutTypeList, error) {
+// HideoutTypeListGet - get hideoutType for list by id
+func HideoutTypeListGet(id int64) (HideoutTypeList, error) {
 	var hideoutType HideoutTypeList
-	err := pool.Model(&HideoutType{}).
+	err := pool.QueryRow(context.Background(), &HideoutType{}).
 		Column("id", "name", "note").
 		Where("id = ?", id).
 		Select(&hideoutType)
@@ -44,10 +44,10 @@ func GetHideoutTypeList(id int64) (HideoutTypeList, error) {
 	return hideoutType, err
 }
 
-// GetHideoutTypeListAll - get all hideoutType for list
-func GetHideoutTypeListAll() ([]HideoutTypeList, error) {
+// HideoutTypeListAllGet - get all hideoutType for list
+func HideoutTypeListAllGet() ([]HideoutTypeList, error) {
 	var hideoutTypes []HideoutTypeList
-	err := pool.Model(&HideoutType{}).
+	err := pool.QueryRow(context.Background(), &HideoutType{}).
 		Column("id", "name", "note").
 		Order("name ASC").
 		Select(&hideoutTypes)
@@ -57,10 +57,10 @@ func GetHideoutTypeListAll() ([]HideoutTypeList, error) {
 	return hideoutTypes, err
 }
 
-// GetHideoutTypeSelect - get hideoutType for select by id
-func GetHideoutTypeSelect(id int64) ([]SelectItem, error) {
+// HideoutTypeSelectGet - get hideoutType for select by id
+func HideoutTypeSelectGet(id int64) ([]SelectItem, error) {
 	var hideoutTypes []SelectItem
-	err := pool.Model(&HideoutType{}).
+	err := pool.QueryRow(context.Background(), &HideoutType{}).
 		Column("id", "name").
 		Where("id = ?", id).
 		Select(&hideoutTypes)
@@ -70,10 +70,10 @@ func GetHideoutTypeSelect(id int64) ([]SelectItem, error) {
 	return hideoutTypes, err
 }
 
-// GetHideoutTypeSelectAll - get all hideoutType for select
-func GetHideoutTypeSelectAll() ([]SelectItem, error) {
+// HideoutTypeSelectGet - get all hideoutType for select
+func HideoutTypeSelectGet() ([]SelectItem, error) {
 	var hideoutTypes []SelectItem
-	err := pool.Model(&HideoutType{}).
+	err := pool.QueryRow(context.Background(), &HideoutType{}).
 		Column("id", "name").
 		Order("name ASC").
 		Select(&hideoutTypes)
@@ -83,8 +83,8 @@ func GetHideoutTypeSelectAll() ([]SelectItem, error) {
 	return hideoutTypes, err
 }
 
-// CreateHideoutType - create new hideoutType
-func CreateHideoutType(hideoutType HideoutType) (int64, error) {
+// HideoutTypeInsert - create new hideoutType
+func HideoutTypeInsert(hideoutType HideoutType) (int64, error) {
 	err := pool.Insert(&hideoutType)
 	if err != nil {
 		errmsg("CreateHideoutType insert", err)
@@ -92,8 +92,8 @@ func CreateHideoutType(hideoutType HideoutType) (int64, error) {
 	return hideoutType.ID, nil
 }
 
-// UpdateHideoutType - save hideoutType changes
-func UpdateHideoutType(hideoutType HideoutType) error {
+// HideoutTypeUpdate - save hideoutType changes
+func HideoutTypeUpdate(hideoutType HideoutType) error {
 	err := pool.Update(&hideoutType)
 	if err != nil {
 		errmsg("UpdateHideoutType update", err)
@@ -101,12 +101,12 @@ func UpdateHideoutType(hideoutType HideoutType) error {
 	return err
 }
 
-// DeleteHideoutType - delete hideoutType by id
-func DeleteHideoutType(id int64) error {
+// HideoutTypeDelete - delete hideoutType by id
+func HideoutTypeDelete(id int64) error {
 	if id == 0 {
 		return nil
 	}
-	_, err := pool.Model(&HideoutType{}).
+	_, err := pool.QueryRow(context.Background(), &HideoutType{}).
 		Where("id = ?", id).
 		Delete()
 	if err != nil {
@@ -123,7 +123,8 @@ func hideoutTypeCreateTable() error {
 				name       text,
 				note       text,
 				created_at TIMESTAMP without time zone,
-				updated_at TIMESTAMP without time zone default now(),
+				updated_at
+ TIMESTAMP without time zone default now(),
 				UNIQUE(name)
 			);`
 	_, err := pool.Exec(str)

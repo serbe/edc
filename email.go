@@ -6,17 +6,17 @@ type Email struct {
 	CompanyID int64  `sql:"company_id,pk" json:"company_id" form:"company_id" query:"company_id"`
 	ContactID int64  `sql:"contact_id,pk" json:"contact_id" form:"contact_id" query:"contact_id"`
 	Email     string `sql:"email"         json:"email"      form:"email"      query:"email"`
-	CreatedAt string `sql:"created_at"    json:"-"`
-	UpdatedAt string `sql:"updated_at"    json:"-"`
+ 	CreatedAt string `sql:"created_at"    json:"-"`
+ 	UpdatedAt string `sql:"updated_at"    json:"-"`
 }
 
-// // GetEmail - get one email by id
-// func GetEmail(id int64) (Email, error) {
+// // EmailGet - get one email by id
+// func EmailGet(id int64) (Email, error) {
 // 	var email Email
 // 	if id == 0 {
 // 		return email, nil
 // 	}
-// 	err := pool.Model(&email).
+// 	err := pool.QueryRow(context.Background(), &email).
 // 		Where("id = ?", id).
 // 		Select()
 // 	if err != nil {
@@ -25,10 +25,10 @@ type Email struct {
 // 	return email, nil
 // }
 
-// // GetEmails - get all emails for list
-// func GetEmails() ([]Email, error) {
+// // EmailsGet - get all emails for list
+// func EmailsGet() ([]Email, error) {
 // 	var emails []Email
-// 	err := pool.Model(&emails).
+// 	err := pool.QueryRow(context.Background(), &emails).
 // 		Column("id", "email").
 // 		Order("email ASC").
 // 		Select()
@@ -38,13 +38,13 @@ type Email struct {
 // 	return emails, err
 // }
 
-// // GetCompanyEmails - get all emails by company id
-// func GetCompanyEmails(id int64) ([]Email, error) {
+// // CompanyEmailsGet - get all emails by company id
+// func CompanyEmailsGet(id int64) ([]Email, error) {
 // 	var emails []Email
 // 	if id == 0 {
 // 		return emails, nil
 // 	}
-// 	err := pool.Model(&emails).
+// 	err := pool.QueryRow(context.Background(), &emails).
 // 		Column("id", "email").
 // 		Order("email ASC").
 // 		Where("company_id = ?", id).
@@ -55,13 +55,13 @@ type Email struct {
 // 	return emails, err
 // }
 
-// // GetContactEmails - get all emails by contact id
-// func GetContactEmails(id int64) ([]Email, error) {
+// // ContactEmailsGet - get all emails by contact id
+// func ContactEmailsGet(id int64) ([]Email, error) {
 // 	var emails []Email
 // 	if id == 0 {
 // 		return emails, nil
 // 	}
-// 	err := pool.Model(&emails).
+// 	err := pool.QueryRow(context.Background(), &emails).
 // 		Column("id", "email").
 // 		Order("email ASC").
 // 		Where("contact_id = ?", id).
@@ -72,8 +72,8 @@ type Email struct {
 // 	return emails, err
 // }
 
-// CreateEmail - create new email
-func CreateEmail(email Email) (int64, error) {
+// EmailInsert - create new email
+func EmailInsert(email Email) (int64, error) {
 	email.ID = 0
 	err := pool.Insert(&email)
 	if err != nil {
@@ -82,8 +82,8 @@ func CreateEmail(email Email) (int64, error) {
 	return email.ID, nil
 }
 
-// UpdateCompanyEmails - update company emails
-func UpdateCompanyEmails(company Company) error {
+// CompanyEmailsUpdate - update company emails
+func CompanyEmailsUpdate(company Company) error {
 	err := e.DeleteCompanyEmails(company.ID)
 	if err != nil {
 		errmsg("UpdateCompanyEmails DeleteCompanyEmails", err)
@@ -102,8 +102,8 @@ func UpdateCompanyEmails(company Company) error {
 	return nil
 }
 
-// UpdateContactEmails - update contact emails
-func UpdateContactEmails(contact Contact) error {
+// ContactEmailsUpdate - update contact emails
+func ContactEmailsUpdate(contact Contact) error {
 	err := e.DeleteContactEmails(contact.ID)
 	if err != nil {
 		errmsg("UpdateContactEmails DeleteContactEmails", err)
@@ -122,8 +122,8 @@ func UpdateContactEmails(contact Contact) error {
 	return nil
 }
 
-// UpdateEmail - save email changes
-func UpdateEmail(email Email) error {
+// EmailUpdate - save email changes
+func EmailUpdate(email Email) error {
 	err := pool.Update(&email)
 	if err != nil {
 		errmsg("UpdateEmail update", err)
@@ -131,12 +131,12 @@ func UpdateEmail(email Email) error {
 	return err
 }
 
-// DeleteEmail - delete email by id
-func DeleteEmail(id int64) error {
+// EmailDelete - delete email by id
+func EmailDelete(id int64) error {
 	if id == 0 {
 		return nil
 	}
-	_, err := pool.Model(&Email{}).
+	_, err := pool.QueryRow(context.Background(), &Email{}).
 		Where("id = ?", id).
 		Delete()
 	if err != nil {
@@ -145,12 +145,12 @@ func DeleteEmail(id int64) error {
 	return err
 }
 
-// DeleteCompanyEmails - delete all emails by company id
-func DeleteCompanyEmails(id int64) error {
+// CompanyEmailsDelete - delete all emails by company id
+func CompanyEmailsDelete(id int64) error {
 	if id == 0 {
 		return nil
 	}
-	_, err := pool.Model(&Email{}).
+	_, err := pool.QueryRow(context.Background(), &Email{}).
 		Where("company_id = ?", id).
 		Delete()
 	if err != nil {
@@ -159,12 +159,12 @@ func DeleteCompanyEmails(id int64) error {
 	return err
 }
 
-// DeleteContactEmails - delete all emails by contact id
-func DeleteContactEmails(id int64) error {
+// ContactEmailsDelete - delete all emails by contact id
+func ContactEmailsDelete(id int64) error {
 	if id == 0 {
 		return nil
 	}
-	_, err := pool.Model(&Email{}).
+	_, err := pool.QueryRow(context.Background(), &Email{}).
 		Where("contact_id = ?", id).
 		Delete()
 	if err != nil {
@@ -182,7 +182,8 @@ func emailCreateTable() error {
 				contact_id bigint,
 				email text,
 				created_at timestamp without time zone,
-				updated_at timestamp without time zone default now()
+				updated_at
+ timestamp without time zone default now()
 			)
 	`
 	_, err := pool.Exec(str)

@@ -36,6 +36,13 @@ func CompanyGet(id int64) (Company, error) {
 	if id == 0 {
 		return company, nil
 	}
+	var (
+		emails    []string
+		phones    []int64
+		faxes     []int64
+		practices []PracticeList
+		contacts  []ContactShort
+	)
 	company.ID = id
 	err := pool.QueryRow(context.Background(), `
 		SELECT
@@ -60,7 +67,7 @@ func CompanyGet(id int64) (Company, error) {
 			c.id = $1
 		GROUP BY
 			c.id
-	`, id).Scan(&company.Name, &company.Address, &company.ScopeID, &company.Note, &company.CreatedAt, &company.UpdatedAt,&emails,
+	`, id).Scan(&company.Name, &company.Address, &company.ScopeID, &company.Note, &company.CreatedAt, &company.UpdatedAt, &emails,
 		&phones,
 		&faxes,
 		&practices,
@@ -84,8 +91,8 @@ func CompanyGet(id int64) (Company, error) {
 	return company, err
 }
 
-// GetCompanyList - get all companyes for list
-func GetCompanyList() ([]CompanyList, error) {
+// CompanyListGet - get all companyes for list
+func CompanyListGet() ([]CompanyList, error) {
 	var companies []CompanyList
 	_, err := pool.Query(&companies, `
 		SELECT
@@ -121,13 +128,13 @@ func GetCompanyList() ([]CompanyList, error) {
 	return companies, err
 }
 
-// GetCompanySelect - get company for contact
-func GetCompanySelect(id int64) (SelectItem, error) {
+// CompanySelectGet - get company for contact
+func CompanySelectGet(id int64) (SelectItem, error) {
 	var company SelectItem
 	if id == 0 {
 		return company, nil
 	}
-	err := pool.Model(&Company{}).
+	err := pool.QueryRow(context.Background(), &Company{}).
 		Column("id", "name").
 		Where("id = ?", id).
 		Select(&company)
@@ -137,10 +144,10 @@ func GetCompanySelect(id int64) (SelectItem, error) {
 	return company, err
 }
 
-// GetCompanySelectAll - get all companyes for select
-func GetCompanySelectAll() ([]SelectItem, error) {
+// CompanySelectGet - get all companyes for select
+func CompanySelectGet() ([]SelectItem, error) {
 	var companies []SelectItem
-	err := pool.Model(&Company{}).
+	err := pool.QueryRow(context.Background(), &Company{}).
 		Column("id", "name").
 		Order("name ASC").
 		Select(&companies)
@@ -150,8 +157,8 @@ func GetCompanySelectAll() ([]SelectItem, error) {
 	return companies, err
 }
 
-// CreateCompany - create new company
-func CreateCompany(company Company) (int64, error) {
+// CompanyInsert - create new company
+func CompanyInsert(company Company) (int64, error) {
 	err := pool.Insert(&company)
 	if err != nil {
 		errmsg("CreateCompany insert", err)
@@ -163,8 +170,8 @@ func CreateCompany(company Company) (int64, error) {
 	return company.ID, nil
 }
 
-// UpdateCompany - save company changes
-func UpdateCompany(company Company) error {
+// CompanyUpdate - save company changes
+func CompanyUpdate(company Company) error {
 	err := pool.Update(&company)
 	if err != nil {
 		errmsg("UpdateCompany update", err)
@@ -176,8 +183,8 @@ func UpdateCompany(company Company) error {
 	return nil
 }
 
-// DeleteCompany - delete company by id
-func DeleteCompany(id int64) error {
+// CompanyDelete - delete company by id
+func CompanyDelete(id int64) error {
 	if id == 0 {
 		return nil
 	}
@@ -204,7 +211,8 @@ func companyCreateTable() error {
 				scope_id BIGINT,
 				note TEXT,
 				created_at timestamp without time zone,
-				updated_at timestamp without time zone default now(),
+				updated_at
+ timestamp without time zone default now(),
 				UNIQUE(name, scope_id)
 			)
 	`

@@ -8,8 +8,8 @@ type Practice struct {
 	Topic          string `sql:"topic"            json:"topic"            form:"topic"            query:"topic"`
 	DateOfPractice string `sql:"date_of_practice" json:"date_of_practice" form:"date_of_practice" query:"date_of_practice"`
 	Note           string `sql:"note"             json:"note"             form:"note"             query:"note"`
-	CreatedAt      string `sql:"created_at"       json:"-"`
-	UpdatedAt      string `sql:"updated_at"       json:"-"`
+ 	CreatedAt      string `sql:"created_at"       json:"-"`
+ 	UpdatedAt      string `sql:"updated_at"       json:"-"`
 }
 
 // PracticeList is struct for practice list
@@ -35,13 +35,13 @@ type PracticeShort struct {
 	DateOfPractice string `sql:"date_of_practice" json:"date_of_practice" form:"date_of_practice" query:"date_of_practice"`
 }
 
-// GetPractice - get one practice by id
-func GetPractice(id int64) (Practice, error) {
+// PracticeGet - get one practice by id
+func PracticeGet(id int64) (Practice, error) {
 	var practice Practice
 	if id == 0 {
 		return practice, nil
 	}
-	err := pool.Model(&practice).
+	err := pool.QueryRow(context.Background(), &practice).
 		Where("id = ?", id).
 		Select()
 	if err != nil {
@@ -51,8 +51,8 @@ func GetPractice(id int64) (Practice, error) {
 	return practice, err
 }
 
-// GetPracticeList - get practice by id for list
-func GetPracticeList(id int64) (PracticeList, error) {
+// PracticeListGet - get practice by id for list
+func PracticeListGet(id int64) (PracticeList, error) {
 	var practice PracticeList
 	_, err := pool.Query(practice, `
 	SELECT
@@ -79,8 +79,8 @@ func GetPracticeList(id int64) (PracticeList, error) {
 	return practice, err
 }
 
-// GetPracticeListAll - get all practices for list
-func GetPracticeListAll() ([]PracticeList, error) {
+// PracticeListAllGet - get all practices for list
+func PracticeListAllGet() ([]PracticeList, error) {
 	var practices []PracticeList
 	_, err := pool.Query(&practices, `
 	SELECT
@@ -108,8 +108,8 @@ func GetPracticeListAll() ([]PracticeList, error) {
 	return practices, err
 }
 
-// GetPracticeCompany - get all practices of company
-func GetPracticeCompany(id int64) ([]PracticeList, error) {
+// PracticeCompanyGet - get all practices of company
+func PracticeCompanyGet(id int64) ([]PracticeList, error) {
 	var practices []PracticeList
 	if id == 0 {
 		return practices, nil
@@ -142,8 +142,8 @@ func GetPracticeCompany(id int64) ([]PracticeList, error) {
 	return practices, err
 }
 
-// GetPracticeNear - get 10 nearest practices
-func GetPracticeNear() ([]PracticeShort, error) {
+// PracticeNearGet - get 10 nearest practices
+func PracticeNearGet() ([]PracticeShort, error) {
 	var practices []PracticeShort
 	_, err := pool.Query(&practices, `
 		SELECT
@@ -170,8 +170,8 @@ func GetPracticeNear() ([]PracticeShort, error) {
 	return practices, err
 }
 
-// CreatePractice - create new practice
-func CreatePractice(practice Practice) (int64, error) {
+// PracticeInsert - create new practice
+func PracticeInsert(practice Practice) (int64, error) {
 	err := pool.Insert(&practice)
 	if err != nil {
 		errmsg("CreatePractice insert", err)
@@ -179,8 +179,8 @@ func CreatePractice(practice Practice) (int64, error) {
 	return practice.ID, err
 }
 
-// UpdatePractice - save practice changes
-func UpdatePractice(practice Practice) error {
+// PracticeUpdate - save practice changes
+func PracticeUpdate(practice Practice) error {
 	err := pool.Update(&practice)
 	if err != nil {
 		errmsg("UpdatePractice update", err)
@@ -188,12 +188,12 @@ func UpdatePractice(practice Practice) error {
 	return err
 }
 
-// DeletePractice - delete practice by id
-func DeletePractice(id int64) error {
+// PracticeDelete - delete practice by id
+func PracticeDelete(id int64) error {
 	if id == 0 {
 		return nil
 	}
-	_, err := pool.Model(&Practice{}).
+	_, err := pool.QueryRow(context.Background(), &Practice{}).
 		Where("id = ?", id).
 		Delete()
 	if err != nil {
@@ -213,7 +213,8 @@ func practiceCreateTable() error {
 				date_of_practice date,
 				note text,
 				created_at TIMESTAMP without time zone,
-				updated_at TIMESTAMP without time zone default now()
+				updated_at
+ TIMESTAMP without time zone default now()
 			)
 	`
 	_, err := pool.Exec(str)

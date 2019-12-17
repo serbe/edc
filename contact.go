@@ -1,5 +1,7 @@
 package edc
 
+import "context"
+
 // Contact is struct for contact
 type Contact struct {
 	ID           int64    `sql:"id"            json:"id"            form:"id"            query:"id"`
@@ -11,8 +13,8 @@ type Contact struct {
 	RankID       int64    `sql:"rank_id"       json:"rank_id"       form:"rank_id"       query:"rank_id"`
 	Birthday     string   `sql:"birthday"      json:"birthday"      form:"birthday"      query:"birthday"`
 	Note         string   `sql:"note"          json:"note"          form:"note"          query:"note"`
-	CreatedAt    string   `sql:"created_at"    json:"-"`
-	UpdatedAt    string   `sql:"updated_at"    json:"-"`
+ 	CreatedAt    string   `sql:"created_at"    json:"-"`
+ 	UpdatedAt    string   `sql:"updated_at"    json:"-"`
 	Emails       []string `sql:"-"             json:"emails"        form:"emails"        query:"emails"`
 	Phones       []int64  `sql:"-"             json:"phones"        form:"phones"        query:"phones"`
 	Faxes        []int64  `sql:"-"             json:"faxes"         form:"faxes"         query:"faxes"`
@@ -39,13 +41,13 @@ type ContactShort struct {
 	PostGOName     string `json:"post_go_name"    form:"post_go_name"    query:"post_go_name"`
 }
 
-// GetContact - get one contact by id
-func GetContact(id int64) (Contact, error) {
+// ContactGet - get one contact by id
+func ContactGet(id int64) (Contact, error) {
 	var contact Contact
 	if id == 0 {
 		return contact, nil
 	}
-	err := pool.Model(&contact).
+	err := pool.QueryRow(context.Background(), &contact).
 		Where("id = ?", id).
 		Select()
 	if err != nil {
@@ -60,8 +62,8 @@ func GetContact(id int64) (Contact, error) {
 	return contact, err
 }
 
-// GetContactList - get all contacts for list
-func GetContactList() ([]ContactList, error) {
+// ContactListGet - get all contacts for list
+func ContactListGet() ([]ContactList, error) {
 	var contacts []ContactList
 	_, err := pool.Query(&contacts, `
 		SELECT
@@ -95,10 +97,10 @@ func GetContactList() ([]ContactList, error) {
 	return contacts, err
 }
 
-// GetContactSelect - get contact for select by id
-func GetContactSelect(id int64) (SelectItem, error) {
+// ContactSelectGet - get contact for select by id
+func ContactSelectGet(id int64) (SelectItem, error) {
 	var contact SelectItem
-	err := pool.Model(&Contact{}).
+	err := pool.QueryRow(context.Background(), &Contact{}).
 		Column("id", "name").
 		Where("id = ?", id).
 		Select(&contact)
@@ -108,10 +110,10 @@ func GetContactSelect(id int64) (SelectItem, error) {
 	return contact, err
 }
 
-// GetContactSelectAll - get all contacts for select
-func GetContactSelectAll() ([]SelectItem, error) {
+// ContactSelectGet - get all contacts for select
+func ContactSelectGet() ([]SelectItem, error) {
 	var contacts []SelectItem
-	err := pool.Model(&Contact{}).
+	err := pool.QueryRow(context.Background(), &Contact{}).
 		Column("id", "name").
 		Order("name ASC").
 		Select(&contacts)
@@ -121,8 +123,8 @@ func GetContactSelectAll() ([]SelectItem, error) {
 	return contacts, err
 }
 
-// GetContactCompany - get all contacts from company
-func GetContactCompany(id int64) ([]ContactShort, error) {
+// ContactCompanyGet - get all contacts from company
+func ContactCompanyGet(id int64) ([]ContactShort, error) {
 	var contacts []ContactShort
 	if id == 0 {
 		return contacts, nil
@@ -150,8 +152,8 @@ func GetContactCompany(id int64) ([]ContactShort, error) {
 	return contacts, err
 }
 
-// CreateContact - create new contact
-func CreateContact(contact Contact) (int64, error) {
+// ContactInsert - create new contact
+func ContactInsert(contact Contact) (int64, error) {
 	err := pool.Insert(&contact)
 	if err != nil {
 		errmsg("CreateContact insert", err)
@@ -160,12 +162,12 @@ func CreateContact(contact Contact) (int64, error) {
 	_ = e.UpdateContactEmails(contact)
 	_ = e.UpdateContactPhones(contact, false)
 	_ = e.UpdateContactPhones(contact, true)
-	// CreateContactEducations(contact)
+	// ContactEducationsInsert(contact)
 	return contact.ID, nil
 }
 
-// UpdateContact - save contact changes
-func UpdateContact(contact Contact) error {
+// ContactUpdate - save contact changes
+func ContactUpdate(contact Contact) error {
 	err := pool.Update(&contact)
 	if err != nil {
 		errmsg("UpdateContact update", err)
@@ -174,12 +176,12 @@ func UpdateContact(contact Contact) error {
 	_ = e.UpdateContactEmails(contact)
 	_ = e.UpdateContactPhones(contact, false)
 	_ = e.UpdateContactPhones(contact, true)
-	// CreateContactEducations(contact)
+	// ContactEducationsInsert(contact)
 	return nil
 }
 
-// DeleteContact - delete contact by id
-func DeleteContact(id int64) error {
+// ContactDelete - delete contact by id
+func ContactDelete(id int64) error {
 	if id == 0 {
 		return nil
 	}
@@ -211,7 +213,8 @@ func contactCreateTable() error {
 				birthday date,
 				note text,
 				created_at TIMESTAMP without time zone,
-				updated_at TIMESTAMP without time zone default now(),
+				updated_at
+ TIMESTAMP without time zone default now(),
 				UNIQUE(name, birthday)
 			)
 	`
