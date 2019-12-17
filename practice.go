@@ -36,12 +36,12 @@ type PracticeShort struct {
 }
 
 // GetPractice - get one practice by id
-func (e *Edb) GetPractice(id int64) (Practice, error) {
+func GetPractice(id int64) (Practice, error) {
 	var practice Practice
 	if id == 0 {
 		return practice, nil
 	}
-	err := e.db.Model(&practice).
+	err := pool.Model(&practice).
 		Where("id = ?", id).
 		Select()
 	if err != nil {
@@ -52,9 +52,9 @@ func (e *Edb) GetPractice(id int64) (Practice, error) {
 }
 
 // GetPracticeList - get practice by id for list
-func (e *Edb) GetPracticeList(id int64) (PracticeList, error) {
+func GetPracticeList(id int64) (PracticeList, error) {
 	var practice PracticeList
-	_, err := e.db.Query(practice, `
+	_, err := pool.Query(practice, `
 	SELECT
 		p.id,
 		p.company_id,
@@ -80,9 +80,9 @@ func (e *Edb) GetPracticeList(id int64) (PracticeList, error) {
 }
 
 // GetPracticeListAll - get all practices for list
-func (e *Edb) GetPracticeListAll() ([]PracticeList, error) {
+func GetPracticeListAll() ([]PracticeList, error) {
 	var practices []PracticeList
-	_, err := e.db.Query(&practices, `
+	_, err := pool.Query(&practices, `
 	SELECT
 		p.id,
 		p.company_id,
@@ -109,12 +109,12 @@ func (e *Edb) GetPracticeListAll() ([]PracticeList, error) {
 }
 
 // GetPracticeCompany - get all practices of company
-func (e *Edb) GetPracticeCompany(id int64) ([]PracticeList, error) {
+func GetPracticeCompany(id int64) ([]PracticeList, error) {
 	var practices []PracticeList
 	if id == 0 {
 		return practices, nil
 	}
-	_, err := e.db.Query(&practices, `
+	_, err := pool.Query(&practices, `
 	SELECT
 		p.id,
 		p.company_id,
@@ -143,9 +143,9 @@ func (e *Edb) GetPracticeCompany(id int64) ([]PracticeList, error) {
 }
 
 // GetPracticeNear - get 10 nearest practices
-func (e *Edb) GetPracticeNear() ([]PracticeShort, error) {
+func GetPracticeNear() ([]PracticeShort, error) {
 	var practices []PracticeShort
-	_, err := e.db.Query(&practices, `
+	_, err := pool.Query(&practices, `
 		SELECT
 			p.id,
 			p.company_id,
@@ -171,8 +171,8 @@ func (e *Edb) GetPracticeNear() ([]PracticeShort, error) {
 }
 
 // CreatePractice - create new practice
-func (e *Edb) CreatePractice(practice Practice) (int64, error) {
-	err := e.db.Insert(&practice)
+func CreatePractice(practice Practice) (int64, error) {
+	err := pool.Insert(&practice)
 	if err != nil {
 		errmsg("CreatePractice insert", err)
 	}
@@ -180,8 +180,8 @@ func (e *Edb) CreatePractice(practice Practice) (int64, error) {
 }
 
 // UpdatePractice - save practice changes
-func (e *Edb) UpdatePractice(practice Practice) error {
-	err := e.db.Update(&practice)
+func UpdatePractice(practice Practice) error {
+	err := pool.Update(&practice)
 	if err != nil {
 		errmsg("UpdatePractice update", err)
 	}
@@ -189,11 +189,11 @@ func (e *Edb) UpdatePractice(practice Practice) error {
 }
 
 // DeletePractice - delete practice by id
-func (e *Edb) DeletePractice(id int64) error {
+func DeletePractice(id int64) error {
 	if id == 0 {
 		return nil
 	}
-	_, err := e.db.Model(&Practice{}).
+	_, err := pool.Model(&Practice{}).
 		Where("id = ?", id).
 		Delete()
 	if err != nil {
@@ -202,7 +202,7 @@ func (e *Edb) DeletePractice(id int64) error {
 	return err
 }
 
-func (e *Edb) practiceCreateTable() error {
+func practiceCreateTable() error {
 	str := `
 		CREATE TABLE IF NOT EXISTS
 			practices (
@@ -216,7 +216,7 @@ func (e *Edb) practiceCreateTable() error {
 				updated_at TIMESTAMP without time zone default now()
 			)
 	`
-	_, err := e.db.Exec(str)
+	_, err := pool.Exec(str)
 	if err != nil {
 		errmsg("practiceCreateTable exec", err)
 	}

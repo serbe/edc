@@ -11,12 +11,12 @@ type Email struct {
 }
 
 // // GetEmail - get one email by id
-// func (e *Edb) GetEmail(id int64) (Email, error) {
+// func GetEmail(id int64) (Email, error) {
 // 	var email Email
 // 	if id == 0 {
 // 		return email, nil
 // 	}
-// 	err := e.db.Model(&email).
+// 	err := pool.Model(&email).
 // 		Where("id = ?", id).
 // 		Select()
 // 	if err != nil {
@@ -26,9 +26,9 @@ type Email struct {
 // }
 
 // // GetEmails - get all emails for list
-// func (e *Edb) GetEmails() ([]Email, error) {
+// func GetEmails() ([]Email, error) {
 // 	var emails []Email
-// 	err := e.db.Model(&emails).
+// 	err := pool.Model(&emails).
 // 		Column("id", "email").
 // 		Order("email ASC").
 // 		Select()
@@ -39,12 +39,12 @@ type Email struct {
 // }
 
 // // GetCompanyEmails - get all emails by company id
-// func (e *Edb) GetCompanyEmails(id int64) ([]Email, error) {
+// func GetCompanyEmails(id int64) ([]Email, error) {
 // 	var emails []Email
 // 	if id == 0 {
 // 		return emails, nil
 // 	}
-// 	err := e.db.Model(&emails).
+// 	err := pool.Model(&emails).
 // 		Column("id", "email").
 // 		Order("email ASC").
 // 		Where("company_id = ?", id).
@@ -56,12 +56,12 @@ type Email struct {
 // }
 
 // // GetContactEmails - get all emails by contact id
-// func (e *Edb) GetContactEmails(id int64) ([]Email, error) {
+// func GetContactEmails(id int64) ([]Email, error) {
 // 	var emails []Email
 // 	if id == 0 {
 // 		return emails, nil
 // 	}
-// 	err := e.db.Model(&emails).
+// 	err := pool.Model(&emails).
 // 		Column("id", "email").
 // 		Order("email ASC").
 // 		Where("contact_id = ?", id).
@@ -73,9 +73,9 @@ type Email struct {
 // }
 
 // CreateEmail - create new email
-func (e *Edb) CreateEmail(email Email) (int64, error) {
+func CreateEmail(email Email) (int64, error) {
 	email.ID = 0
-	err := e.db.Insert(&email)
+	err := pool.Insert(&email)
 	if err != nil {
 		errmsg("CreateEmail insert", err)
 	}
@@ -83,7 +83,7 @@ func (e *Edb) CreateEmail(email Email) (int64, error) {
 }
 
 // UpdateCompanyEmails - update company emails
-func (e *Edb) UpdateCompanyEmails(company Company) error {
+func UpdateCompanyEmails(company Company) error {
 	err := e.DeleteCompanyEmails(company.ID)
 	if err != nil {
 		errmsg("UpdateCompanyEmails DeleteCompanyEmails", err)
@@ -103,7 +103,7 @@ func (e *Edb) UpdateCompanyEmails(company Company) error {
 }
 
 // UpdateContactEmails - update contact emails
-func (e *Edb) UpdateContactEmails(contact Contact) error {
+func UpdateContactEmails(contact Contact) error {
 	err := e.DeleteContactEmails(contact.ID)
 	if err != nil {
 		errmsg("UpdateContactEmails DeleteContactEmails", err)
@@ -123,8 +123,8 @@ func (e *Edb) UpdateContactEmails(contact Contact) error {
 }
 
 // UpdateEmail - save email changes
-func (e *Edb) UpdateEmail(email Email) error {
-	err := e.db.Update(&email)
+func UpdateEmail(email Email) error {
+	err := pool.Update(&email)
 	if err != nil {
 		errmsg("UpdateEmail update", err)
 	}
@@ -132,11 +132,11 @@ func (e *Edb) UpdateEmail(email Email) error {
 }
 
 // DeleteEmail - delete email by id
-func (e *Edb) DeleteEmail(id int64) error {
+func DeleteEmail(id int64) error {
 	if id == 0 {
 		return nil
 	}
-	_, err := e.db.Model(&Email{}).
+	_, err := pool.Model(&Email{}).
 		Where("id = ?", id).
 		Delete()
 	if err != nil {
@@ -146,11 +146,11 @@ func (e *Edb) DeleteEmail(id int64) error {
 }
 
 // DeleteCompanyEmails - delete all emails by company id
-func (e *Edb) DeleteCompanyEmails(id int64) error {
+func DeleteCompanyEmails(id int64) error {
 	if id == 0 {
 		return nil
 	}
-	_, err := e.db.Model(&Email{}).
+	_, err := pool.Model(&Email{}).
 		Where("company_id = ?", id).
 		Delete()
 	if err != nil {
@@ -160,11 +160,11 @@ func (e *Edb) DeleteCompanyEmails(id int64) error {
 }
 
 // DeleteContactEmails - delete all emails by contact id
-func (e *Edb) DeleteContactEmails(id int64) error {
+func DeleteContactEmails(id int64) error {
 	if id == 0 {
 		return nil
 	}
-	_, err := e.db.Model(&Email{}).
+	_, err := pool.Model(&Email{}).
 		Where("contact_id = ?", id).
 		Delete()
 	if err != nil {
@@ -173,7 +173,7 @@ func (e *Edb) DeleteContactEmails(id int64) error {
 	return err
 }
 
-func (e *Edb) emailCreateTable() error {
+func emailCreateTable() error {
 	str := `
 		CREATE TABLE IF NOT EXISTS
 			emails (
@@ -185,7 +185,7 @@ func (e *Edb) emailCreateTable() error {
 				updated_at timestamp without time zone default now()
 			)
 	`
-	_, err := e.db.Exec(str)
+	_, err := pool.Exec(str)
 	if err != nil {
 		errmsg("emailCreateTable exec", err)
 	}

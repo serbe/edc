@@ -1,15 +1,17 @@
 package edc
 
+import "context"
+
 // Certificate - struct for certificate
 type Certificate struct {
-	ID        int64      `sql:"id"         json:"id"         form:"id"         query:"id"`
-	Num       string     `sql:"num"        json:"num"        form:"num"        query:"num"`
-	ContactID int64      `sql:"contact_id" json:"contact_id" form:"contact_id" query:"contact_id"`
-	CompanyID int64      `sql:"company_id" json:"company_id" form:"company_id" query:"company_id"`
-	CertDate  string     `sql:"cert_date"  json:"cert_date"  form:"cert_date"  query:"cert_date"`
-	Note      string     `sql:"note"       json:"note"       form:"note"       query:"note"`
-	CreatedAt string     `sql:"created_at" json:"-"`
-	UpdatedAt string     `sql:"updated_at" json:"-"`
+	ID        int64  `sql:"id"         json:"id"         form:"id"         query:"id"`
+	Num       string `sql:"num"        json:"num"        form:"num"        query:"num"`
+	ContactID int64  `sql:"contact_id" json:"contact_id" form:"contact_id" query:"contact_id"`
+	CompanyID int64  `sql:"company_id" json:"company_id" form:"company_id" query:"company_id"`
+	CertDate  string `sql:"cert_date"  json:"cert_date"  form:"cert_date"  query:"cert_date"`
+	Note      string `sql:"note"       json:"note"       form:"note"       query:"note"`
+	CreatedAt string `sql:"created_at" json:"-"`
+	UpdatedAt string `sql:"updated_at" json:"-"`
 }
 
 // CertificateList - struct for certificate list
@@ -25,14 +27,26 @@ type CertificateList struct {
 }
 
 // GetCertificate - get one certificate by id
-func (e *Edb) GetCertificate(id int64) (Certificate, error) {
+func GetCertificate(id int64) (Certificate, error) {
 	var certificate Certificate
 	if id == 0 {
 		return certificate, nil
 	}
-	err := e.db.Model(&certificate).
-		Where("id = ?", id).
-		Select()
+	certificate.ID = id
+	err := pool.QueryRow(context.Background(), `
+		SELECT
+			num,
+			contact_id,
+			company_id,
+			cert_date,
+			note,
+			created_at,
+			updated_at
+		FROM
+			certificates
+		WHERE
+			id = $1
+	`, id).Scan(&certificate.Num, &certificate.ContactID, &certificate.CompanyID, &certificate.CertDate, &certificate.Note, &certificate.CreatedAt, &certificate.UpdatedAt)
 	if err != nil {
 		errmsg("GetCertificate select", err)
 	}
@@ -40,9 +54,9 @@ func (e *Edb) GetCertificate(id int64) (Certificate, error) {
 }
 
 // GetCertificateListAll - get all certificate for list
-func (e *Edb) GetCertificateListAll() ([]CertificateList, error) {
+func GetCertificateListAll() ([]CertificateList, error) {
 	var certificates []CertificateList
-	_, err := e.db.Query(&certificates, `
+	rows, err := pool.Query(context.Background(), `
 		SELECT
 			c.id,
 			c.num,
@@ -50,7 +64,8 @@ func (e *Edb) GetCertificateListAll() ([]CertificateList, error) {
 			p.name AS contact_name,
 			c.company_id,
 			co.name AS company_name,
-			c.cert_date
+			c.cert_date,
+			c.note
 		FROM
 			certificates AS c
 		LEFT JOIN
@@ -67,12 +82,20 @@ func (e *Edb) GetCertificateListAll() ([]CertificateList, error) {
 	if err != nil {
 		errmsg("GetCertificateListAll select", err)
 	}
-	return certificates, err
+	for rows.Next() {
+		var certificate CertificateList
+		var c_date string
+		err := rows.Scan(&certificate.ID, &certificate.Num, &certificate.ContactID, &certificate.ContactName, &certificate.CompanyID, &certificate.CompanyName, &certificate.CertDate, &certificate.Note)
+		if err != nil {
+			return certificates, err
+		}
+	}
+	return certificates, rows.Err()
 }
 
 // CreateCertificate - create new certificate
-func (e *Edb) CreateCertificate(certificate Certificate) (int64, error) {
-	err := e.db.Insert(&certificate)
+func CreateCertificate(certificate Certificate) (int64, error) {
+	err := pool.Insert(&certificate)
 	if err != nil {
 		errmsg("CreateCertificate insert", err)
 	}
@@ -80,8 +103,8 @@ func (e *Edb) CreateCertificate(certificate Certificate) (int64, error) {
 }
 
 // UpdateCertificate - save certificate changes
-func (e *Edb) UpdateCertificate(certificate Certificate) error {
-	err := e.db.Update(&certificate)
+func UpdateCertificate(certificate Certificate) error {
+	err := pool.Update(&certificate)
 	if err != nil {
 		errmsg("UpdateCertificate update", err)
 	}
@@ -89,11 +112,11 @@ func (e *Edb) UpdateCertificate(certificate Certificate) error {
 }
 
 // DeleteCertificate - delete certificate by id
-func (e *Edb) DeleteCertificate(id int64) error {
+func DeleteCertificate(id int64) error {
 	if id == 0 {
 		return nil
 	}
-	_, err := e.db.Model(&Certificate{}).
+	_, err := pool.Model(&Certificate{}).
 		Where("id = ?", id).
 		Delete()
 	if err != nil {
@@ -102,7 +125,7 @@ func (e *Edb) DeleteCertificate(id int64) error {
 	return err
 }
 
-func (e *Edb) certificateCreateTable() error {
+func certificateCreateTable() error {
 	str := `
 		CREATE TABLE IF NOT EXISTS
 			certificates (
@@ -117,7 +140,7 @@ func (e *Edb) certificateCreateTable() error {
 				UNIQUE(num)
 			)
 	`
-	_, err := e.db.Exec(str)
+	_, err := pool.Exec(str)
 	if err != nil {
 		errmsg("certificateCreateTable exec", err)
 	}

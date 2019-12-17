@@ -35,12 +35,12 @@ type EducationShort struct {
 }
 
 // GetEducation - get education by id
-func (e *Edb) GetEducation(id int64) (Education, error) {
+func GetEducation(id int64) (Education, error) {
 	var education Education
 	if id == 0 {
 		return education, nil
 	}
-	err := e.db.Model(&education).
+	err := pool.Model(&education).
 		Where("id = ?", id).
 		Select()
 	if err != nil {
@@ -50,9 +50,9 @@ func (e *Edb) GetEducation(id int64) (Education, error) {
 }
 
 // GetEducationListAll - get all education for list
-func (e *Edb) GetEducationListAll() ([]EducationList, error) {
+func GetEducationListAll() ([]EducationList, error) {
 	var educations []EducationList
-	_, err := e.db.Query(&educations, `
+	_, err := pool.Query(&educations, `
 		SELECT
 			e.id,
 			e.contact_id,
@@ -79,9 +79,9 @@ func (e *Edb) GetEducationListAll() ([]EducationList, error) {
 }
 
 // GetEducationNear - get 10 nearest educations
-func (e *Edb) GetEducationNear() ([]EducationShort, error) {
+func GetEducationNear() ([]EducationShort, error) {
 	var educations []EducationShort
-	_, err := e.db.Query(&educations, `
+	_, err := pool.Query(&educations, `
 		SELECT
 			e.id,
 			e.contact_id,
@@ -104,9 +104,9 @@ func (e *Edb) GetEducationNear() ([]EducationShort, error) {
 }
 
 // // GetEducationSelectAll - get all education for select
-// func (e *Edb) GetEducationSelectAll() ([]Education, error) {
+// func GetEducationSelectAll() ([]Education, error) {
 // 	var educations []Education
-// 	err := e.db.Model(&educations).
+// 	err := pool.Model(&educations).
 // 		C("id", "start_date", "end_date").
 // 		Order("start_date").
 // 		Select()
@@ -122,8 +122,8 @@ func (e *Edb) GetEducationNear() ([]EducationShort, error) {
 // }
 
 // CreateEducation - create new education
-func (e *Edb) CreateEducation(education Education) (int64, error) {
-	err := e.db.Insert(&education)
+func CreateEducation(education Education) (int64, error) {
+	err := pool.Insert(&education)
 	if err != nil {
 		errmsg("CreateEducation insert", err)
 	}
@@ -131,8 +131,8 @@ func (e *Edb) CreateEducation(education Education) (int64, error) {
 }
 
 // UpdateEducation - save changes to education
-func (e *Edb) UpdateEducation(education Education) error {
-	err := e.db.Update(&education)
+func UpdateEducation(education Education) error {
+	err := pool.Update(&education)
 	if err != nil {
 		errmsg("UpdateEducation update", err)
 	}
@@ -140,11 +140,11 @@ func (e *Edb) UpdateEducation(education Education) error {
 }
 
 // DeleteEducation - delete education by id
-func (e *Edb) DeleteEducation(id int64) error {
+func DeleteEducation(id int64) error {
 	if id == 0 {
 		return nil
 	}
-	_, err := e.db.Model(&Education{}).
+	_, err := pool.Model(&Education{}).
 		Where("id = ?", id).
 		Delete()
 	if err != nil {
@@ -153,7 +153,7 @@ func (e *Edb) DeleteEducation(id int64) error {
 	return err
 }
 
-func (e *Edb) educationCreateTable() error {
+func educationCreateTable() error {
 	str := `
 		CREATE TABLE IF NOT EXISTS
 			educations (
@@ -166,7 +166,7 @@ func (e *Edb) educationCreateTable() error {
 				updated_at TIMESTAMP without time zone default now()
 			)
 	`
-	_, err := e.db.Exec(str)
+	_, err := pool.Exec(str)
 	if err != nil {
 		errmsg("educationCreateTable exec", err)
 	}

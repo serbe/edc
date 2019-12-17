@@ -17,12 +17,12 @@ type DepartmentList struct {
 }
 
 // GetDepartment - get one department by id
-func (e *Edb) GetDepartment(id int64) (Department, error) {
+func GetDepartment(id int64) (Department, error) {
 	var department Department
 	if id == 0 {
 		return department, nil
 	}
-	err := e.db.Model(&department).
+	err := pool.Model(&department).
 		Where("id = ?", id).
 		Select()
 	if err != nil {
@@ -32,9 +32,9 @@ func (e *Edb) GetDepartment(id int64) (Department, error) {
 }
 
 // GetDepartmentList - get department for list by id
-func (e *Edb) GetDepartmentList(id int64) (DepartmentList, error) {
+func GetDepartmentList(id int64) (DepartmentList, error) {
 	var department DepartmentList
-	err := e.db.Model(&Department{}).
+	err := pool.Model(&Department{}).
 		Column("id", "name", "note").
 		Where("id = ?", id).
 		Select(&department)
@@ -45,9 +45,9 @@ func (e *Edb) GetDepartmentList(id int64) (DepartmentList, error) {
 }
 
 // GetDepartmentListAll - get all department for list
-func (e *Edb) GetDepartmentListAll() ([]DepartmentList, error) {
+func GetDepartmentListAll() ([]DepartmentList, error) {
 	var departments []DepartmentList
-	err := e.db.Model(&Department{}).
+	err := pool.Model(&Department{}).
 		Column("id", "name", "note").
 		Order("name ASC").
 		Select(&departments)
@@ -58,12 +58,12 @@ func (e *Edb) GetDepartmentListAll() ([]DepartmentList, error) {
 }
 
 // GetDepartmentSelect - get department for select
-func (e *Edb) GetDepartmentSelect(id int64) (SelectItem, error) {
+func GetDepartmentSelect(id int64) (SelectItem, error) {
 	var department SelectItem
 	if id == 0 {
 		return department, nil
 	}
-	err := e.db.Model(&Department{}).
+	err := pool.Model(&Department{}).
 		Column("id", "name").
 		Where("id = ?", id).
 		Select(&department)
@@ -74,9 +74,9 @@ func (e *Edb) GetDepartmentSelect(id int64) (SelectItem, error) {
 }
 
 // GetDepartmentSelectAll - get all department for select
-func (e *Edb) GetDepartmentSelectAll() ([]SelectItem, error) {
+func GetDepartmentSelectAll() ([]SelectItem, error) {
 	var departments []SelectItem
-	err := e.db.Model(&Department{}).
+	err := pool.Model(&Department{}).
 		Column("id", "name").
 		Order("name ASC").
 		Select(&departments)
@@ -87,8 +87,8 @@ func (e *Edb) GetDepartmentSelectAll() ([]SelectItem, error) {
 }
 
 // CreateDepartment - create new department
-func (e *Edb) CreateDepartment(department Department) (int64, error) {
-	err := e.db.Insert(&department)
+func CreateDepartment(department Department) (int64, error) {
+	err := pool.Insert(&department)
 	if err != nil {
 		errmsg("CreateDepartment insert", err)
 	}
@@ -96,8 +96,8 @@ func (e *Edb) CreateDepartment(department Department) (int64, error) {
 }
 
 // UpdateDepartment - save department changes
-func (e *Edb) UpdateDepartment(department Department) error {
-	err := e.db.Update(&department)
+func UpdateDepartment(department Department) error {
+	err := pool.Update(&department)
 	if err != nil {
 		errmsg("UpdateDepartment update", err)
 	}
@@ -105,11 +105,11 @@ func (e *Edb) UpdateDepartment(department Department) error {
 }
 
 // DeleteDepartment - delete department by id
-func (e *Edb) DeleteDepartment(id int64) error {
+func DeleteDepartment(id int64) error {
 	if id == 0 {
 		return nil
 	}
-	_, err := e.db.Model(&Department{}).
+	_, err := pool.Model(&Department{}).
 		Where("id = ?", id).
 		Delete()
 	if err != nil {
@@ -118,7 +118,7 @@ func (e *Edb) DeleteDepartment(id int64) error {
 	return err
 }
 
-func (e *Edb) departmentCreateTable() error {
+func departmentCreateTable() error {
 	str := `
 		CREATE TABLE IF NOT EXISTS
 			departments (
@@ -130,7 +130,7 @@ func (e *Edb) departmentCreateTable() error {
 				UNIQUE(name)
 			)
 	`
-	_, err := e.db.Exec(str)
+	_, err := pool.Exec(str)
 	if err != nil {
 		errmsg("departmentCreateTable exec", err)
 	}

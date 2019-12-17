@@ -88,12 +88,12 @@ type HideoutList struct {
 }
 
 // GetHideout - get one hideout by id
-func (e *Edb) GetHideout(id int64) (Hideout, error) {
+func GetHideout(id int64) (Hideout, error) {
 	var hideout Hideout
 	if id == 0 {
 		return hideout, nil
 	}
-	err := e.db.Model(&hideout).
+	err := pool.Model(&hideout).
 		Where("id = ?", id).
 		Select()
 	if err != nil {
@@ -103,9 +103,9 @@ func (e *Edb) GetHideout(id int64) (Hideout, error) {
 }
 
 // GetHideoutList - get all hideout for list
-func (e *Edb) GetHideoutList() ([]HideoutList, error) {
+func GetHideoutList() ([]HideoutList, error) {
 	var hideouts []HideoutList
-	_, err := e.db.Query(&hideouts, `
+	_, err := pool.Query(&hideouts, `
 		SELECT
 			s.id,
 			s.address,
@@ -134,8 +134,8 @@ func (e *Edb) GetHideoutList() ([]HideoutList, error) {
 }
 
 // CreateHideout - create new hideout
-func (e *Edb) CreateHideout(hideout Hideout) (int64, error) {
-	err := e.db.Insert(&hideout)
+func CreateHideout(hideout Hideout) (int64, error) {
+	err := pool.Insert(&hideout)
 	if err != nil {
 		errmsg("CreateHideout insert", err)
 	}
@@ -143,8 +143,8 @@ func (e *Edb) CreateHideout(hideout Hideout) (int64, error) {
 }
 
 // UpdateHideout - save hideout changes
-func (e *Edb) UpdateHideout(hideout Hideout) error {
-	err := e.db.Update(&hideout)
+func UpdateHideout(hideout Hideout) error {
+	err := pool.Update(&hideout)
 	if err != nil {
 		errmsg("UpdateHideout update", err)
 	}
@@ -152,11 +152,11 @@ func (e *Edb) UpdateHideout(hideout Hideout) error {
 }
 
 // DeleteHideout - delete hideout by id
-func (e *Edb) DeleteHideout(id int64) error {
+func DeleteHideout(id int64) error {
 	if id == 0 {
 		return nil
 	}
-	_, err := e.db.Model(&Hideout{}).
+	_, err := pool.Model(&Hideout{}).
 		Where("id = ?", id).
 		Delete()
 	if err != nil {
@@ -165,7 +165,7 @@ func (e *Edb) DeleteHideout(id int64) error {
 	return err
 }
 
-func (e *Edb) hideoutCreateTable() error {
+func hideoutCreateTable() error {
 	str := `
 		CREATE TABLE IF NOT EXISTS
 			hideouts (
@@ -204,7 +204,7 @@ func (e *Edb) hideoutCreateTable() error {
 				UNIQUE(num, inv_num, inv_add)
 			)
 	`
-	_, err := e.db.Exec(str)
+	_, err := pool.Exec(str)
 	if err != nil {
 		errmsg("hideoutCreateTable exec", err)
 	}

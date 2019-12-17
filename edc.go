@@ -1,15 +1,18 @@
 package edc
 
 import (
-	"github.com/go-pg/pg"
+	"context"
+	"fmt"
+	"os"
+
+	"github.com/jackc/pgx/v4"
+	"github.com/jackc/pgx/v4/pgxpool"
 )
 
-var logErrors bool
-
-// Edb struct to store *DB
-type Edb struct {
-	db *pg.DB
-}
+var (
+	logErrors bool
+	pool      *pgxpool.Pool
+)
 
 // SelectItem - struct for select element
 type SelectItem struct {
@@ -19,36 +22,26 @@ type SelectItem struct {
 
 // InitDB initialize database
 func InitDB(
-	host,
-	port,
-	dbname,
-	user,
-	password string,
+	db_url string,
 	logsql,
 	logerr bool,
-) (*Edb, error) {
-	e := new(Edb)
-	opt := pg.Options{
-		User:     user,
-		Password: password,
-		Database: dbname,
+) error {
+	var err error
+	pool, err = pgx.Connect(context.Background(), db_url)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Unable to connection to database: %v\n", err)
+		os.Exit(1)
 	}
-	if host != "" || port != "" {
-		opt.Addr = host + ":" + port
-	}
-	e.db = pg.Connect(&opt)
 	logErrors = logerr
-	err := e.createAllTables()
-
-	return e, err
+	return createAllTables()
 }
 
-func (e *Edb) createAllTables() error {
-	err := e.educationCreateTable()
+func createAllTables() error {
+	err := educationCreateTable()
 	if err != nil {
 		return err
 	}
-	err = e.kindCreateTable()
+	err = kindCreateTable()
 	if err != nil {
 		return err
 	}
@@ -56,47 +49,47 @@ func (e *Edb) createAllTables() error {
 	if err != nil {
 		return err
 	}
-	err = e.companyCreateTable()
+	err = companyCreateTable()
 	if err != nil {
 		return err
 	}
-	err = e.contactCreateTable()
+	err = contactCreateTable()
 	if err != nil {
 		return err
 	}
-	err = e.postCreateTable()
+	err = postCreateTable()
 	if err != nil {
 		return err
 	}
-	err = e.rankCreateTable()
+	err = rankCreateTable()
 	if err != nil {
 		return err
 	}
-	err = e.scopeCreateTable()
+	err = scopeCreateTable()
 	if err != nil {
 		return err
 	}
-	err = e.phoneCreateTable()
+	err = phoneCreateTable()
 	if err != nil {
 		return err
 	}
-	err = e.practiceCreateTable()
+	err = practiceCreateTable()
 	if err != nil {
 		return err
 	}
-	err = e.departmentCreateTable()
+	err = departmentCreateTable()
 	if err != nil {
 		return err
 	}
-	err = e.sirenTypeCreateTable()
+	err = sirenTypeCreateTable()
 	if err != nil {
 		return err
 	}
-	err = e.sirenCreateTable()
+	err = sirenCreateTable()
 	if err != nil {
 		return err
 	}
-	err = e.certificateCreateTable()
+	err = certificateCreateTable()
 	// if err != nil {
 	// 	return err
 	// }

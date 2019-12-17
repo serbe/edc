@@ -40,12 +40,12 @@ type ContactShort struct {
 }
 
 // GetContact - get one contact by id
-func (e *Edb) GetContact(id int64) (Contact, error) {
+func GetContact(id int64) (Contact, error) {
 	var contact Contact
 	if id == 0 {
 		return contact, nil
 	}
-	err := e.db.Model(&contact).
+	err := pool.Model(&contact).
 		Where("id = ?", id).
 		Select()
 	if err != nil {
@@ -61,9 +61,9 @@ func (e *Edb) GetContact(id int64) (Contact, error) {
 }
 
 // GetContactList - get all contacts for list
-func (e *Edb) GetContactList() ([]ContactList, error) {
+func GetContactList() ([]ContactList, error) {
 	var contacts []ContactList
-	_, err := e.db.Query(&contacts, `
+	_, err := pool.Query(&contacts, `
 		SELECT
 			c.id,
 			c.name,
@@ -96,9 +96,9 @@ func (e *Edb) GetContactList() ([]ContactList, error) {
 }
 
 // GetContactSelect - get contact for select by id
-func (e *Edb) GetContactSelect(id int64) (SelectItem, error) {
+func GetContactSelect(id int64) (SelectItem, error) {
 	var contact SelectItem
-	err := e.db.Model(&Contact{}).
+	err := pool.Model(&Contact{}).
 		Column("id", "name").
 		Where("id = ?", id).
 		Select(&contact)
@@ -109,9 +109,9 @@ func (e *Edb) GetContactSelect(id int64) (SelectItem, error) {
 }
 
 // GetContactSelectAll - get all contacts for select
-func (e *Edb) GetContactSelectAll() ([]SelectItem, error) {
+func GetContactSelectAll() ([]SelectItem, error) {
 	var contacts []SelectItem
-	err := e.db.Model(&Contact{}).
+	err := pool.Model(&Contact{}).
 		Column("id", "name").
 		Order("name ASC").
 		Select(&contacts)
@@ -122,12 +122,12 @@ func (e *Edb) GetContactSelectAll() ([]SelectItem, error) {
 }
 
 // GetContactCompany - get all contacts from company
-func (e *Edb) GetContactCompany(id int64) ([]ContactShort, error) {
+func GetContactCompany(id int64) ([]ContactShort, error) {
 	var contacts []ContactShort
 	if id == 0 {
 		return contacts, nil
 	}
-	_, err := e.db.Query(&contacts, `
+	_, err := pool.Query(&contacts, `
 		SELECT
 			c.id,
 			c.name,
@@ -151,8 +151,8 @@ func (e *Edb) GetContactCompany(id int64) ([]ContactShort, error) {
 }
 
 // CreateContact - create new contact
-func (e *Edb) CreateContact(contact Contact) (int64, error) {
-	err := e.db.Insert(&contact)
+func CreateContact(contact Contact) (int64, error) {
+	err := pool.Insert(&contact)
 	if err != nil {
 		errmsg("CreateContact insert", err)
 		return 0, err
@@ -165,8 +165,8 @@ func (e *Edb) CreateContact(contact Contact) (int64, error) {
 }
 
 // UpdateContact - save contact changes
-func (e *Edb) UpdateContact(contact Contact) error {
-	err := e.db.Update(&contact)
+func UpdateContact(contact Contact) error {
+	err := pool.Update(&contact)
 	if err != nil {
 		errmsg("UpdateContact update", err)
 		return err
@@ -179,7 +179,7 @@ func (e *Edb) UpdateContact(contact Contact) error {
 }
 
 // DeleteContact - delete contact by id
-func (e *Edb) DeleteContact(id int64) error {
+func DeleteContact(id int64) error {
 	if id == 0 {
 		return nil
 	}
@@ -188,7 +188,7 @@ func (e *Edb) DeleteContact(id int64) error {
 		errmsg("DeleteContact DeleteAllContactPhones", err)
 		return err
 	}
-	_, err = e.db.Model(&Contact{}).
+	_, err = pool.Model(&Contact{}).
 		Where("id = ?", id).
 		Delete()
 	if err != nil {
@@ -197,7 +197,7 @@ func (e *Edb) DeleteContact(id int64) error {
 	return err
 }
 
-func (e *Edb) contactCreateTable() error {
+func contactCreateTable() error {
 	str := `
 		CREATE TABLE IF NOT EXISTS
 			contacts (
@@ -215,7 +215,7 @@ func (e *Edb) contactCreateTable() error {
 				UNIQUE(name, birthday)
 			)
 	`
-	_, err := e.db.Exec(str)
+	_, err := pool.Exec(str)
 	if err != nil {
 		errmsg("contactCreateTable exec", err)
 	}

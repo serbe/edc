@@ -17,12 +17,12 @@ type HideoutTypeList struct {
 }
 
 // GetHideoutType - get one hideoutType by id
-func (e *Edb) GetHideoutType(id int64) (HideoutType, error) {
+func GetHideoutType(id int64) (HideoutType, error) {
 	var hideoutType HideoutType
 	if id == 0 {
 		return hideoutType, nil
 	}
-	err := e.db.Model(&hideoutType).
+	err := pool.Model(&hideoutType).
 		Where("id = ?", id).
 		Select()
 	if err != nil {
@@ -32,9 +32,9 @@ func (e *Edb) GetHideoutType(id int64) (HideoutType, error) {
 }
 
 // GetHideoutTypeList - get hideoutType for list by id
-func (e *Edb) GetHideoutTypeList(id int64) (HideoutTypeList, error) {
+func GetHideoutTypeList(id int64) (HideoutTypeList, error) {
 	var hideoutType HideoutTypeList
-	err := e.db.Model(&HideoutType{}).
+	err := pool.Model(&HideoutType{}).
 		Column("id", "name", "note").
 		Where("id = ?", id).
 		Select(&hideoutType)
@@ -45,9 +45,9 @@ func (e *Edb) GetHideoutTypeList(id int64) (HideoutTypeList, error) {
 }
 
 // GetHideoutTypeListAll - get all hideoutType for list
-func (e *Edb) GetHideoutTypeListAll() ([]HideoutTypeList, error) {
+func GetHideoutTypeListAll() ([]HideoutTypeList, error) {
 	var hideoutTypes []HideoutTypeList
-	err := e.db.Model(&HideoutType{}).
+	err := pool.Model(&HideoutType{}).
 		Column("id", "name", "note").
 		Order("name ASC").
 		Select(&hideoutTypes)
@@ -58,9 +58,9 @@ func (e *Edb) GetHideoutTypeListAll() ([]HideoutTypeList, error) {
 }
 
 // GetHideoutTypeSelect - get hideoutType for select by id
-func (e *Edb) GetHideoutTypeSelect(id int64) ([]SelectItem, error) {
+func GetHideoutTypeSelect(id int64) ([]SelectItem, error) {
 	var hideoutTypes []SelectItem
-	err := e.db.Model(&HideoutType{}).
+	err := pool.Model(&HideoutType{}).
 		Column("id", "name").
 		Where("id = ?", id).
 		Select(&hideoutTypes)
@@ -71,9 +71,9 @@ func (e *Edb) GetHideoutTypeSelect(id int64) ([]SelectItem, error) {
 }
 
 // GetHideoutTypeSelectAll - get all hideoutType for select
-func (e *Edb) GetHideoutTypeSelectAll() ([]SelectItem, error) {
+func GetHideoutTypeSelectAll() ([]SelectItem, error) {
 	var hideoutTypes []SelectItem
-	err := e.db.Model(&HideoutType{}).
+	err := pool.Model(&HideoutType{}).
 		Column("id", "name").
 		Order("name ASC").
 		Select(&hideoutTypes)
@@ -84,8 +84,8 @@ func (e *Edb) GetHideoutTypeSelectAll() ([]SelectItem, error) {
 }
 
 // CreateHideoutType - create new hideoutType
-func (e *Edb) CreateHideoutType(hideoutType HideoutType) (int64, error) {
-	err := e.db.Insert(&hideoutType)
+func CreateHideoutType(hideoutType HideoutType) (int64, error) {
+	err := pool.Insert(&hideoutType)
 	if err != nil {
 		errmsg("CreateHideoutType insert", err)
 	}
@@ -93,8 +93,8 @@ func (e *Edb) CreateHideoutType(hideoutType HideoutType) (int64, error) {
 }
 
 // UpdateHideoutType - save hideoutType changes
-func (e *Edb) UpdateHideoutType(hideoutType HideoutType) error {
-	err := e.db.Update(&hideoutType)
+func UpdateHideoutType(hideoutType HideoutType) error {
+	err := pool.Update(&hideoutType)
 	if err != nil {
 		errmsg("UpdateHideoutType update", err)
 	}
@@ -102,11 +102,11 @@ func (e *Edb) UpdateHideoutType(hideoutType HideoutType) error {
 }
 
 // DeleteHideoutType - delete hideoutType by id
-func (e *Edb) DeleteHideoutType(id int64) error {
+func DeleteHideoutType(id int64) error {
 	if id == 0 {
 		return nil
 	}
-	_, err := e.db.Model(&HideoutType{}).
+	_, err := pool.Model(&HideoutType{}).
 		Where("id = ?", id).
 		Delete()
 	if err != nil {
@@ -115,7 +115,7 @@ func (e *Edb) DeleteHideoutType(id int64) error {
 	return err
 }
 
-func (e *Edb) hideoutTypeCreateTable() error {
+func hideoutTypeCreateTable() error {
 	str := `
 		CREATE TABLE IF NOT EXISTS
 			hideout_types (
@@ -126,7 +126,7 @@ func (e *Edb) hideoutTypeCreateTable() error {
 				updated_at TIMESTAMP without time zone default now(),
 				UNIQUE(name)
 			);`
-	_, err := e.db.Exec(str)
+	_, err := pool.Exec(str)
 	if err != nil {
 		errmsg("hideoutCreateTable exec", err)
 	}

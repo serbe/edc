@@ -23,12 +23,12 @@ type TccList struct {
 }
 
 // GetTcc - get one tcc by id
-func (e *Edb) GetTcc(id int64) (Tcc, error) {
+func GetTcc(id int64) (Tcc, error) {
 	var tcc Tcc
 	if id == 0 {
 		return tcc, nil
 	}
-	err := e.db.Model(&tcc).
+	err := pool.Model(&tcc).
 		Where("id = ?", id).
 		Select()
 	if err != nil {
@@ -38,9 +38,9 @@ func (e *Edb) GetTcc(id int64) (Tcc, error) {
 }
 
 // GetTccList - get all tcc for list
-func (e *Edb) GetTccList(id int64) (TccList, error) {
+func GetTccList(id int64) (TccList, error) {
 	var tccs TccList
-	err := e.db.Model(&Tcc{}).
+	err := pool.Model(&Tcc{}).
 		Column("id", "address", "contact_id", "note").
 		Where("id = ?", id).
 		Select(&tccs)
@@ -51,9 +51,9 @@ func (e *Edb) GetTccList(id int64) (TccList, error) {
 }
 
 // GetTccListAll - get all tcc for list
-func (e *Edb) GetTccListAll() ([]TccList, error) {
+func GetTccListAll() ([]TccList, error) {
 	var tccs []TccList
-	err := e.db.Model(&Tcc{}).
+	err := pool.Model(&Tcc{}).
 		Column("id", "address", "contact_id", "note").
 		Order("name ASC").
 		Select(&tccs)
@@ -64,8 +64,8 @@ func (e *Edb) GetTccListAll() ([]TccList, error) {
 }
 
 // CreateTcc - create new tcc
-func (e *Edb) CreateTcc(tcc Tcc) (int64, error) {
-	err := e.db.Insert(&tcc)
+func CreateTcc(tcc Tcc) (int64, error) {
+	err := pool.Insert(&tcc)
 	if err != nil {
 		errmsg("CreateTcc insert", err)
 	}
@@ -73,8 +73,8 @@ func (e *Edb) CreateTcc(tcc Tcc) (int64, error) {
 }
 
 // UpdateTcc - save tcc changes
-func (e *Edb) UpdateTcc(tcc Tcc) error {
-	err := e.db.Update(&tcc)
+func UpdateTcc(tcc Tcc) error {
+	err := pool.Update(&tcc)
 	if err != nil {
 		errmsg("UpdateTcc update", err)
 	}
@@ -82,11 +82,11 @@ func (e *Edb) UpdateTcc(tcc Tcc) error {
 }
 
 // DeleteTcc - delete tcc by id
-func (e *Edb) DeleteTcc(id int64) error {
+func DeleteTcc(id int64) error {
 	if id == 0 {
 		return nil
 	}
-	_, err := e.db.Model(&Tcc{}).
+	_, err := pool.Model(&Tcc{}).
 		Where("id = ?", id).
 		Delete()
 	if err != nil {
@@ -95,7 +95,7 @@ func (e *Edb) DeleteTcc(id int64) error {
 	return err
 }
 
-// func (e *Edb) tccCreateTable() error {
+// func tccCreateTable() error {
 // 	str := `
 // 		CREATE TABLE IF NOT EXISTS
 // 			tccs (
@@ -109,7 +109,7 @@ func (e *Edb) DeleteTcc(id int64) error {
 // 				UNIQUE(num_id, num_pass, type_id)
 // 			)
 // 	`
-// 	_, err := e.db.Exec(str)
+// 	_, err := pool.Exec(str)
 // 	if err != nil {
 // 		errmsg("tccCreateTable exec", err)
 // 	}

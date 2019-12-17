@@ -19,12 +19,12 @@ type PostList struct {
 }
 
 // GetPost - get one post by id
-func (e *Edb) GetPost(id int64) (Post, error) {
+func GetPost(id int64) (Post, error) {
 	var post Post
 	if id == 0 {
 		return post, nil
 	}
-	err := e.db.Model(&post).
+	err := pool.Model(&post).
 		Where("id = ?", id).
 		Select()
 	if err != nil {
@@ -34,9 +34,9 @@ func (e *Edb) GetPost(id int64) (Post, error) {
 }
 
 // GetPostList - get post for list by id
-func (e *Edb) GetPostList(id int64) (PostList, error) {
+func GetPostList(id int64) (PostList, error) {
 	var post PostList
-	err := e.db.Model(&Post{}).
+	err := pool.Model(&Post{}).
 		Column("id", "name", "go", "note").
 		Where("id = ?", id).
 		Select(&post)
@@ -47,9 +47,9 @@ func (e *Edb) GetPostList(id int64) (PostList, error) {
 }
 
 // GetPostListAll - get all post for list
-func (e *Edb) GetPostListAll() ([]PostList, error) {
+func GetPostListAll() ([]PostList, error) {
 	var posts []PostList
-	err := e.db.Model(&Post{}).
+	err := pool.Model(&Post{}).
 		Column("id", "name", "go", "note").
 		Order("name ASC").
 		Select(&posts)
@@ -60,12 +60,12 @@ func (e *Edb) GetPostListAll() ([]PostList, error) {
 }
 
 // GetPostSelect - get post for select
-func (e *Edb) GetPostSelect(id int64) (SelectItem, error) {
+func GetPostSelect(id int64) (SelectItem, error) {
 	var post SelectItem
 	if id == 0 {
 		return post, nil
 	}
-	err := e.db.Model(&Post{}).
+	err := pool.Model(&Post{}).
 		Column("id", "name").
 		Where("go = false AND id = ?", id).
 		Order("name ASC").
@@ -77,12 +77,12 @@ func (e *Edb) GetPostSelect(id int64) (SelectItem, error) {
 }
 
 // GetPostGOSelect - get post go for select
-func (e *Edb) GetPostGOSelect(id int64) (SelectItem, error) {
+func GetPostGOSelect(id int64) (SelectItem, error) {
 	var post SelectItem
 	if id == 0 {
 		return post, nil
 	}
-	err := e.db.Model(&Post{}).
+	err := pool.Model(&Post{}).
 		Column("id", "name").
 		Where("go = true AND id = ?", id).
 		Order("name ASC").
@@ -94,9 +94,9 @@ func (e *Edb) GetPostGOSelect(id int64) (SelectItem, error) {
 }
 
 // GetPostSelectAll - get all post for select
-func (e *Edb) GetPostSelectAll(g bool) ([]SelectItem, error) {
+func GetPostSelectAll(g bool) ([]SelectItem, error) {
 	var posts []SelectItem
-	err := e.db.Model(&Post{}).
+	err := pool.Model(&Post{}).
 		Column("id", "name").
 		Where("go = ?", g).
 		Order("name ASC").
@@ -108,8 +108,8 @@ func (e *Edb) GetPostSelectAll(g bool) ([]SelectItem, error) {
 }
 
 // CreatePost - create new post
-func (e *Edb) CreatePost(post Post) (int64, error) {
-	err := e.db.Insert(&post)
+func CreatePost(post Post) (int64, error) {
+	err := pool.Insert(&post)
 	if err != nil {
 		errmsg("CreatePost insert", err)
 	}
@@ -117,8 +117,8 @@ func (e *Edb) CreatePost(post Post) (int64, error) {
 }
 
 // UpdatePost - save post changes
-func (e *Edb) UpdatePost(post Post) error {
-	err := e.db.Update(&post)
+func UpdatePost(post Post) error {
+	err := pool.Update(&post)
 	if err != nil {
 		errmsg("UpdatePost update", err)
 	}
@@ -126,11 +126,11 @@ func (e *Edb) UpdatePost(post Post) error {
 }
 
 // DeletePost - delete post by id
-func (e *Edb) DeletePost(id int64) error {
+func DeletePost(id int64) error {
 	if id == 0 {
 		return nil
 	}
-	_, err := e.db.Model(&Post{}).
+	_, err := pool.Model(&Post{}).
 		Where("id = ?", id).
 		Delete()
 	if err != nil {
@@ -139,7 +139,7 @@ func (e *Edb) DeletePost(id int64) error {
 	return err
 }
 
-func (e *Edb) postCreateTable() error {
+func postCreateTable() error {
 	str := `
 		CREATE TABLE IF NOT EXISTS
 			posts (
@@ -152,7 +152,7 @@ func (e *Edb) postCreateTable() error {
 				UNIQUE (name, go)
 			)
 	`
-	_, err := e.db.Exec(str)
+	_, err := pool.Exec(str)
 	if err != nil {
 		errmsg("postCreateTable exec", err)
 	}

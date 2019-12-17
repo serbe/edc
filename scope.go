@@ -17,12 +17,12 @@ type ScopeList struct {
 }
 
 // GetScope - get one scope by id
-func (e *Edb) GetScope(id int64) (Scope, error) {
+func GetScope(id int64) (Scope, error) {
 	var scope Scope
 	if id == 0 {
 		return scope, nil
 	}
-	err := e.db.Model(&scope).
+	err := pool.Model(&scope).
 		Where("id = ?", id).
 		Select()
 	if err != nil {
@@ -32,9 +32,9 @@ func (e *Edb) GetScope(id int64) (Scope, error) {
 }
 
 // GetScopeList - get scope for list by id
-func (e *Edb) GetScopeList(id int64) (ScopeList, error) {
+func GetScopeList(id int64) (ScopeList, error) {
 	var scope ScopeList
-	err := e.db.Model(&Scope{}).
+	err := pool.Model(&Scope{}).
 		Column("id", "name", "note").
 		Where("id = ?", id).
 		Select(&scope)
@@ -45,9 +45,9 @@ func (e *Edb) GetScopeList(id int64) (ScopeList, error) {
 }
 
 // GetScopeListAll - get all scope for list
-func (e *Edb) GetScopeListAll() ([]ScopeList, error) {
+func GetScopeListAll() ([]ScopeList, error) {
 	var scopes []ScopeList
-	err := e.db.Model(&Scope{}).
+	err := pool.Model(&Scope{}).
 		Column("id", "name", "note").
 		Order("name ASC").
 		Select(&scopes)
@@ -58,12 +58,12 @@ func (e *Edb) GetScopeListAll() ([]ScopeList, error) {
 }
 
 // GetScopeSelect - get scope for select
-func (e *Edb) GetScopeSelect(id int64) (SelectItem, error) {
+func GetScopeSelect(id int64) (SelectItem, error) {
 	var scope SelectItem
 	if id == 0 {
 		return scope, nil
 	}
-	err := e.db.Model(&Scope{}).
+	err := pool.Model(&Scope{}).
 		Column("id", "name").
 		Where("id = ?", id).
 		Select(&scope)
@@ -74,9 +74,9 @@ func (e *Edb) GetScopeSelect(id int64) (SelectItem, error) {
 }
 
 // GetScopeSelectAll - get all scope for select
-func (e *Edb) GetScopeSelectAll() ([]SelectItem, error) {
+func GetScopeSelectAll() ([]SelectItem, error) {
 	var scopes []SelectItem
-	err := e.db.Model(&Scope{}).
+	err := pool.Model(&Scope{}).
 		Column("id", "name").
 		Order("name ASC").
 		Select(&scopes)
@@ -87,8 +87,8 @@ func (e *Edb) GetScopeSelectAll() ([]SelectItem, error) {
 }
 
 // CreateScope - create new scope
-func (e *Edb) CreateScope(scope Scope) (int64, error) {
-	err := e.db.Insert(&scope)
+func CreateScope(scope Scope) (int64, error) {
+	err := pool.Insert(&scope)
 	if err != nil {
 		errmsg("CreateScope insert", err)
 	}
@@ -96,8 +96,8 @@ func (e *Edb) CreateScope(scope Scope) (int64, error) {
 }
 
 // UpdateScope - save scope changes
-func (e *Edb) UpdateScope(scope Scope) error {
-	err := e.db.Update(&scope)
+func UpdateScope(scope Scope) error {
+	err := pool.Update(&scope)
 	if err != nil {
 		errmsg("UpdateScope update", err)
 	}
@@ -105,11 +105,11 @@ func (e *Edb) UpdateScope(scope Scope) error {
 }
 
 // DeleteScope - delete scope by id
-func (e *Edb) DeleteScope(id int64) error {
+func DeleteScope(id int64) error {
 	if id == 0 {
 		return nil
 	}
-	_, err := e.db.Model(&Scope{}).
+	_, err := pool.Model(&Scope{}).
 		Where("id = ?", id).
 		Delete()
 	if err != nil {
@@ -118,7 +118,7 @@ func (e *Edb) DeleteScope(id int64) error {
 	return err
 }
 
-func (e *Edb) scopeCreateTable() error {
+func scopeCreateTable() error {
 	str := `
 		CREATE TABLE IF NOT EXISTS
 			scopes (
@@ -130,7 +130,7 @@ func (e *Edb) scopeCreateTable() error {
 				UNIQUE (name)
 			)
 	`
-	_, err := e.db.Exec(str)
+	_, err := pool.Exec(str)
 	if err != nil {
 		errmsg("scopeCreateTable exec", err)
 	}

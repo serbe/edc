@@ -12,12 +12,12 @@ type Phone struct {
 }
 
 // // GetPhone - get one phone by id
-// func (e *Edb) GetPhone(id int64) (Phone, error) {
+// func GetPhone(id int64) (Phone, error) {
 // 	var phone Phone
 // 	if id == 0 {
 // 		return phone, nil
 // 	}
-// 	err := e.db.Model(&phone).
+// 	err := pool.Model(&phone).
 // 		Where("id = ?", id).
 // 		Select()
 // 	if err != nil {
@@ -27,9 +27,9 @@ type Phone struct {
 // }
 
 // // GetPhoneList - get all phones for list
-// func (e *Edb) GetPhoneList() ([]Phone, error) {
+// func GetPhoneList() ([]Phone, error) {
 // 	var phones []Phone
-// 	err := e.db.Model(&phones).
+// 	err := pool.Model(&phones).
 // 		Column("id", "company_id", "contact_id", "phone", "fax").
 // 		Order("phone ASC").
 // 		Select()
@@ -40,12 +40,12 @@ type Phone struct {
 // }
 
 // // GetCompanyPhones - get all phones by company id
-// func (e *Edb) GetCompanyPhones(id int64, fax bool) ([]Phone, error) {
+// func GetCompanyPhones(id int64, fax bool) ([]Phone, error) {
 // 	var phones []Phone
 // 	if id == 0 {
 // 		return phones, nil
 // 	}
-// 	err := e.db.Model(&phones).
+// 	err := pool.Model(&phones).
 // 		Where("company_id = ? AND fax = ?", id, fax).
 // 		Order("phone ASC").
 // 		Select()
@@ -56,12 +56,12 @@ type Phone struct {
 // }
 
 // // GetContactPhones - get all phones by contact id
-// func (e *Edb) GetContactPhones(id int64, fax bool) ([]Phone, error) {
+// func GetContactPhones(id int64, fax bool) ([]Phone, error) {
 // 	var phones []Phone
 // 	if id == 0 {
 // 		return phones, nil
 // 	}
-// 	err := e.db.Model(&phones).
+// 	err := pool.Model(&phones).
 // 		Where("contact_id = ? AND fax = ?", id, fax).
 // 		Order("phone ASC").
 // 		Select()
@@ -72,9 +72,9 @@ type Phone struct {
 // }
 
 // CreatePhone - create new phone
-func (e *Edb) CreatePhone(phone Phone) (int64, error) {
+func CreatePhone(phone Phone) (int64, error) {
 	phone.ID = 0
-	err := e.db.Insert(&phone)
+	err := pool.Insert(&phone)
 	if err != nil {
 		errmsg("CreatePhone insert", err)
 	}
@@ -82,7 +82,7 @@ func (e *Edb) CreatePhone(phone Phone) (int64, error) {
 }
 
 // UpdateCompanyPhones - update company phones
-func (e *Edb) UpdateCompanyPhones(company Company, fax bool) error {
+func UpdateCompanyPhones(company Company, fax bool) error {
 	err := e.DeleteCompanyPhones(company.ID, fax)
 	if err != nil {
 		errmsg("UpdateCompanyPhones DeleteCompanyPhones", err)
@@ -109,7 +109,7 @@ func (e *Edb) UpdateCompanyPhones(company Company, fax bool) error {
 }
 
 // UpdateContactPhones - update contact phones
-func (e *Edb) UpdateContactPhones(contact Contact, fax bool) error {
+func UpdateContactPhones(contact Contact, fax bool) error {
 	err := e.DeleteContactPhones(contact.ID, fax)
 	if err != nil {
 		errmsg("CreateContactPhones DeleteContactPhones", err)
@@ -136,11 +136,11 @@ func (e *Edb) UpdateContactPhones(contact Contact, fax bool) error {
 }
 
 // DeleteCompanyPhones - delete all unnecessary phones by company id
-func (e *Edb) DeleteCompanyPhones(id int64, fax bool) error {
+func DeleteCompanyPhones(id int64, fax bool) error {
 	if id == 0 {
 		return nil
 	}
-	_, err := e.db.Model(&Phone{}).
+	_, err := pool.Model(&Phone{}).
 		Where("company_id = ? and fax = ?", id, fax).
 		Delete()
 	if err != nil {
@@ -150,11 +150,11 @@ func (e *Edb) DeleteCompanyPhones(id int64, fax bool) error {
 }
 
 // DeleteContactPhones - delete all unnecessary phones by contact id
-func (e *Edb) DeleteContactPhones(id int64, fax bool) error {
+func DeleteContactPhones(id int64, fax bool) error {
 	if id == 0 {
 		return nil
 	}
-	_, err := e.db.Model(&Phone{}).
+	_, err := pool.Model(&Phone{}).
 		Where("contact_id = ? and fax = ?", id, fax).
 		Delete()
 	if err != nil {
@@ -164,11 +164,11 @@ func (e *Edb) DeleteContactPhones(id int64, fax bool) error {
 }
 
 // DeleteAllCompanyPhones - delete all phones and faxes by company id
-func (e *Edb) DeleteAllCompanyPhones(id int64) error {
+func DeleteAllCompanyPhones(id int64) error {
 	if id == 0 {
 		return nil
 	}
-	_, err := e.db.Model(&Phone{}).
+	_, err := pool.Model(&Phone{}).
 		Where("company_id = ?", id).
 		Delete()
 	if err != nil {
@@ -178,11 +178,11 @@ func (e *Edb) DeleteAllCompanyPhones(id int64) error {
 }
 
 // DeleteAllContactPhones - delete all phones and faxes by contact id
-func (e *Edb) DeleteAllContactPhones(id int64) error {
+func DeleteAllContactPhones(id int64) error {
 	if id == 0 {
 		return nil
 	}
-	_, err := e.db.Model(&Phone{}).
+	_, err := pool.Model(&Phone{}).
 		Where("contact_id = ?", id).
 		Delete()
 	if err != nil {
@@ -191,7 +191,7 @@ func (e *Edb) DeleteAllContactPhones(id int64) error {
 	return err
 }
 
-func (e *Edb) phoneCreateTable() error {
+func phoneCreateTable() error {
 	str := `
 		CREATE TABLE IF NOT EXISTS
 			phones (
@@ -204,7 +204,7 @@ func (e *Edb) phoneCreateTable() error {
 				updated_at TIMESTAMP without time zone default now()
 			)
 	`
-	_, err := e.db.Exec(str)
+	_, err := pool.Exec(str)
 	if err != nil {
 		errmsg("phoneCreateTable exec", err)
 	}

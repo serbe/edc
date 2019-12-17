@@ -29,12 +29,12 @@ type CompanyList struct {
 }
 
 // GetCompany - get one company by id
-func (e *Edb) GetCompany(id int64) (Company, error) {
+func GetCompany(id int64) (Company, error) {
 	var company Company
 	if id == 0 {
 		return company, nil
 	}
-	_, err := e.db.Query(&company, `
+	_, err := pool.Query(&company, `
 		SELECT
 			c.name,
 			c.address,
@@ -78,9 +78,9 @@ func (e *Edb) GetCompany(id int64) (Company, error) {
 }
 
 // GetCompanyList - get all companyes for list
-func (e *Edb) GetCompanyList() ([]CompanyList, error) {
+func GetCompanyList() ([]CompanyList, error) {
 	var companies []CompanyList
-	_, err := e.db.Query(&companies, `
+	_, err := pool.Query(&companies, `
 		SELECT
 			c.id,
 			c.name,
@@ -115,12 +115,12 @@ func (e *Edb) GetCompanyList() ([]CompanyList, error) {
 }
 
 // GetCompanySelect - get company for contact
-func (e *Edb) GetCompanySelect(id int64) (SelectItem, error) {
+func GetCompanySelect(id int64) (SelectItem, error) {
 	var company SelectItem
 	if id == 0 {
 		return company, nil
 	}
-	err := e.db.Model(&Company{}).
+	err := pool.Model(&Company{}).
 		Column("id", "name").
 		Where("id = ?", id).
 		Select(&company)
@@ -131,9 +131,9 @@ func (e *Edb) GetCompanySelect(id int64) (SelectItem, error) {
 }
 
 // GetCompanySelectAll - get all companyes for select
-func (e *Edb) GetCompanySelectAll() ([]SelectItem, error) {
+func GetCompanySelectAll() ([]SelectItem, error) {
 	var companies []SelectItem
-	err := e.db.Model(&Company{}).
+	err := pool.Model(&Company{}).
 		Column("id", "name").
 		Order("name ASC").
 		Select(&companies)
@@ -144,8 +144,8 @@ func (e *Edb) GetCompanySelectAll() ([]SelectItem, error) {
 }
 
 // CreateCompany - create new company
-func (e *Edb) CreateCompany(company Company) (int64, error) {
-	err := e.db.Insert(&company)
+func CreateCompany(company Company) (int64, error) {
+	err := pool.Insert(&company)
 	if err != nil {
 		errmsg("CreateCompany insert", err)
 		return 0, err
@@ -157,8 +157,8 @@ func (e *Edb) CreateCompany(company Company) (int64, error) {
 }
 
 // UpdateCompany - save company changes
-func (e *Edb) UpdateCompany(company Company) error {
-	err := e.db.Update(&company)
+func UpdateCompany(company Company) error {
+	err := pool.Update(&company)
 	if err != nil {
 		errmsg("UpdateCompany update", err)
 		return err
@@ -170,7 +170,7 @@ func (e *Edb) UpdateCompany(company Company) error {
 }
 
 // DeleteCompany - delete company by id
-func (e *Edb) DeleteCompany(id int64) error {
+func DeleteCompany(id int64) error {
 	if id == 0 {
 		return nil
 	}
@@ -178,7 +178,7 @@ func (e *Edb) DeleteCompany(id int64) error {
 	if err != nil {
 		errmsg("DeleteCompany DeleteAllCompanyPhones", err)
 	}
-	_, err = e.db.Model(&Company{}).
+	_, err = pool.Model(&Company{}).
 		Where("id = ?", id).
 		Delete()
 	if err != nil {
@@ -187,7 +187,7 @@ func (e *Edb) DeleteCompany(id int64) error {
 	return err
 }
 
-func (e *Edb) companyCreateTable() error {
+func companyCreateTable() error {
 	str := `
 		CREATE TABLE IF NOT EXISTS
 			companies (
@@ -201,7 +201,7 @@ func (e *Edb) companyCreateTable() error {
 				UNIQUE(name, scope_id)
 			)
 	`
-	_, err := e.db.Exec(str)
+	_, err := pool.Exec(str)
 	if err != nil {
 		errmsg("companyCreateTable exec", err)
 	}

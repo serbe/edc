@@ -30,12 +30,12 @@ type SirenList struct {
 }
 
 // GetSiren - get one siren by id
-func (e *Edb) GetSiren(id int64) (Siren, error) {
+func GetSiren(id int64) (Siren, error) {
 	var siren Siren
 	if id == 0 {
 		return siren, nil
 	}
-	err := e.db.Model(&siren).
+	err := pool.Model(&siren).
 		Where("id = ?", id).
 		Select()
 	if err != nil {
@@ -45,9 +45,9 @@ func (e *Edb) GetSiren(id int64) (Siren, error) {
 }
 
 // GetSirenList - get all siren for list
-func (e *Edb) GetSirenList() ([]SirenList, error) {
+func GetSirenList() ([]SirenList, error) {
 	var sirens []SirenList
-	_, err := e.db.Query(&sirens, `
+	_, err := pool.Query(&sirens, `
 		SELECT
 			s.id,
 			s.address,
@@ -76,8 +76,8 @@ func (e *Edb) GetSirenList() ([]SirenList, error) {
 }
 
 // CreateSiren - create new siren
-func (e *Edb) CreateSiren(siren Siren) (int64, error) {
-	err := e.db.Insert(&siren)
+func CreateSiren(siren Siren) (int64, error) {
+	err := pool.Insert(&siren)
 	if err != nil {
 		errmsg("CreateSiren insert", err)
 	}
@@ -85,8 +85,8 @@ func (e *Edb) CreateSiren(siren Siren) (int64, error) {
 }
 
 // UpdateSiren - save siren changes
-func (e *Edb) UpdateSiren(siren Siren) error {
-	err := e.db.Update(&siren)
+func UpdateSiren(siren Siren) error {
+	err := pool.Update(&siren)
 	if err != nil {
 		errmsg("UpdateSiren update", err)
 	}
@@ -94,11 +94,11 @@ func (e *Edb) UpdateSiren(siren Siren) error {
 }
 
 // DeleteSiren - delete siren by id
-func (e *Edb) DeleteSiren(id int64) error {
+func DeleteSiren(id int64) error {
 	if id == 0 {
 		return nil
 	}
-	_, err := e.db.Model(&Siren{}).
+	_, err := pool.Model(&Siren{}).
 		Where("id = ?", id).
 		Delete()
 	if err != nil {
@@ -107,7 +107,7 @@ func (e *Edb) DeleteSiren(id int64) error {
 	return err
 }
 
-func (e *Edb) sirenCreateTable() error {
+func sirenCreateTable() error {
 	str := `
 		CREATE TABLE IF NOT EXISTS
 			sirens (
@@ -130,7 +130,7 @@ func (e *Edb) sirenCreateTable() error {
 				UNIQUE(num_id, num_pass, type_id)
 			)
 	`
-	_, err := e.db.Exec(str)
+	_, err := pool.Exec(str)
 	if err != nil {
 		errmsg("sirenCreateTable exec", err)
 	}

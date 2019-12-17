@@ -17,12 +17,12 @@ type RankList struct {
 }
 
 // GetRank - get one rank by id
-func (e *Edb) GetRank(id int64) (Rank, error) {
+func GetRank(id int64) (Rank, error) {
 	var rank Rank
 	if id == 0 {
 		return rank, nil
 	}
-	err := e.db.Model(&rank).
+	err := pool.Model(&rank).
 		Where("id = ?", id).
 		Select()
 	if err != nil {
@@ -32,9 +32,9 @@ func (e *Edb) GetRank(id int64) (Rank, error) {
 }
 
 // GetRankList - get rank for list by id
-func (e *Edb) GetRankList(id int64) (RankList, error) {
+func GetRankList(id int64) (RankList, error) {
 	var rank RankList
-	err := e.db.Model(&Rank{}).
+	err := pool.Model(&Rank{}).
 		Column("id", "name", "note").
 		Where("id = ?", id).
 		Select(&rank)
@@ -45,9 +45,9 @@ func (e *Edb) GetRankList(id int64) (RankList, error) {
 }
 
 // GetRankListAll - get all rank for list
-func (e *Edb) GetRankListAll() ([]RankList, error) {
+func GetRankListAll() ([]RankList, error) {
 	var ranks []RankList
-	err := e.db.Model(&Rank{}).
+	err := pool.Model(&Rank{}).
 		Column("id", "name", "note").
 		Order("name ASC").
 		Select(&ranks)
@@ -58,12 +58,12 @@ func (e *Edb) GetRankListAll() ([]RankList, error) {
 }
 
 // GetRankSelect - get all rank for select
-func (e *Edb) GetRankSelect(id int64) (SelectItem, error) {
+func GetRankSelect(id int64) (SelectItem, error) {
 	var rank SelectItem
 	if id == 0 {
 		return rank, nil
 	}
-	err := e.db.Model(&Rank{}).
+	err := pool.Model(&Rank{}).
 		Column("id", "name").
 		Where("id = ?", id).
 		Order("name ASC").
@@ -75,9 +75,9 @@ func (e *Edb) GetRankSelect(id int64) (SelectItem, error) {
 }
 
 // GetRankSelectAll - get all rank for select
-func (e *Edb) GetRankSelectAll() ([]SelectItem, error) {
+func GetRankSelectAll() ([]SelectItem, error) {
 	var ranks []SelectItem
-	err := e.db.Model(&Rank{}).
+	err := pool.Model(&Rank{}).
 		Column("id", "name").
 		Order("name ASC").
 		Select(&ranks)
@@ -88,8 +88,8 @@ func (e *Edb) GetRankSelectAll() ([]SelectItem, error) {
 }
 
 // CreateRank - create new rank
-func (e *Edb) CreateRank(rank Rank) (int64, error) {
-	err := e.db.Insert(&rank)
+func CreateRank(rank Rank) (int64, error) {
+	err := pool.Insert(&rank)
 	if err != nil {
 		errmsg("CreateRank insert", err)
 	}
@@ -97,8 +97,8 @@ func (e *Edb) CreateRank(rank Rank) (int64, error) {
 }
 
 // UpdateRank - save rank changes
-func (e *Edb) UpdateRank(rank Rank) error {
-	err := e.db.Update(&rank)
+func UpdateRank(rank Rank) error {
+	err := pool.Update(&rank)
 	if err != nil {
 		errmsg("UpdateRank update", err)
 	}
@@ -106,11 +106,11 @@ func (e *Edb) UpdateRank(rank Rank) error {
 }
 
 // DeleteRank - delete rank by id
-func (e *Edb) DeleteRank(id int64) error {
+func DeleteRank(id int64) error {
 	if id == 0 {
 		return nil
 	}
-	_, err := e.db.Model(&Rank{}).
+	_, err := pool.Model(&Rank{}).
 		Where("id = ?", id).
 		Delete()
 	if err != nil {
@@ -119,7 +119,7 @@ func (e *Edb) DeleteRank(id int64) error {
 	return err
 }
 
-func (e *Edb) rankCreateTable() error {
+func rankCreateTable() error {
 	str := `
 		CREATE TABLE IF NOT EXISTS
 			ranks (
@@ -131,7 +131,7 @@ func (e *Edb) rankCreateTable() error {
 				UNIQUE (name)
 			)
 	`
-	_, err := e.db.Exec(str)
+	_, err := pool.Exec(str)
 	if err != nil {
 		errmsg("rankCreateTable exec", err)
 	}

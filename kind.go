@@ -19,12 +19,12 @@ type KindList struct {
 }
 
 // GetKind - get one kind by id
-func (e *Edb) GetKind(id int64) (Kind, error) {
+func GetKind(id int64) (Kind, error) {
 	var kind Kind
 	if id == 0 {
 		return kind, nil
 	}
-	err := e.db.Model(&kind).
+	err := pool.Model(&kind).
 		Where("id = ?", id).
 		Select()
 	if err != nil {
@@ -34,9 +34,9 @@ func (e *Edb) GetKind(id int64) (Kind, error) {
 }
 
 // GetKindList - get kind for list by id
-func (e *Edb) GetKindList(id int64) (KindList, error) {
+func GetKindList(id int64) (KindList, error) {
 	var kind KindList
-	err := e.db.Model(&Kind{}).
+	err := pool.Model(&Kind{}).
 		Column("id", "name", "short_name", "note").
 		Where("id = ?", id).
 		Select(&kind)
@@ -47,9 +47,9 @@ func (e *Edb) GetKindList(id int64) (KindList, error) {
 }
 
 // GetKindListAll - get all kind for list
-func (e *Edb) GetKindListAll() ([]KindList, error) {
+func GetKindListAll() ([]KindList, error) {
 	var kinds []KindList
-	err := e.db.Model(&Kind{}).
+	err := pool.Model(&Kind{}).
 		Column("id", "name", "short_name", "note").
 		Order("name ASC").
 		Select(&kinds)
@@ -60,9 +60,9 @@ func (e *Edb) GetKindListAll() ([]KindList, error) {
 }
 
 // GetKindSelectAll - get all kind for select
-func (e *Edb) GetKindSelectAll() ([]SelectItem, error) {
+func GetKindSelectAll() ([]SelectItem, error) {
 	var kinds []SelectItem
-	err := e.db.Model(&Kind{}).
+	err := pool.Model(&Kind{}).
 		Column("id", "name").
 		Order("name ASC").
 		Select(&kinds)
@@ -73,8 +73,8 @@ func (e *Edb) GetKindSelectAll() ([]SelectItem, error) {
 }
 
 // CreateKind - create new kind
-func (e *Edb) CreateKind(kind Kind) (int64, error) {
-	err := e.db.Insert(&kind)
+func CreateKind(kind Kind) (int64, error) {
+	err := pool.Insert(&kind)
 	if err != nil {
 		errmsg("CreateKind insert", err)
 	}
@@ -82,8 +82,8 @@ func (e *Edb) CreateKind(kind Kind) (int64, error) {
 }
 
 // UpdateKind - save kind changes
-func (e *Edb) UpdateKind(kind Kind) error {
-	err := e.db.Update(&kind)
+func UpdateKind(kind Kind) error {
+	err := pool.Update(&kind)
 	if err != nil {
 		errmsg("UpdateKind update", err)
 	}
@@ -91,11 +91,11 @@ func (e *Edb) UpdateKind(kind Kind) error {
 }
 
 // DeleteKind - delete kind by id
-func (e *Edb) DeleteKind(id int64) error {
+func DeleteKind(id int64) error {
 	if id == 0 {
 		return nil
 	}
-	_, err := e.db.Model(&Kind{}).
+	_, err := pool.Model(&Kind{}).
 		Where("id = ?", id).
 		Delete()
 	if err != nil {
@@ -104,7 +104,7 @@ func (e *Edb) DeleteKind(id int64) error {
 	return err
 }
 
-func (e *Edb) kindCreateTable() error {
+func kindCreateTable() error {
 	str := `
 		CREATE TABLE IF NOT EXISTS
 			kinds (
@@ -117,7 +117,7 @@ func (e *Edb) kindCreateTable() error {
 				UNIQUE(name)
 			)
 	`
-	_, err := e.db.Exec(str)
+	_, err := pool.Exec(str)
 	if err != nil {
 		errmsg("kindCreateTable exec", err)
 	}

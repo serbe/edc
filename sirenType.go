@@ -19,12 +19,12 @@ type SirenTypeList struct {
 }
 
 // GetSirenType - get one sirenType by id
-func (e *Edb) GetSirenType(id int64) (SirenType, error) {
+func GetSirenType(id int64) (SirenType, error) {
 	var sirenType SirenType
 	if id == 0 {
 		return sirenType, nil
 	}
-	err := e.db.Model(&sirenType).
+	err := pool.Model(&sirenType).
 		Where("id = ?", id).
 		Select()
 	if err != nil {
@@ -34,9 +34,9 @@ func (e *Edb) GetSirenType(id int64) (SirenType, error) {
 }
 
 // GetSirenTypeList - get sirenType for list by id
-func (e *Edb) GetSirenTypeList(id int64) (SirenTypeList, error) {
+func GetSirenTypeList(id int64) (SirenTypeList, error) {
 	var sirenType SirenTypeList
-	err := e.db.Model(&SirenType{}).
+	err := pool.Model(&SirenType{}).
 		Column("id", "name", "radius", "note").
 		Where("id = ?", id).
 		Select(&sirenType)
@@ -47,9 +47,9 @@ func (e *Edb) GetSirenTypeList(id int64) (SirenTypeList, error) {
 }
 
 // GetSirenTypeListAll - get all sirenType for list
-func (e *Edb) GetSirenTypeListAll() ([]SirenTypeList, error) {
+func GetSirenTypeListAll() ([]SirenTypeList, error) {
 	var sirenTypes []SirenTypeList
-	err := e.db.Model(&SirenType{}).
+	err := pool.Model(&SirenType{}).
 		Column("id", "name", "radius", "note").
 		Order("name ASC").
 		Select(&sirenTypes)
@@ -60,9 +60,9 @@ func (e *Edb) GetSirenTypeListAll() ([]SirenTypeList, error) {
 }
 
 // GetSirenTypeSelect - get sirenType for select by id
-func (e *Edb) GetSirenTypeSelect(id int64) ([]SelectItem, error) {
+func GetSirenTypeSelect(id int64) ([]SelectItem, error) {
 	var sirenTypes []SelectItem
-	err := e.db.Model(&SirenType{}).
+	err := pool.Model(&SirenType{}).
 		Column("id", "name").
 		Where("id = ?", id).
 		Select(&sirenTypes)
@@ -73,9 +73,9 @@ func (e *Edb) GetSirenTypeSelect(id int64) ([]SelectItem, error) {
 }
 
 // GetSirenTypeSelectAll - get all sirenType for select
-func (e *Edb) GetSirenTypeSelectAll() ([]SelectItem, error) {
+func GetSirenTypeSelectAll() ([]SelectItem, error) {
 	var sirenTypes []SelectItem
-	err := e.db.Model(&SirenType{}).
+	err := pool.Model(&SirenType{}).
 		Column("id", "name").
 		Order("name ASC").
 		Select(&sirenTypes)
@@ -86,8 +86,8 @@ func (e *Edb) GetSirenTypeSelectAll() ([]SelectItem, error) {
 }
 
 // CreateSirenType - create new sirenType
-func (e *Edb) CreateSirenType(sirenType SirenType) (int64, error) {
-	err := e.db.Insert(&sirenType)
+func CreateSirenType(sirenType SirenType) (int64, error) {
+	err := pool.Insert(&sirenType)
 	if err != nil {
 		errmsg("CreateSirenType insert", err)
 	}
@@ -95,8 +95,8 @@ func (e *Edb) CreateSirenType(sirenType SirenType) (int64, error) {
 }
 
 // UpdateSirenType - save sirenType changes
-func (e *Edb) UpdateSirenType(sirenType SirenType) error {
-	err := e.db.Update(&sirenType)
+func UpdateSirenType(sirenType SirenType) error {
+	err := pool.Update(&sirenType)
 	if err != nil {
 		errmsg("UpdateSirenType update", err)
 	}
@@ -104,11 +104,11 @@ func (e *Edb) UpdateSirenType(sirenType SirenType) error {
 }
 
 // DeleteSirenType - delete sirenType by id
-func (e *Edb) DeleteSirenType(id int64) error {
+func DeleteSirenType(id int64) error {
 	if id == 0 {
 		return nil
 	}
-	_, err := e.db.Model(&SirenType{}).
+	_, err := pool.Model(&SirenType{}).
 		Where("id = ?", id).
 		Delete()
 	if err != nil {
@@ -117,7 +117,7 @@ func (e *Edb) DeleteSirenType(id int64) error {
 	return err
 }
 
-func (e *Edb) sirenTypeCreateTable() error {
+func sirenTypeCreateTable() error {
 	str := `
 		CREATE TABLE IF NOT EXISTS
 			siren_types (
@@ -129,7 +129,7 @@ func (e *Edb) sirenTypeCreateTable() error {
 				updated_at TIMESTAMP without time zone default now(),
 				UNIQUE(name, radius)
 			);`
-	_, err := e.db.Exec(str)
+	_, err := pool.Exec(str)
 	if err != nil {
 		errmsg("sirenCreateTable exec", err)
 	}
