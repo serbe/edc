@@ -51,7 +51,7 @@ func CertificateGet(id int64) (Certificate, error) {
 			id = $1
 	`, id).Scan(&certificate.Num, &certificate.ContactID, &certificate.CompanyID, &certificate.CertDate, &certificate.Note, &certificate.CreatedAt, &certificate.UpdatedAt)
 	if err != nil {
-		errmsg("CertificateGet select", err)
+		errmsg("CertificateGet QueryRow", err)
 	}
 	return certificate, err
 }
@@ -83,13 +83,13 @@ func CertificateListGet() ([]CertificateList, error) {
 			num ASC
 	`)
 	if err != nil {
-		errmsg("CertificateListGet select", err)
+		errmsg("CertificateListGet Query", err)
 	}
 	for rows.Next() {
 		var certificate CertificateList
 		err := rows.Scan(&certificate.ID, &certificate.Num, &certificate.ContactID, &certificate.ContactName, &certificate.CompanyID, &certificate.CompanyName, &certificate.CertDate, &certificate.Note)
 		if err != nil {
-			errmsg("CertificateListGet select", err)
+			errmsg("CertificateListGet Scan", err)
 			return certificates, err
 		}
 		certificates = append(certificates, certificate)
@@ -130,7 +130,7 @@ func CertificateCreate(certificate Certificate) (int64, error) {
 		time.Now(),
 		time.Now()).Scan(&certificate.ID)
 	if err != nil {
-		errmsg("CertificateCreate insert", err)
+		errmsg("CertificateCreate QueryRow", err)
 	}
 	return certificate.ID, nil
 }
@@ -154,7 +154,7 @@ func CertificateUpdate(certificate Certificate) error {
 		certificate.Note,
 		time.Now())
 	if err != nil {
-		errmsg("CertificateUpdate update", err)
+		errmsg("CertificateUpdate Exec", err)
 	}
 	return err
 }
@@ -171,7 +171,7 @@ func CertificateDelete(id int64) error {
 			id = $1
 	`, id)
 	if err != nil {
-		errmsg("CertificateDelete delete", err)
+		errmsg("CertificateDelete Exec", err)
 	}
 	return err
 }
@@ -193,7 +193,7 @@ func certificateCreateTable() error {
 	`
 	_, err := pool.Exec(context.Background(), str)
 	if err != nil {
-		errmsg("certificateCreateTable exec", err)
+		errmsg("certificateCreateTable Exec", err)
 	}
 	return err
 }

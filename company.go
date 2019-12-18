@@ -76,7 +76,7 @@ func CompanyGet(id int64) (Company, error) {
 		&practices,
 		&contacts)
 	if err != nil {
-		errmsg("GetCompany select", err)
+		errmsg("GetCompany QueryRow", err)
 		return company, err
 	}
 	practices, err = PracticeCompanyGet(id)
@@ -126,14 +126,14 @@ func CompanyListGet() ([]CompanyList, error) {
 			c.name ASC
 	`)
 	if err != nil {
-		errmsg("GetCompanyList query", err)
+		errmsg("GetCompanyList Query", err)
 	}
 	for rows.Next() {
 		var company CompanyList
 		err := rows.Scan(&company.ID, &company.Name, &company.Address, &company.ScopeName,
 			&company.Emails, &company.Phones, &company.Faxes, &company.Practices)
 		if err != nil {
-			errmsg("GetCompanyList select", err)
+			errmsg("GetCompanyList Scan", err)
 			return companies, err
 		}
 		companies = append(companies, company)
@@ -160,7 +160,7 @@ func CompanySelectGet() ([]SelectItem, error) {
 		var company SelectItem
 		err := rows.Scan(&company.ID, &company.Name)
 		if err != nil {
-			errmsg("CompanySelectGet select", err)
+			errmsg("CompanySelectGet Scan", err)
 			return companies, err
 		}
 		companies = append(companies, company)
@@ -198,7 +198,7 @@ func CompanyInsert(company Company) (int64, error) {
 		time.Now(),
 		time.Now()).Scan(&company.ID)
 	if err != nil {
-		errmsg("CreateCompany insert", err)
+		errmsg("CreateCompany QueryRow", err)
 		return 0, err
 	}
 	_ = EmailsCompanyUpdate(company.ID, company.Emails)
@@ -224,7 +224,7 @@ func CompanyUpdate(company Company) error {
 		company.Note,
 		time.Now())
 	if err != nil {
-		errmsg("CompanyUpdate update", err)
+		errmsg("CompanyUpdate Exec", err)
 		return err
 	}
 	_ = EmailsCompanyUpdate(company.ID, company.Emails)
@@ -245,7 +245,7 @@ func CompanyDelete(id int64) error {
 			id = $1
 	`, id)
 	if err != nil {
-		errmsg("DeleteCompany delete", err)
+		errmsg("DeleteCompany Exec", err)
 	}
 	_ = EmailsCompanyDelete(id)
 	_ = PhonesCompanyDelete(id, false)
@@ -269,7 +269,7 @@ func companyCreateTable() error {
 	`
 	_, err := pool.Exec(context.Background(), str)
 	if err != nil {
-		errmsg("companyCreateTable exec", err)
+		errmsg("companyCreateTable Exec", err)
 	}
 	return err
 }
