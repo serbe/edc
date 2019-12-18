@@ -93,7 +93,7 @@ func ContactGet(id int64) (Contact, error) {
 // ContactListGet - get all contacts for list
 func ContactListGet() ([]ContactList, error) {
 	var contacts []ContactList
-	_, err := pool.Query(context.Background(), `
+	rows, err := pool.Query(context.Background(), `
 		SELECT
 			c.id,
 			c.name,
@@ -120,9 +120,19 @@ func ContactListGet() ([]ContactList, error) {
 			name ASC
 	`)
 	if err != nil {
-		errmsg("GetContactList query", err)
+		errmsg("GetContactList Query", err)
 	}
-	return contacts, err
+	for rows.Next() {
+		var contact ContactList
+		err := rows.Scan(&contact.ID, &contact.Name, &contact.CompanyID, &contact.CompanyName,
+			&contact.PostName, &contact.Phones, &contact.Faxes)
+		if err != nil {
+			errmsg("GetContactList Scan", err)
+			return contacts, err
+		}
+		contacts = append(contacts, contact)
+	}
+	return contacts, rows.Err()
 }
 
 // ContactSelectGet - get all contacts for select
@@ -158,7 +168,7 @@ func ContactCompanyGet(id int64) ([]ContactShort, error) {
 	if id == 0 {
 		return contacts, nil
 	}
-	_, err := pool.Query(context.Background(), `
+	rows, err := pool.Query(context.Background(), `
 		SELECT
 			c.id,
 			c.name,
@@ -178,7 +188,16 @@ func ContactCompanyGet(id int64) ([]ContactShort, error) {
 	if err != nil {
 		errmsg("GetContactCompany query", err)
 	}
-	return contacts, err
+	for rows.Next() {
+		var contact ContactShort
+		err := rows.Scan(&contact.ID, &contact.Name, &contact.PostName, &contact.PostGOName)
+		if err != nil {
+			errmsg("GetCompanyList Scan", err)
+			return contacts, err
+		}
+		contacts = append(contacts, contact)
+	}
+	return contacts, rows.Err()
 }
 
 // ContactInsert - create new contact
