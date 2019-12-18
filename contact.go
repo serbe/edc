@@ -1,6 +1,9 @@
 package edc
 
-import "context"
+import (
+	"context"
+	"time"
+)
 
 // Contact is struct for contact
 type Contact struct {
@@ -47,18 +50,43 @@ func ContactGet(id int64) (Contact, error) {
 	if id == 0 {
 		return contact, nil
 	}
-	err := pool.QueryRow(context.Background(), &contact).
-		Where("id = ?", id).
-		Select()
+	contact.ID = id
+	err := pool.QueryRow(context.Background(), `
+		SELECT
+			c.name,
+			c.company_id,
+			c.department_id,
+			c.post_id,
+			c.post_go_id,
+			c.rank_id,
+			c.birthday,
+			c.note,
+			c.created_at,
+			c.updated_at,
+			array_agg(DISTINCT e.email) AS emails,
+			array_agg(DISTINCT ph.phone) AS phones,
+			array_agg(DISTINCT f.phone) AS faxes,
+			array_agg(DISTINCT ed.start_date) AS educations
+		FROM
+			contacts AS c
+		LEFT JOIN
+			emails AS e ON c.id = e.contact_id
+		LEFT JOIN
+			phones AS ph ON c.id = ph.contact_id AND ph.fax = false
+		LEFT JOIN
+			phones AS f ON c.id = f.contact_id AND f.fax = true
+		LEFT JOIN
+			educations AS ed ON c.id = ed.contact_id
+		WHERE
+			c.id = $1
+		GROUP BY
+			c.id
+	`, id).Scan(&contact.Name, &contact.CompanyID, &contact.DepartmentID, &contact.PostID, &contact.PostGOID, &contact.RankID,
+		&contact.Birthday, &contact.Note, &contact.CreatedAt, &contact.UpdatedAt, &contact.Emails, &contact.Phones, &contact.Faxes, &contact.Educations)
 	if err != nil {
-		errmsg("GetContact select", err)
+		errmsg("GetContact QueryRow", err)
 		return contact, err
 	}
-	// contact.Educations, err = e.ContactEducations(contact.ID)
-	// if err != nil {
-	// 	errmsg("GetContact ContactEducations", err)
-	// 	return Contact{}, err
-	// }
 	return contact, err
 }
 
@@ -155,29 +183,70 @@ func ContactCompanyGet(id int64) ([]ContactShort, error) {
 
 // ContactInsert - create new contact
 func ContactInsert(contact Contact) (int64, error) {
-	err := pool.Insert(&contact)
+	err := pool.QueryRow(context.Background(), `
+		INSERT INTO contacts
+		(
+			name,
+			company_id,
+			department_id,
+			post_id,
+			post_go_id,
+			rank_id,
+			birthday,
+			note,
+			created_at,
+			updated_at
+		)
+		VALUES
+		(
+			$1,
+			$2,
+			$3,
+			$4,
+			$5,
+			$6,
+			$7,
+			$8,
+			$9,
+			$10
+		)
+		RETURNING
+			id
+	`, contact.Name, contact.CompanyID, contact.DepartmentID, contact.PostID, contact.PostGOID, contact.RankID, contact.Birthday, contact.Note,
+		time.Now(), time.Now()).Scan(&contact.ID)
 	if err != nil {
-		errmsg("CreateContact insert", err)
+		errmsg("ContactInsert QueryRow", err)
 		return 0, err
 	}
-	_ = e.UpdateContactEmails(contact)
-	_ = e.UpdateContactPhones(contact, false)
-	_ = e.UpdateContactPhones(contact, true)
-	// ContactEducationsInsert(contact)
+	_ = EmailContactUpdate(contact.ID, contact.Emails)
+	_ = PhoneContactUpdate(contact.ID, contact.Phones, false)
+	_ = PhoneContactUpdate(contact.ID, contact.Faxes, true)
 	return contact.ID, nil
 }
 
 // ContactUpdate - save contact changes
 func ContactUpdate(contact Contact) error {
-	err := pool.Update(&contact)
+	_, err := pool.Exec(context.Background(), `
+		UPDATE contacts SET
+			name = $2,
+			company_id = $3,
+			department_id = $4,
+			post_id = $5,
+			post_go_id = $6,
+			rank_id = $7,
+			birthday = $8,
+			note = $9,
+			updated_at = $10
+		WHERE
+			id = $1
+	`, contact.ID, contact.Name, contact.CompanyID, contact.DepartmentID, contact.PostID, contact.PostGOID, contact.RankID, contact.Birthday, contact.Note, time.Now())
 	if err != nil {
-		errmsg("UpdateContact update", err)
+		errmsg("ContactUpdate Exec", err)
 		return err
 	}
-	_ = e.UpdateContactEmails(contact)
-	_ = e.UpdateContactPhones(contact, false)
-	_ = e.UpdateContactPhones(contact, true)
-	// ContactEducationsInsert(contact)
+	_ = EmailContactUpdate(contact.ID, contact.Emails)
+	_ = PhoneContactUpdate(contact.ID, contact.Phones, false)
+	_ = PhoneContactUpdate(contact.ID, contact.Faxes, true)
 	return nil
 }
 
@@ -186,16 +255,17 @@ func ContactDelete(id int64) error {
 	if id == 0 {
 		return nil
 	}
-	err := e.DeleteAllContactPhones(id)
+	_ = EmailContactDelete(id)
+	_ = PhoneContactDelete(id, true)
+	_ = PhoneContactDelete(id, false)
+	_, err := pool.Exec(context.Background(), `
+		DELETE FROM
+			contacts
+		WHERE
+			id = $1
+	`, id)
 	if err != nil {
-		errmsg("ContactDelete DeleteAllContactPhones", err)
-		return err
-	}
-	_, err = pool.Model(&Contact{}).
-		Where("id = ?", id).
-		Delete()
-	if err != nil {
-		errmsg("ContactDelete delete", err)
+		errmsg("ContactDelete Exec", err)
 	}
 	return err
 }
@@ -214,12 +284,11 @@ func contactCreateTable() error {
 				birthday date,
 				note text,
 				created_at TIMESTAMP without time zone,
-				updated_at
- TIMESTAMP without time zone default now(),
+				updated_at TIMESTAMP without time zone default now(),
 				UNIQUE(name, birthday)
 			)
 	`
-	_, err := pool.Exec(str)
+	_, err := pool.Exec(context.Background(), str)
 	if err != nil {
 		errmsg("contactCreateTable exec", err)
 	}
