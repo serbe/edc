@@ -21,21 +21,21 @@ type SelectItem struct {
 
 // InitDB initialize database
 func InitDB(
-	db_url string,
+	dbURL string,
 	logsql,
 	logerr bool,
 ) error {
 	var err error
-	pool, err = pgxpool.Connect(context.Background(), db_url)
+	pool, err = pgxpool.Connect(context.Background(), dbURL)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Unable to connection to database: %v\n", err)
 		os.Exit(1)
 	}
 	logErrors = logerr
-	return AllTablesInsert()
+	return allTablesInsert()
 }
 
-func AllTablesInsert() error {
+func allTablesInsert() error {
 	err := educationCreateTable()
 	if err != nil {
 		return err
