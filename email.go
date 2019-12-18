@@ -42,11 +42,11 @@ func EmailInsert(email Email) (int64, error) {
 	return email.ID, nil
 }
 
-// EmailsCompanyUpdate - update company emails
-func EmailsCompanyUpdate(id int64, emails []string) error {
-	err := EmailsCompanyDelete(id)
+// EmailCompanyUpdate - update company emails
+func EmailCompanyUpdate(id int64, emails []string) error {
+	err := EmailCompanyDelete(id)
 	if err != nil {
-		errmsg("EmailsCompanyUpdate DeleteCompanyEmails", err)
+		errmsg("EmailCompanyUpdate DeleteCompanyEmails", err)
 		return err
 	}
 	for i := range emails {
@@ -55,18 +55,18 @@ func EmailsCompanyUpdate(id int64, emails []string) error {
 		email.Email = emails[i]
 		_, err = EmailInsert(email)
 		if err != nil {
-			errmsg("EmailsCompanyUpdate EmailInsert", err)
+			errmsg("EmailCompanyUpdate EmailInsert", err)
 			return err
 		}
 	}
 	return nil
 }
 
-// ContactEmailsUpdate - update contact emails
-func ContactEmailsUpdate(id int64, emails []string) error {
-	err := EmailsContactDelete(id)
+// EmailContactUpdate - update contact emails
+func EmailContactUpdate(id int64, emails []string) error {
+	err := EmailContactDelete(id)
 	if err != nil {
-		errmsg("ContactEmailsUpdate EmailsContactDelete", err)
+		errmsg("EmailContactUpdate EmailsContactDelete", err)
 		return err
 	}
 	for i := range emails {
@@ -75,15 +75,15 @@ func ContactEmailsUpdate(id int64, emails []string) error {
 		email.Email = emails[i]
 		_, err = EmailInsert(email)
 		if err != nil {
-			errmsg("ContactEmailsUpdate EmailInsert", err)
+			errmsg("EmailContactUpdate EmailInsert", err)
 			return err
 		}
 	}
 	return nil
 }
 
-// EmailsCompanyDelete - delete all emails by company id
-func EmailsCompanyDelete(id int64) error {
+// EmailCompanyDelete - delete all emails by company id
+func EmailCompanyDelete(id int64) error {
 	if id == 0 {
 		return nil
 	}
@@ -94,13 +94,13 @@ func EmailsCompanyDelete(id int64) error {
 			company_id = $1
 	`, id)
 	if err != nil {
-		errmsg("EmailsCompanyDelete Exec", err)
+		errmsg("EmailCompanyDelete Exec", err)
 	}
 	return err
 }
 
-// EmailsContactDelete - delete all emails by contact id
-func EmailsContactDelete(id int64) error {
+// EmailContactDelete - delete all emails by contact id
+func EmailContactDelete(id int64) error {
 	if id == 0 {
 		return nil
 	}
@@ -111,7 +111,7 @@ func EmailsContactDelete(id int64) error {
 			contact_id = $1
 	`, id)
 	if err != nil {
-		errmsg("EmailsContactDelete Exec", err)
+		errmsg("EmailContactDelete Exec", err)
 	}
 	return err
 }

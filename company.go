@@ -201,9 +201,9 @@ func CompanyInsert(company Company) (int64, error) {
 		errmsg("CreateCompany QueryRow", err)
 		return 0, err
 	}
-	_ = EmailsCompanyUpdate(company.ID, company.Emails)
-	_ = PhonesCompanyUpdate(company.ID, company.Phones, false)
-	_ = PhonesCompanyUpdate(company.ID, company.Faxes, true)
+	_ = EmailCompanyUpdate(company.ID, company.Emails)
+	_ = PhoneCompanyUpdate(company.ID, company.Phones, false)
+	_ = PhoneCompanyUpdate(company.ID, company.Faxes, true)
 	return company.ID, nil
 }
 
@@ -227,9 +227,9 @@ func CompanyUpdate(company Company) error {
 		errmsg("CompanyUpdate Exec", err)
 		return err
 	}
-	_ = EmailsCompanyUpdate(company.ID, company.Emails)
-	_ = PhonesCompanyUpdate(company.ID, company.Phones, false)
-	_ = PhonesCompanyUpdate(company.ID, company.Faxes, true)
+	_ = EmailCompanyUpdate(company.ID, company.Emails)
+	_ = PhoneCompanyUpdate(company.ID, company.Phones, false)
+	_ = PhoneCompanyUpdate(company.ID, company.Faxes, true)
 	return nil
 }
 
@@ -247,9 +247,9 @@ func CompanyDelete(id int64) error {
 	if err != nil {
 		errmsg("DeleteCompany Exec", err)
 	}
-	_ = EmailsCompanyDelete(id)
-	_ = PhonesCompanyDelete(id, false)
-	_ = PhonesCompanyDelete(id, true)
+	_ = EmailCompanyDelete(id)
+	_ = PhoneCompanyDelete(id, false)
+	_ = PhoneCompanyDelete(id, true)
 	return err
 }
 

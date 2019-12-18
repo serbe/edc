@@ -45,11 +45,11 @@ func PhoneInsert(phone Phone) (int64, error) {
 	return phone.ID, nil
 }
 
-// PhonesCompanyUpdate - update company phones
-func PhonesCompanyUpdate(id int64, phones []int64, fax bool) error {
-	err := PhonesCompanyDelete(id, fax)
+// PhoneCompanyUpdate - update company phones
+func PhoneCompanyUpdate(id int64, phones []int64, fax bool) error {
+	err := PhoneCompanyDelete(id, fax)
 	if err != nil {
-		errmsg("PhonesCompanyUpdate PhonesCompanyDelete", err)
+		errmsg("PhoneCompanyUpdate PhonesCompanyDelete", err)
 		return err
 	}
 	for i := range phones {
@@ -59,18 +59,18 @@ func PhonesCompanyUpdate(id int64, phones []int64, fax bool) error {
 		phone.Fax = fax
 		_, err = PhoneInsert(phone)
 		if err != nil {
-			errmsg("PhonesCompanyUpdate PhoneInsert", err)
+			errmsg("PhoneCompanyUpdate PhoneInsert", err)
 			return err
 		}
 	}
 	return nil
 }
 
-// PhonesContactUpdate - update contact phones
-func PhonesContactUpdate(id int64, phones []int64, fax bool) error {
-	err := PhonesContactDelete(id, fax)
+// PhoneContactUpdate - update contact phones
+func PhoneContactUpdate(id int64, phones []int64, fax bool) error {
+	err := PhoneContactDelete(id, fax)
 	if err != nil {
-		errmsg("PhonesContactUpdate PhonesContactDelete", err)
+		errmsg("PhoneContactUpdate PhonesContactDelete", err)
 		return err
 	}
 	for i := range phones {
@@ -80,15 +80,15 @@ func PhonesContactUpdate(id int64, phones []int64, fax bool) error {
 		phone.Fax = fax
 		_, err = PhoneInsert(phone)
 		if err != nil {
-			errmsg("PhonesContactUpdate PhoneInsert", err)
+			errmsg("PhoneContactUpdate PhoneInsert", err)
 			return err
 		}
 	}
 	return nil
 }
 
-// PhonesCompanyDelete - delete all unnecessary phones by company id
-func PhonesCompanyDelete(id int64, fax bool) error {
+// PhoneCompanyDelete - delete all unnecessary phones by company id
+func PhoneCompanyDelete(id int64, fax bool) error {
 	if id == 0 {
 		return nil
 	}
@@ -101,13 +101,13 @@ func PhonesCompanyDelete(id int64, fax bool) error {
 			fax = $2
 	`, id, fax)
 	if err != nil {
-		errmsg("PhonesCompanyDelete Exec", err)
+		errmsg("PhoneCompanyDelete Exec", err)
 	}
 	return err
 }
 
-// PhonesContactDelete - delete all unnecessary phones by contact id
-func PhonesContactDelete(id int64, fax bool) error {
+// PhoneContactDelete - delete all unnecessary phones by contact id
+func PhoneContactDelete(id int64, fax bool) error {
 	if id == 0 {
 		return nil
 	}
@@ -120,7 +120,7 @@ func PhonesContactDelete(id int64, fax bool) error {
 			fax = $2
 	`, id, fax)
 	if err != nil {
-		errmsg("PhonesContactDelete Exec", err)
+		errmsg("PhoneContactDelete Exec", err)
 	}
 	return err
 }
