@@ -178,11 +178,14 @@ func PracticeDelete(id int64) error {
 	if id == 0 {
 		return nil
 	}
-	_, err := pool.QueryRow(context.Background(), &Practice{}).
-		Where("id = ?", id).
-		Delete()
+	_, err := pool.Exec(context.Background(), `
+		DELETE FROM
+			practices
+		WHERE
+			id = $1
+	`, id)
 	if err != nil {
-		errmsg("DeletePractice delete", err)
+		errmsg("DeletePractice Exec", err)
 	}
 	return err
 }
@@ -198,11 +201,10 @@ func practiceCreateTable() error {
 				date_of_practice date,
 				note text,
 				created_at TIMESTAMP without time zone,
-				updated_at
- TIMESTAMP without time zone default now()
+				updated_at TIMESTAMP without time zone default now()
 			)
 	`
-	_, err := pool.Exec(str)
+	_, err := pool.Exec(context.Background(), str)
 	if err != nil {
 		errmsg("practiceCreateTable exec", err)
 	}

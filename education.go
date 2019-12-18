@@ -128,11 +128,14 @@ func EducationDelete(id int64) error {
 	if id == 0 {
 		return nil
 	}
-	_, err := pool.QueryRow(context.Background(), &Education{}).
-		Where("id = ?", id).
-		Delete()
+	_, err := pool.Exec(context.Background(), `
+		DELETE FROM
+			educations
+		WHERE
+			id = $1
+	`, id)
 	if err != nil {
-		errmsg("DeleteEducation delete", err)
+		errmsg("DeleteEducation Exec", err)
 	}
 	return err
 }
@@ -147,11 +150,10 @@ func educationCreateTable() error {
 				note text,
 				post_id bigint,
 				created_at TIMESTAMP without time zone,
-				updated_at
- TIMESTAMP without time zone default now()
+				updated_at TIMESTAMP without time zone default now()
 			)
 	`
-	_, err := pool.Exec(str)
+	_, err := pool.Exec(context.Background(), str)
 	if err != nil {
 		errmsg("educationCreateTable exec", err)
 	}

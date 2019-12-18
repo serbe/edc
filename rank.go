@@ -96,11 +96,14 @@ func RankDelete(id int64) error {
 	if id == 0 {
 		return nil
 	}
-	_, err := pool.QueryRow(context.Background(), &Rank{}).
-		Where("id = ?", id).
-		Delete()
+	_, err := pool.Exec(context.Background(), `
+		DELETE FROM
+			ranks
+		WHERE
+			id = $1
+	`, id)
 	if err != nil {
-		errmsg("DeleteRank delete", err)
+		errmsg("DeleteRank Exec", err)
 	}
 	return err
 }
@@ -113,12 +116,11 @@ func rankCreateTable() error {
 				name text,
 				note text,
 				created_at TIMESTAMP without time zone,
-				updated_at
- TIMESTAMP without time zone default now(),
+				updated_at TIMESTAMP without time zone default now(),
 				UNIQUE (name)
 			)
 	`
-	_, err := pool.Exec(str)
+	_, err := pool.Exec(context.Background(), str)
 	if err != nil {
 		errmsg("rankCreateTable exec", err)
 	}

@@ -100,11 +100,14 @@ func PostDelete(id int64) error {
 	if id == 0 {
 		return nil
 	}
-	_, err := pool.QueryRow(context.Background(), &Post{}).
-		Where("id = ?", id).
-		Delete()
+	_, err := pool.Exec(context.Background(), `
+		DELETE FROM
+			posts
+		WHERE
+			id = $1
+	`, id)
 	if err != nil {
-		errmsg("DeletePost delete", err)
+		errmsg("DeletePost Exec", err)
 	}
 	return err
 }
@@ -118,12 +121,11 @@ func postCreateTable() error {
 				go BOOL NOT NULL DEFAULT FALSE,
 				note TEXT,
 				created_at TIMESTAMP without time zone,
-				updated_at
- TIMESTAMP without time zone default now(),
+				updated_at TIMESTAMP without time zone default now(),
 				UNIQUE (name, go)
 			)
 	`
-	_, err := pool.Exec(str)
+	_, err := pool.Exec(context.Background(), str)
 	if err != nil {
 		errmsg("postCreateTable exec", err)
 	}

@@ -100,11 +100,14 @@ func SirenDelete(id int64) error {
 	if id == 0 {
 		return nil
 	}
-	_, err := pool.QueryRow(context.Background(), &Siren{}).
-		Where("id = ?", id).
-		Delete()
+	_, err := pool.Exec(context.Background(), `
+		DELETE FROM
+			sirens
+		WHERE
+			id = $1
+	`, id)
 	if err != nil {
-		errmsg("DeleteSiren delete", err)
+		errmsg("DeleteSiren Exec", err)
 	}
 	return err
 }
@@ -128,12 +131,11 @@ func sirenCreateTable() error {
 				own        text,
 				note        text,
 				created_at TIMESTAMP without time zone,
-				updated_at
- TIMESTAMP without time zone default now(),
+				updated_at TIMESTAMP without time zone default now(),
 				UNIQUE(num_id, num_pass, type_id)
 			)
 	`
-	_, err := pool.Exec(str)
+	_, err := pool.Exec(context.Background(), str)
 	if err != nil {
 		errmsg("sirenCreateTable exec", err)
 	}

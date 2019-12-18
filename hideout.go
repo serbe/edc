@@ -158,11 +158,14 @@ func HideoutDelete(id int64) error {
 	if id == 0 {
 		return nil
 	}
-	_, err := pool.QueryRow(context.Background(), &Hideout{}).
-		Where("id = ?", id).
-		Delete()
+	_, err := pool.Exec(context.Background(), `
+		DELETE FROM
+			hideouts
+		WHERE
+			id = $1
+	`, id)
 	if err != nil {
-		errmsg("DeleteHideout delete", err)
+		errmsg("DeleteHideout Exec", err)
 	}
 	return err
 }
@@ -202,12 +205,11 @@ func hideoutCreateTable() error {
 				condition       text,
 				note            text,
 				created_at      TIMESTAMP without time zone,
-				updated_at
-      TIMESTAMP without time zone default now(),
+				updated_at      TIMESTAMP without time zone default now(),
 				UNIQUE(num, inv_num, inv_add)
 			)
 	`
-	_, err := pool.Exec(str)
+	_, err := pool.Exec(context.Background(), str)
 	if err != nil {
 		errmsg("hideoutCreateTable exec", err)
 	}

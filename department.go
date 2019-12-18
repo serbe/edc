@@ -104,11 +104,14 @@ func DepartmentDelete(id int64) error {
 	if id == 0 {
 		return nil
 	}
-	_, err := pool.QueryRow(context.Background(), &Department{}).
-		Where("id = ?", id).
-		Delete()
+	_, err := pool.Exec(context.Background(), `
+		DELETE FROM
+			departments
+		WHERE
+			id = $1
+	`, id)
 	if err != nil {
-		errmsg("DeleteDepartment delete", err)
+		errmsg("DeleteDepartment Exec", err)
 	}
 	return err
 }
@@ -121,12 +124,11 @@ func departmentCreateTable() error {
 				name text,
 				note text,
 				created_at TIMESTAMP without time zone,
-				updated_at
- TIMESTAMP without time zone default now(),
+				updated_at TIMESTAMP without time zone default now(),
 				UNIQUE(name)
 			)
 	`
-	_, err := pool.Exec(str)
+	_, err := pool.Exec(context.Background(), str)
 	if err != nil {
 		errmsg("departmentCreateTable exec", err)
 	}

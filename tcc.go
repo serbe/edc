@@ -75,11 +75,14 @@ func TccDelete(id int64) error {
 	if id == 0 {
 		return nil
 	}
-	_, err := pool.QueryRow(context.Background(), &Tcc{}).
-		Where("id = ?", id).
-		Delete()
+	_, err := pool.Exec(context.Background(), `
+		DELETE FROM
+			tccs
+		WHERE
+			id = $1
+	`, id)
 	if err != nil {
-		errmsg("DeleteTcc delete", err)
+		errmsg("DeleteTcc Exec", err)
 	}
 	return err
 }
@@ -98,7 +101,7 @@ func TccDelete(id int64) error {
 // 				UNIQUE(num_id, num_pass, type_id)
 // 			)
 // 	`
-// 	_, err := pool.Exec(str)
+// 	_, err := pool.Exec(context.Background(), str)
 // 	if err != nil {
 // 		errmsg("tccCreateTable exec", err)
 // 	}
