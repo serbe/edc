@@ -1,5 +1,7 @@
 package edc
 
+import "context"
+
 // Tcc - struct for tcc
 type Tcc struct {
 	ID        int64   `sql:"id"         json:"id"         form:"id"         query:"id"`
@@ -9,8 +11,8 @@ type Tcc struct {
 	CompanyID int64   `sql:"company_id" json:"company_id" form:"company_id" query:"company_id"`
 	Company   Company `sql:"-"          json:"company"    form:"company"    query:"company"`
 	Note      string  `sql:"note"       json:"note"       form:"note"       query:"note"`
- 	CreatedAt string  `sql:"created_at" json:"-"`
- 	UpdatedAt string  `sql:"updated_at" json:"-"`
+	CreatedAt string  `sql:"created_at" json:"-"`
+	UpdatedAt string  `sql:"updated_at" json:"-"`
 }
 
 // TccList - struct for tcc list
@@ -92,8 +94,7 @@ func TccDelete(id int64) error {
 // 				company_id bigint,
 // 				note       text,
 // 				created_at TIMESTAMP without time zone,
-// 				updated_at
- TIMESTAMP without time zone default now(),
+// 				updated_at TIMESTAMP without time zone default now(),
 // 				UNIQUE(num_id, num_pass, type_id)
 // 			)
 // 	`

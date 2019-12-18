@@ -51,19 +51,12 @@ func SirenTypeListGet() ([]SirenTypeList, error) {
 // SirenTypeSelectGet - get all sirenType for select
 func SirenTypeSelectGet() ([]SelectItem, error) {
 	var sirenTypes []SelectItem
-	err := pool.QueryRow(context.Background(), &SirenType{}).
-		Column("id", "name").
-		Order("name ASC").
-		Select(&sirenTypes)
-	if err != nil {
-		errmsg("SirenTypeSelectGet Select", err)
-	}
 	rows, err := pool.Query(context.Background(), `
 		SELECT
 			id,
 			name
 		FROM
-			companies
+			siren_types
 		ORDER BY
 			name ASC
 	`)
@@ -71,15 +64,15 @@ func SirenTypeSelectGet() ([]SelectItem, error) {
 		errmsg("CompanySelectGet Query", err)
 	}
 	for rows.Next() {
-		var company SelectItem
-		err := rows.Scan(&company.ID, &company.Name)
+		var sirenType SelectItem
+		err := rows.Scan(&sirenType.ID, &sirenType.Name)
 		if err != nil {
-			errmsg("CompanySelectGet select", err)
-			return companies, err
+			errmsg("SirenTypeSelectGet Scan", err)
+			return sirenTypes, err
 		}
-		companies = append(companies, company)
+		sirenTypes = append(sirenTypes, sirenType)
 	}
-	return companies, rows.Err()
+	return sirenTypes, rows.Err()
 	return sirenTypes, err
 }
 

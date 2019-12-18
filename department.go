@@ -61,7 +61,7 @@ func DepartmentSelectGet() ([]SelectItem, error) {
 			id,
 			name
 		FROM
-			companies
+			departments
 		ORDER BY
 			name ASC
 	`)

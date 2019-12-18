@@ -51,37 +51,30 @@ func PostListGet() ([]PostList, error) {
 // PostSelectGet - get all post for select
 func PostSelectGet(g bool) ([]SelectItem, error) {
 	var posts []SelectItem
-	err := pool.QueryRow(context.Background(), &Post{}).
-		Column("id", "name").
-		Where("go = ?", g).
-		Order("name ASC").
-		Select(&posts)
-	if err != nil {
-		errmsg("GetPostSelectAll query", err)
-	}
 	rows, err := pool.Query(context.Background(), `
 		SELECT
 			id,
 			name
 		FROM
-			companies
+			posts
+		WHERE
+			go = $1
 		ORDER BY
 			name ASC
-	`)
+	`, g)
 	if err != nil {
-		errmsg("CompanySelectGet Query", err)
+		errmsg("PostSelectGet Query", err)
 	}
 	for rows.Next() {
-		var company SelectItem
-		err := rows.Scan(&company.ID, &company.Name)
+		var post SelectItem
+		err := rows.Scan(&post.ID, &post.Name)
 		if err != nil {
-			errmsg("CompanySelectGet select", err)
-			return companies, err
+			errmsg("PostSelectGet Scan", err)
+			return posts, err
 		}
-		companies = append(companies, company)
+		posts = append(posts, post)
 	}
-	return companies, rows.Err()
-	return posts, nil
+	return posts, rows.Err()
 }
 
 // PostInsert - create new post

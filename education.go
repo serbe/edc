@@ -105,46 +105,6 @@ func EducationNearGet() ([]EducationShort, error) {
 	return educations, err
 }
 
-// EducationSelectGet - get all education for select
-func EducationSelectGet() ([]Education, error) {
-	var educations []Education
-	err := pool.QueryRow(context.Background(), &educations).
-		C("id", "start_date", "end_date").
-		Order("start_date").
-		Select()
-	if err != nil {
-		errmsg("GetEducationSelectAll select", err)
-		return educations, err
-	}
-	for i := range educations {
-		educations[i].StartStr = setStrMonth(educations[i].StartDate)
-		educations[i].EndStr = setStrMonth(educations[i].EndDate)
-	}
-	rows, err := pool.Query(context.Background(), `
-		SELECT
-			id,
-			name
-		FROM
-			companies
-		ORDER BY
-			name ASC
-	`)
-	if err != nil {
-		errmsg("CompanySelectGet Query", err)
-	}
-	for rows.Next() {
-		var company SelectItem
-		err := rows.Scan(&company.ID, &company.Name)
-		if err != nil {
-			errmsg("CompanySelectGet select", err)
-			return companies, err
-		}
-		companies = append(companies, company)
-	}
-	return companies, rows.Err()
-	return educations, err
-}
-
 // EducationInsert - create new education
 func EducationInsert(education Education) (int64, error) {
 	err := pool.Insert(&education)

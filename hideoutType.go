@@ -49,36 +49,28 @@ func HideoutTypeListGet() ([]HideoutTypeList, error) {
 // HideoutTypeSelectGet - get all hideoutType for select
 func HideoutTypeSelectGet() ([]SelectItem, error) {
 	var hideoutTypes []SelectItem
-	err := pool.QueryRow(context.Background(), &HideoutType{}).
-		Column("id", "name").
-		Order("name ASC").
-		Select(&hideoutTypes)
-	if err != nil {
-		errmsg("GetHideoutTypeSelect Select", err)
-	}
 	rows, err := pool.Query(context.Background(), `
 		SELECT
 			id,
 			name
 		FROM
-			companies
+			hideout_types
 		ORDER BY
 			name ASC
 	`)
 	if err != nil {
-		errmsg("CompanySelectGet Query", err)
+		errmsg("HideoutTypeSelectGet Query", err)
 	}
 	for rows.Next() {
-		var company SelectItem
-		err := rows.Scan(&company.ID, &company.Name)
+		var hideoutType SelectItem
+		err := rows.Scan(&hideoutType.ID, &hideoutType.Name)
 		if err != nil {
-			errmsg("CompanySelectGet select", err)
-			return companies, err
+			errmsg("HideoutTypeSelectGet Scan", err)
+			return hideoutTypes, err
 		}
-		companies = append(companies, company)
+		hideoutTypes = append(hideoutTypes, hideoutType)
 	}
-	return companies, rows.Err()
-	return hideoutTypes, err
+	return hideoutTypes, rows.Err()
 }
 
 // HideoutTypeInsert - create new hideoutType

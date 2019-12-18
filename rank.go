@@ -49,36 +49,28 @@ func RankListGet() ([]RankList, error) {
 // RankSelectGet - get all rank for select
 func RankSelectGet() ([]SelectItem, error) {
 	var ranks []SelectItem
-	err := pool.QueryRow(context.Background(), &Rank{}).
-		Column("id", "name").
-		Order("name ASC").
-		Select(&ranks)
-	if err != nil {
-		errmsg("GetRankSelectAll query", err)
-	}
 	rows, err := pool.Query(context.Background(), `
 		SELECT
 			id,
 			name
 		FROM
-			companies
+			ranks
 		ORDER BY
 			name ASC
 	`)
 	if err != nil {
-		errmsg("CompanySelectGet Query", err)
+		errmsg("RankSelectGet Query", err)
 	}
 	for rows.Next() {
-		var company SelectItem
-		err := rows.Scan(&company.ID, &company.Name)
+		var rank SelectItem
+		err := rows.Scan(&rank.ID, &rank.Name)
 		if err != nil {
-			errmsg("CompanySelectGet select", err)
-			return companies, err
+			errmsg("RankSelectGet Scan", err)
+			return ranks, err
 		}
-		companies = append(companies, company)
+		ranks = append(ranks, rank)
 	}
-	return companies, rows.Err()
-	return ranks, err
+	return ranks, rows.Err()
 }
 
 // RankInsert - create new rank

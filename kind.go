@@ -51,36 +51,28 @@ func KindListGet() ([]KindList, error) {
 // KindSelectGet - get all kind for select
 func KindSelectGet() ([]SelectItem, error) {
 	var kinds []SelectItem
-	err := pool.QueryRow(context.Background(), &Kind{}).
-		Column("id", "name").
-		Order("name ASC").
-		Select(&kinds)
-	if err != nil {
-		errmsg("GetKindSelectAll select", err)
-	}
 	rows, err := pool.Query(context.Background(), `
 		SELECT
 			id,
 			name
 		FROM
-			companies
+			kinds
 		ORDER BY
 			name ASC
 	`)
 	if err != nil {
-		errmsg("CompanySelectGet Query", err)
+		errmsg("KindSelectGet Query", err)
 	}
 	for rows.Next() {
-		var company SelectItem
-		err := rows.Scan(&company.ID, &company.Name)
+		var kind SelectItem
+		err := rows.Scan(&kind.ID, &kind.Name)
 		if err != nil {
-			errmsg("CompanySelectGet select", err)
-			return companies, err
+			errmsg("KindSelectGet Scan", err)
+			return kinds, err
 		}
-		companies = append(companies, company)
+		kinds = append(kinds, kind)
 	}
-	return companies, rows.Err()
-	return kinds, err
+	return kinds, rows.Err()
 }
 
 // KindInsert - create new kind
