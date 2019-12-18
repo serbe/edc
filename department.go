@@ -1,6 +1,9 @@
 package edc
 
-import "context"
+import (
+	"context"
+	"time"
+)
 
 // Department - struct for department
 type Department struct {
@@ -24,11 +27,20 @@ func DepartmentGet(id int64) (Department, error) {
 	if id == 0 {
 		return department, nil
 	}
-	err := pool.QueryRow(context.Background(), &department).
-		Where("id = ?", id).
-		Select()
+	department.ID = id
+	err := pool.QueryRow(context.Background(), `
+		SELECT
+			name,
+			note,
+			created_at,
+			updated_at
+		FROM
+			departments
+		WHERE
+			id = $1
+	`, id).Scan(&department.Name, &department.Note, time.Now(), time.Now())
 	if err != nil {
-		errmsg("GetDepartment select", err)
+		errmsg("DepartmentGet QueryRow", err)
 	}
 	return department, err
 }
@@ -36,26 +48,34 @@ func DepartmentGet(id int64) (Department, error) {
 // DepartmentListGet - get all department for list
 func DepartmentListGet() ([]DepartmentList, error) {
 	var departments []DepartmentList
-	err := pool.QueryRow(context.Background(), &Department{}).
-		Column("id", "name", "note").
-		Order("name ASC").
-		Select(&departments)
+	rows, err := pool.Query(context.Background(), `
+		SELECT
+			id,
+			name,
+			note
+		FROM
+			departments
+		ORDER BY
+			name ASC
+	`)
 	if err != nil {
-		errmsg("GetDepartmentList select", err)
+		errmsg("DepartmentListGet Query", err)
 	}
-	return departments, err
+	for rows.Next() {
+		var department DepartmentList
+		err := rows.Scan(&department.ID, &department.Name, &department.Note)
+		if err != nil {
+			errmsg("DepartmentListGet Scan", err)
+			return departments, err
+		}
+		departments = append(departments, department)
+	}
+	return departments, rows.Err()
 }
 
 // DepartmentSelectGet - get all department for select
 func DepartmentSelectGet() ([]SelectItem, error) {
 	var departments []SelectItem
-	err := pool.QueryRow(context.Background(), &Department{}).
-		Column("id", "name").
-		Order("name ASC").
-		Select(&departments)
-	if err != nil {
-		errmsg("GetDepartmentSelectAll select", err)
-	}
 	rows, err := pool.Query(context.Background(), `
 		SELECT
 			id,
@@ -69,32 +89,55 @@ func DepartmentSelectGet() ([]SelectItem, error) {
 		errmsg("CompanySelectGet Query", err)
 	}
 	for rows.Next() {
-		var company SelectItem
-		err := rows.Scan(&company.ID, &company.Name)
+		var department SelectItem
+		err := rows.Scan(&department.ID, &department.Name)
 		if err != nil {
-			errmsg("CompanySelectGet select", err)
-			return companies, err
+			errmsg("CompanySelectGet Scan", err)
+			return departments, err
 		}
-		companies = append(companies, company)
+		departments = append(departments, department)
 	}
-	return companies, rows.Err()
-	return departments, err
+	return departments, rows.Err()
 }
 
 // DepartmentInsert - create new department
 func DepartmentInsert(department Department) (int64, error) {
-	err := pool.Insert(&department)
+	err := pool.QueryRow(context.Background(), `
+		INSERT INTO departments
+		(
+			name,
+			note,
+			created_at,
+			updated_at
+		)
+		VALUES
+		(
+			$1,
+			$2,
+			$3,
+			$4
+		)
+		RETURNING
+			id
+	`, department.Name, department.Note, time.Now(), time.Now()).Scan(&department.ID)
 	if err != nil {
-		errmsg("CreateDepartment insert", err)
+		errmsg("DepartmentInsert QueryRow", err)
 	}
 	return department.ID, nil
 }
 
 // DepartmentUpdate - save department changes
 func DepartmentUpdate(department Department) error {
-	err := pool.Update(&department)
+	_, err := pool.Exec(context.Background(), `
+		UPDATE departments SET
+			name = $2,
+			note = $3,
+			updated_at = $4
+		WHERE
+			id = $1
+	`, department.ID, department.Name, department.Note, time.Now())
 	if err != nil {
-		errmsg("UpdateDepartment update", err)
+		errmsg("DepartmentUpdate Exec", err)
 	}
 	return err
 }
