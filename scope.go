@@ -2,6 +2,8 @@ package edc
 
 import "context"
 
+import "time"
+
 // Scope - struct for scope
 type Scope struct {
 	ID        int64  `sql:"id"         json:"id"   form:"id"   query:"id"`
@@ -24,11 +26,20 @@ func ScopeGet(id int64) (Scope, error) {
 	if id == 0 {
 		return scope, nil
 	}
-	err := pool.QueryRow(context.Background(), &scope).
-		Where("id = ?", id).
-		Select()
+	scope.ID = id
+	err := pool.QueryRow(context.Background(), `
+		SELECT
+			name,
+			note,
+			created_at,
+			updated_at
+		FROM
+			scopes
+		WHERE
+			id = $1
+	`, id).Scan(scope.Name, scope.Note, scope.CreatedAt, scope.UpdatedAt)
 	if err != nil {
-		errmsg("GetScope select", err)
+		errmsg("ScopeGet QueryRow", err)
 	}
 	return scope, err
 }
@@ -36,32 +47,40 @@ func ScopeGet(id int64) (Scope, error) {
 // ScopeListGet - get all scope for list
 func ScopeListGet() ([]ScopeList, error) {
 	var scopes []ScopeList
-	err := pool.QueryRow(context.Background(), &Scope{}).
-		Column("id", "name", "note").
-		Order("name ASC").
-		Select(&scopes)
+	rows, err := pool.Query(context.Background(), `
+		SELECT
+			id,
+			name,
+			note
+		FROM
+			scopes
+		ORDER BY
+			name ASC
+	`)
 	if err != nil {
-		errmsg("GetScopeListAll select", err)
+		errmsg("ScopeListGet Query", err)
 	}
-	return scopes, err
+	for rows.Next() {
+		var scope ScopeList
+		err := rows.Scan(&scope.ID, &scope.Name, &scope.Note)
+		if err != nil {
+			errmsg("ScopeListGet Scan", err)
+			return scopes, err
+		}
+		scopes = append(scopes, scope)
+	}
+	return scopes, rows.Err()
 }
 
 // ScopeSelectGet - get all scope for select
 func ScopeSelectGet() ([]SelectItem, error) {
 	var scopes []SelectItem
-	err := pool.QueryRow(context.Background(), &Scope{}).
-		Column("id", "name").
-		Order("name ASC").
-		Select(&scopes)
-	if err != nil {
-		errmsg("GetScopeSelectAll query", err)
-	}
 	rows, err := pool.Query(context.Background(), `
 		SELECT
 			id,
 			name
 		FROM
-			companies
+			scopes
 		ORDER BY
 			name ASC
 	`)
@@ -69,32 +88,55 @@ func ScopeSelectGet() ([]SelectItem, error) {
 		errmsg("CompanySelectGet Query", err)
 	}
 	for rows.Next() {
-		var company SelectItem
-		err := rows.Scan(&company.ID, &company.Name)
+		var scope SelectItem
+		err := rows.Scan(&scope.ID, &scope.Name)
 		if err != nil {
-			errmsg("CompanySelectGet select", err)
-			return companies, err
+			errmsg("ScopeSelectGet Scan", err)
+			return scopes, err
 		}
-		companies = append(companies, company)
+		scopes = append(scopes, scope)
 	}
-	return companies, rows.Err()
-	return scopes, err
+	return scopes, rows.Err()
 }
 
 // ScopeInsert - create new scope
 func ScopeInsert(scope Scope) (int64, error) {
-	err := pool.Insert(&scope)
+	err := pool.QueryRow(context.Background(), `
+		INSERT INTO scopes
+		(
+			name,
+			note,
+			created_at,
+			updated_at
+		)
+		VALUES
+		(
+			$1,
+			$2,
+			$3,
+			$4
+		)
+		RETURNING
+			id
+	`, scope.Name, scope.Note, time.Now(), time.Now()).Scan(&scope.ID)
 	if err != nil {
-		errmsg("CreateScope insert", err)
+		errmsg("ScopeInsert QueryRow", err)
 	}
 	return scope.ID, err
 }
 
 // ScopeUpdate - save scope changes
 func ScopeUpdate(scope Scope) error {
-	err := pool.Update(&scope)
+	_, err := pool.Exec(context.Background(), `
+		UPDATE scopes SET
+			name = $2,
+			note = $3,
+			updated_at = $4
+		WHERE
+			id = $1
+	`, scope.ID, scope.Name, scope.Note, time.Now())
 	if err != nil {
-		errmsg("UpdateScope update", err)
+		errmsg("ScopeUpdate Exec", err)
 	}
 	return err
 }
@@ -104,11 +146,14 @@ func ScopeDelete(id int64) error {
 	if id == 0 {
 		return nil
 	}
-	_, err := pool.QueryRow(context.Background(), &Scope{}).
-		Where("id = ?", id).
-		Delete()
+	_, err := pool.Exec(context.Background(), `
+		DELETE FROM
+			scopes
+		WHERE
+			id = $1
+	`, id)
 	if err != nil {
-		errmsg("DeleteScope delete", err)
+		errmsg("ScopeDelete Exec", err)
 	}
 	return err
 }
@@ -121,14 +166,13 @@ func scopeCreateTable() error {
 				name text,
 				note text,
 				created_at TIMESTAMP without time zone,
-				updated_at
- TIMESTAMP without time zone default now(),
+				updated_at TIMESTAMP without time zone default now(),
 				UNIQUE (name)
 			)
 	`
-	_, err := pool.Exec(str)
+	_, err := pool.Exec(context.Background(), str)
 	if err != nil {
-		errmsg("scopeCreateTable exec", err)
+		errmsg("scopeCreateTable Exec", err)
 	}
 	return err
 }
