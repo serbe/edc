@@ -1,6 +1,9 @@
 package edc
 
-import "context"
+import (
+	"context"
+	"time"
+)
 
 // Education - struct for education
 type Education struct {
@@ -42,11 +45,23 @@ func EducationGet(id int64) (Education, error) {
 	if id == 0 {
 		return education, nil
 	}
-	err := pool.QueryRow(context.Background(), &education).
-		Where("id = ?", id).
-		Select()
+	education.ID = id
+	err := pool.QueryRow(context.Background(), `
+		SELECT
+			contact_id,
+			start_date,
+			end_date,
+			post_id,
+			note,
+			created_at,
+			updated_at
+		FROM
+			educations
+		WHERE
+			id = $1
+	`, id).Scan(&education.ContactID, &education.StartDate, &education.EndDate, &education.PostID, &education.Note, &education.CreatedAt, &education.UpdatedAt)
 	if err != nil {
-		errmsg("GetEducation select", err)
+		errmsg("EducationGet QueryRow", err)
 	}
 	return education, err
 }
@@ -54,7 +69,7 @@ func EducationGet(id int64) (Education, error) {
 // EducationListGet - get all education for list
 func EducationListGet() ([]EducationList, error) {
 	var educations []EducationList
-	_, err := pool.Query(context.Background(), `
+	rows, err := pool.Query(context.Background(), `
 		SELECT
 			e.id,
 			e.contact_id,
@@ -73,17 +88,31 @@ func EducationListGet() ([]EducationList, error) {
 		ORDER BY
 			start_date DESC
 	`)
-	for i := range educations {
-		educations[i].StartStr = setStrMonth(educations[i].StartDate)
-		educations[i].EndStr = setStrMonth(educations[i].EndDate)
+	if err != nil {
+		errmsg("EducationListGet Query", err)
+		return educations, err
 	}
-	return educations, err
+	for rows.Next() {
+		var education EducationList
+		err := rows.Scan(&education.ID, &education.ContactID, &education.ContactName, &education.StartDate,
+			&education.EndDate, &education.PostID, &education.PostName, &education.Note)
+		if err != nil {
+			errmsg("EducationListGet Scan", err)
+			return educations, err
+		}
+		educations = append(educations, education)
+	}
+	// for i := range educations {
+	// 	educations[i].StartStr = setStrMonth(educations[i].StartDate)
+	// 	educations[i].EndStr = setStrMonth(educations[i].EndDate)
+	// }
+	return educations, rows.Err()
 }
 
 // EducationNearGet - get 10 nearest educations
 func EducationNearGet() ([]EducationShort, error) {
 	var educations []EducationShort
-	_, err := pool.Query(context.Background(), `
+	rows, err := pool.Query(context.Background(), `
 		SELECT
 			e.id,
 			e.contact_id,
@@ -100,25 +129,65 @@ func EducationNearGet() ([]EducationShort, error) {
 		LIMIT 10
 	`)
 	if err != nil {
-		errmsg("GetEducationNear query", err)
+		errmsg("EducationNearGet Query", err)
 	}
-	return educations, err
+	for rows.Next() {
+		var education EducationShort
+		err := rows.Scan(&education.ID, &education.ContactID, &education.ContactName, &education.StartDate)
+		if err != nil {
+			errmsg("EducationNearGet Scan", err)
+			return educations, err
+		}
+		educations = append(educations, education)
+	}
+	return educations, rows.Err()
 }
 
 // EducationInsert - create new education
 func EducationInsert(education Education) (int64, error) {
-	err := pool.Insert(&education)
+	err := pool.QueryRow(context.Background(), `
+		INSERT INTO educations
+		(
+			contact_id,
+			start_date,
+			end_date,
+			post_id,
+			note,
+			created_at,
+			updated_at
+		)
+		VALUES
+		(
+			$1,
+			$2,
+			$3,
+			$4
+		)
+		RETURNING
+			id
+	`, education.ContactID, education.StartDate, education.EndDate, education.PostID,
+		education.Note, time.Now(), time.Now()).Scan(&education.ID)
 	if err != nil {
-		errmsg("CreateEducation insert", err)
+		errmsg("EducationInsert QueryRow", err)
 	}
 	return education.ID, err
 }
 
 // EducationUpdate - save changes to education
 func EducationUpdate(education Education) error {
-	err := pool.Update(&education)
+	_, err := pool.Exec(context.Background(), `
+		UPDATE educations SET
+			contact_id = $2,
+			start_date = $3,
+			end_date = $4,
+			post_id = $5,
+			note = $6,
+			updated_at = $7
+		WHERE
+			id = $1
+	`, education.ID, education.ContactID, education.StartDate, education.EndDate, education.PostID, education.Note, time.Now())
 	if err != nil {
-		errmsg("UpdateEducation update", err)
+		errmsg("EducationUpdate update", err)
 	}
 	return err
 }
@@ -135,7 +204,7 @@ func EducationDelete(id int64) error {
 			id = $1
 	`, id)
 	if err != nil {
-		errmsg("DeleteEducation Exec", err)
+		errmsg("EducationDelete Exec", err)
 	}
 	return err
 }
