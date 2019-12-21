@@ -26,11 +26,21 @@ func KindGet(id int64) (Kind, error) {
 	if id == 0 {
 		return kind, nil
 	}
-	err := pool.QueryRow(context.Background(), &kind).
-		Where("id = ?", id).
-		Select()
+	kind.ID = id
+	err := pool.QueryRow(context.Background(), `
+		SELECT
+			name,
+			short_name,
+			note,
+			created_at,
+			updated_at
+		FROM
+			kinds
+		WHERE
+			id = $1
+	`, id).Scan(&kind.Name, &kind.ShortName, &kind.Note, &kind.CreatedAt, &kind.UpdatedAt)
 	if err != nil {
-		errmsg("GetKind select", err)
+		errmsg("KindGet QueryRow", err)
 	}
 	return kind, err
 }
@@ -38,14 +48,30 @@ func KindGet(id int64) (Kind, error) {
 // KindListGet - get all kind for list
 func KindListGet() ([]KindList, error) {
 	var kinds []KindList
-	err := pool.QueryRow(context.Background(), &Kind{}).
-		Column("id", "name", "short_name", "note").
-		Order("name ASC").
-		Select(&kinds)
+	rows, err := pool.Query(context.Background(), `
+		SELECT
+			id,
+			name,
+			short_name,
+			note
+		FROM
+			kinds
+		ORDER BY
+			name ASC
+	`)
 	if err != nil {
-		errmsg("GetKindListAll select", err)
+		errmsg("KindListGet Query", err)
 	}
-	return kinds, err
+	for rows.Next() {
+		var kind KindList
+		err := rows.Scan(&kind.ID, &kind.Name, &kind.ShortName, &kind.Note)
+		if err != nil {
+			errmsg("KindListGet Scan", err)
+			return kinds, err
+		}
+		kinds = append(kinds, kind)
+	}
+	return kinds, rows.Err()
 }
 
 // KindSelectGet - get all kind for select
