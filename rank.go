@@ -1,6 +1,9 @@
 package edc
 
-import "context"
+import (
+	"context"
+	"time"
+)
 
 // Rank - struct for rank
 type Rank struct {
@@ -24,11 +27,20 @@ func RankGet(id int64) (Rank, error) {
 	if id == 0 {
 		return rank, nil
 	}
-	err := pool.QueryRow(context.Background(), &rank).
-		Where("id = ?", id).
-		Select()
+	rank.ID = id
+	err := pool.QueryRow(context.Background(), `
+		SELECT
+			name,
+			note,
+			created_at,
+			updated_at
+		FROM
+			ranks
+		WHERE
+			id = $1
+	`, id).Scan(&rank.Name, &rank.Note, &rank.CreatedAt, &rank.UpdatedAt)
 	if err != nil {
-		errmsg("GetRank select", err)
+		errmsg("RankGet QueryRow", err)
 	}
 	return rank, err
 }
@@ -36,14 +48,29 @@ func RankGet(id int64) (Rank, error) {
 // RankListGet - get all rank for list
 func RankListGet() ([]RankList, error) {
 	var ranks []RankList
-	err := pool.QueryRow(context.Background(), &Rank{}).
-		Column("id", "name", "note").
-		Order("name ASC").
-		Select(&ranks)
+	rows, err := pool.Query(context.Background(), `
+		SELECT
+			id,
+			name,
+			note
+		FROM
+			ranks
+		ORDER BY
+			name ASC
+	`)
 	if err != nil {
-		errmsg("GetRankListAll query", err)
+		errmsg("RankListGet Query", err)
 	}
-	return ranks, err
+	for rows.Next() {
+		var rank RankList
+		err := rows.Scan(&rank.ID, &rank.Name, &rank.Note)
+		if err != nil {
+			errmsg("PostListGet Scan", err)
+			return ranks, err
+		}
+		ranks = append(ranks, rank)
+	}
+	return ranks, rows.Err()
 }
 
 // RankSelectGet - get all rank for select
@@ -75,16 +102,40 @@ func RankSelectGet() ([]SelectItem, error) {
 
 // RankInsert - create new rank
 func RankInsert(rank Rank) (int64, error) {
-	err := pool.Insert(&rank)
+	err := pool.QueryRow(context.Background(), `
+		INSERT INTO ranks
+		(
+			name,
+			note,
+			created_at,
+			updated_at
+		)
+		VALUES
+		(
+			$1,
+			$2,
+			$3,
+			$4
+		)
+		RETURNING
+			id
+	`, rank.Name, rank.Note, time.Now(), time.Now()).Scan(&rank.ID)
 	if err != nil {
-		errmsg("CreateRank insert", err)
+		errmsg("RankInsert QueryRow", err)
 	}
 	return rank.ID, err
 }
 
 // RankUpdate - save rank changes
 func RankUpdate(rank Rank) error {
-	err := pool.Update(&rank)
+	_, err := pool.Exec(context.Background(), `
+		UPDATE ranks SET
+			name = $2,
+			note = $3,
+			updated_at = $4
+		WHERE
+			id = $1
+	`, rank.ID, rank.Name, rank.Note, time.Now())
 	if err != nil {
 		errmsg("UpdateRank update", err)
 	}

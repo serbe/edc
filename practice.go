@@ -1,6 +1,9 @@
 package edc
 
-import "context"
+import (
+	"context"
+	"time"
+)
 
 // Practice - struct for practice
 type Practice struct {
@@ -43,11 +46,24 @@ func PracticeGet(id int64) (Practice, error) {
 	if id == 0 {
 		return practice, nil
 	}
-	err := pool.QueryRow(context.Background(), &practice).
-		Where("id = ?", id).
-		Select()
+	practice.ID = id
+	err := pool.QueryRow(context.Background(), `
+		SELECT
+			company_id,
+			kind_id,
+			topic,
+			date_of_practice,
+			note,
+			created_at,
+			updated_at
+		FROM
+			practices
+		WHERE
+			id = $1
+	`, id).Scan(&practice.CompanyID, &practice.KindID, &practice.Topic, &practice.DateOfPractice, &practice.Note,
+		&practice.CreatedAt, &practice.UpdatedAt)
 	if err != nil {
-		errmsg("GetPractice select", err)
+		errmsg("PracticeGet QueryRow", err)
 		return practice, err
 	}
 	return practice, err
@@ -57,22 +73,22 @@ func PracticeGet(id int64) (Practice, error) {
 func PracticeListGet() ([]PracticeList, error) {
 	var practices []PracticeList
 	_, err := pool.Query(context.Background(), `
-	SELECT
-		p.id,
-		p.company_id,
-		c.name AS company_name,
-		k.name AS kind_name,
-		k.short_name AS kind_short_name,
-		p.date_of_practice,
-		p.topic
-	FROM
-		practices AS p
-	LEFT JOIN
-		companies AS c ON c.id = p.company_id
-	LEFT JOIN
-		kinds AS k ON k.id = p.kind_id
-	ORDER BY
-		date_of_practice DESC`)
+		SELECT
+			p.id,
+			p.company_id,
+			c.name AS company_name,
+			k.name AS kind_name,
+			k.short_name AS kind_short_name,
+			p.date_of_practice,
+			p.topic
+		FROM
+			practices AS p
+		LEFT JOIN
+			companies AS c ON c.id = p.company_id
+		LEFT JOIN
+			kinds AS k ON k.id = p.kind_id
+		ORDER BY
+			date_of_practice DESC`)
 	if err != nil {
 		errmsg("GetPracticeList query", err)
 	}
@@ -157,18 +173,53 @@ func PracticeNearGet() ([]PracticeShort, error) {
 
 // PracticeInsert - create new practice
 func PracticeInsert(practice Practice) (int64, error) {
-	err := pool.Insert(&practice)
+	err := pool.QueryRow(context.Background(), `
+		INSERT INTO practices
+		(
+			company_id,
+			kind_id,
+			topic,
+			date_of_practice,
+			note,
+			created_at,
+			updated_at
+		)
+		VALUES
+		(
+			$1,
+			$2,
+			$3,
+			$4,
+			$5,
+			$6,
+			$7
+		)
+		RETURNING
+			id
+	`, practice.CompanyID, practice.KindID, practice.Topic, practice.DateOfPractice,
+		practice.Note, time.Now(), time.Now()).Scan(&practice.ID)
 	if err != nil {
-		errmsg("CreatePractice insert", err)
+		errmsg("PracticeInsert QueryRow", err)
 	}
 	return practice.ID, err
 }
 
 // PracticeUpdate - save practice changes
 func PracticeUpdate(practice Practice) error {
-	err := pool.Update(&practice)
+	_, err := pool.Exec(context.Background(), `
+		UPDATE practices SET
+			company_id = $2,
+			kind_id = $3,
+			topic = $4,
+			date_of_practice = $5,
+			note = $6,
+			updated_at = $7
+		WHERE
+			id = $1
+	`, practice.ID, practice.CompanyID, practice.KindID, practice.Topic, practice.DateOfPractice,
+		practice.Note, time.Now())
 	if err != nil {
-		errmsg("UpdatePractice update", err)
+		errmsg("PracticeUpdate Exec", err)
 	}
 	return err
 }
