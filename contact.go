@@ -258,7 +258,8 @@ func ContactUpdate(contact Contact) error {
 			updated_at = $10
 		WHERE
 			id = $1
-	`, contact.ID, contact.Name, contact.CompanyID, contact.DepartmentID, contact.PostID, contact.PostGOID, contact.RankID, contact.Birthday, contact.Note, time.Now())
+	`, contact.ID, contact.Name, contact.CompanyID, contact.DepartmentID, contact.PostID, contact.PostGOID, contact.RankID, contact.Birthday,
+		contact.Note, time.Now())
 	if err != nil {
 		errmsg("ContactUpdate Exec", err)
 		return err

@@ -1,6 +1,9 @@
 package edc
 
-import "context"
+import (
+	"context"
+	"time"
+)
 
 // Post - struct for post
 type Post struct {
@@ -26,11 +29,21 @@ func PostGet(id int64) (Post, error) {
 	if id == 0 {
 		return post, nil
 	}
-	err := pool.QueryRow(context.Background(), &post).
-		Where("id = ?", id).
-		Select()
+	post.ID = id
+	err := pool.QueryRow(context.Background(), `
+		SELECT
+			name,
+			go,
+			note,
+			created_at,
+			updated_at
+		FROM
+			kinds
+		WHERE
+			id = $1
+	`, id).Scan(&post.Name, &post.GO, &post.Note, &post.CreatedAt, &post.UpdatedAt)
 	if err != nil {
-		errmsg("GetPost select", err)
+		errmsg("PostGet QueryRow", err)
 	}
 	return post, nil
 }
@@ -38,14 +51,28 @@ func PostGet(id int64) (Post, error) {
 // PostListGet - get all post for list
 func PostListGet() ([]PostList, error) {
 	var posts []PostList
-	err := pool.QueryRow(context.Background(), &Post{}).
-		Column("id", "name", "go", "note").
-		Order("name ASC").
-		Select(&posts)
+	rows, err := pool.Query(context.Background(), `
+		SELECT
+			id,
+			name,
+			go,
+			note,
+		FROM
+			kinds
+	`)
 	if err != nil {
-		errmsg("GetPostListAll select", err)
+		errmsg("PostListGet Query", err)
 	}
-	return posts, nil
+	for rows.Next() {
+		var post PostList
+		err := rows.Scan(&post.ID, &post.Name, &post.GO, &post.Note)
+		if err != nil {
+			errmsg("PostListGet Scan", err)
+			return posts, err
+		}
+		posts = append(posts, post)
+	}
+	return posts, rows.Err()
 }
 
 // PostSelectGet - get all post for select
@@ -79,16 +106,43 @@ func PostSelectGet(g bool) ([]SelectItem, error) {
 
 // PostInsert - create new post
 func PostInsert(post Post) (int64, error) {
-	err := pool.Insert(&post)
+	err := pool.QueryRow(context.Background(), `
+		INSERT INTO posts
+		(
+			name,
+			go,
+			note,
+			created_at,
+			updated_at
+		)
+		VALUES
+		(
+			$1,
+			$2,
+			$3,
+			$4,
+			$5
+		)
+		RETURNING
+			id
+	`, post.Name, post.GO, post.Note, time.Now(), time.Now()).Scan(&post.ID)
 	if err != nil {
-		errmsg("CreatePost insert", err)
+		errmsg("PostInsert QueryRow", err)
 	}
 	return post.ID, nil
 }
 
 // PostUpdate - save post changes
 func PostUpdate(post Post) error {
-	err := pool.Update(&post)
+	_, err := pool.Exec(context.Background(), `
+		UPDATE posts SET
+			name = $2,
+			go = $3,
+			note = $4,
+			updated_at = $5
+		WHERE
+			id = $1
+	`, post.ID, post.Name, post.GO, post.Note, time.Now())
 	if err != nil {
 		errmsg("UpdatePost update", err)
 	}

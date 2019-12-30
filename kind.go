@@ -1,6 +1,9 @@
 package edc
 
-import "context"
+import (
+	"context"
+	"time"
+)
 
 // Kind - struct for kind
 type Kind struct {
@@ -103,18 +106,45 @@ func KindSelectGet() ([]SelectItem, error) {
 
 // KindInsert - create new kind
 func KindInsert(kind Kind) (int64, error) {
-	err := pool.Insert(&kind)
+	err := pool.QueryRow(context.Background(), `
+		INSERT INTO educations
+		(
+			name,
+			short_name,
+			note,
+			created_at,
+			updated_at
+		)
+		VALUES
+		(
+			$1,
+			$2,
+			$3,
+			$4,
+			$5
+		)
+		RETURNING
+			id
+	`, kind.Name, kind.ShortName, kind.Note, time.Now(), time.Now()).Scan(&kind.ID)
 	if err != nil {
-		errmsg("CreateKind insert", err)
+		errmsg("KindInsert QueryRow", err)
 	}
 	return kind.ID, nil
 }
 
 // KindUpdate - save kind changes
 func KindUpdate(kind Kind) error {
-	err := pool.Update(&kind)
+	_, err := pool.Exec(context.Background(), `
+		UPDATE educations SET
+			name = $2,
+			short_name = $3,
+			note = $4,
+			updated_at = $5
+		WHERE
+			id = $1
+	`, kind.ID, kind.Name, kind.ShortName, kind.Note, time.Now())
 	if err != nil {
-		errmsg("UpdateKind update", err)
+		errmsg("KindUpdate Exec", err)
 	}
 	return err
 }

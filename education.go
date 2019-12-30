@@ -161,7 +161,10 @@ func EducationInsert(education Education) (int64, error) {
 			$1,
 			$2,
 			$3,
-			$4
+			$4,
+			$5,
+			$6,
+			$7
 		)
 		RETURNING
 			id
