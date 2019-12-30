@@ -56,9 +56,11 @@ func PostListGet() ([]PostList, error) {
 			id,
 			name,
 			go,
-			note,
+			note
 		FROM
 			kinds
+		ORDER BY
+			name ASC
 	`)
 	if err != nil {
 		errmsg("PostListGet Query", err)
