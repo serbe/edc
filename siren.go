@@ -73,7 +73,7 @@ func SirenGet(id int64) (Siren, error) {
 // SirenListGet - get all siren for list
 func SirenListGet() ([]SirenList, error) {
 	var sirens []SirenList
-	_, err := pool.Query(context.Background(), `
+	rows, err := pool.Query(context.Background(), `
 		SELECT
 			s.id,
 			s.address,
@@ -98,7 +98,16 @@ func SirenListGet() ([]SirenList, error) {
 	if err != nil {
 		errmsg("SirenListGet Query", err)
 	}
-	return sirens, err
+	for rows.Next() {
+		var siren SirenList
+		err := rows.Scan(&siren.ID, &siren.Address, &siren.SirenTypeName, &siren.ContactName, &siren.Phones)
+		if err != nil {
+			errmsg("SirenListGet Scan", err)
+			return sirens, err
+		}
+		sirens = append(sirens, siren)
+	}
+	return sirens, rows.Err()
 }
 
 // SirenInsert - create new siren
