@@ -1,6 +1,9 @@
 package edc
 
-import "context"
+import (
+	"context"
+	"time"
+)
 
 // Siren - struct for siren
 type Siren struct {
@@ -37,11 +40,32 @@ func SirenGet(id int64) (Siren, error) {
 	if id == 0 {
 		return siren, nil
 	}
-	err := pool.QueryRow(context.Background(), &siren).
-		Where("id = ?", id).
-		Select()
+	siren.ID = id
+	err := pool.QueryRow(context.Background(), `
+		SELECT
+			num_id,
+			num_pass,
+			siren_type_id,
+			address,
+			radio,
+			desk,
+			contact_id,
+			company_id,
+			latitude,
+			longitude,
+			stage,
+			own,
+			note,
+			created_at,
+			updated_at
+		FROM
+			sirens
+		WHERE
+			id = $1
+	`, id).Scan(&siren.NumID, &siren.NumPass, &siren.SirenTypeID, &siren.Address, &siren.Radio, &siren.Desk, &siren.ContactID, &siren.CompanyID,
+		&siren.Latitude, &siren.Longitude, &siren.Stage, &siren.Own, &siren.Note, &siren.CreatedAt, &siren.UpdatedAt)
 	if err != nil {
-		errmsg("GetSiren select", err)
+		errmsg("SirenGet QueryRow", err)
 	}
 	return siren, err
 }
@@ -72,25 +96,84 @@ func SirenListGet() ([]SirenList, error) {
 			t.name ASC
 	`)
 	if err != nil {
-		errmsg("GetSirenList Query", err)
+		errmsg("SirenListGet Query", err)
 	}
 	return sirens, err
 }
 
 // SirenInsert - create new siren
 func SirenInsert(siren Siren) (int64, error) {
-	err := pool.Insert(&siren)
+	err := pool.QueryRow(context.Background(), `
+		INSERT INTO sirens
+		(
+			num_id,
+			num_pass,
+			siren_type_id,
+			address,
+			radio,
+			desk,
+			contact_id,
+			company_id,
+			latitude,
+			longitude,
+			stage,
+			own,
+			note,
+			created_at,
+			updated_at
+		)
+		VALUES
+		(
+			$1,
+			$2,
+			$3,
+			$4,
+			$5,
+			$6,
+			$7,
+			$8,
+			$9,
+			$10,
+			$11,
+			$12,
+			$13,
+			$14,
+			$15
+		)
+		RETURNING
+			id
+	`, siren.NumID, siren.NumPass, siren.SirenTypeID, siren.Address, siren.Radio, siren.Desk, siren.ContactID, siren.CompanyID,
+		siren.Latitude, siren.Longitude, siren.Stage, siren.Own, siren.Note, time.Now(), time.Now()).Scan(&siren.ID)
 	if err != nil {
-		errmsg("CreateSiren insert", err)
+		errmsg("SirenInsert QueryRow", err)
 	}
 	return siren.ID, err
 }
 
 // SirenUpdate - save siren changes
 func SirenUpdate(siren Siren) error {
-	err := pool.Update(&siren)
+	_, err := pool.Exec(context.Background(), `
+		UPDATE sirens SET
+			num_id = $2,
+			num_pass = $3,
+			siren_type_id = $4,
+			address = $5,
+			radio = $6,
+			desk = $7,
+			contact_id = $8,
+			company_id = $9,
+			latitude = $10,
+			longitude = $11,
+			stage = $12,
+			own = $13,
+			note = $14,
+			updated_at = $15
+		WHERE
+			id = $1
+	`, siren.ID, siren.NumID, siren.NumPass, siren.SirenTypeID, siren.Address, siren.Radio, siren.Desk, siren.ContactID, siren.CompanyID,
+		siren.Latitude, siren.Longitude, siren.Stage, siren.Own, siren.Note, time.Now())
 	if err != nil {
-		errmsg("UpdateSiren update", err)
+		errmsg("SirenUpdate Exec", err)
 	}
 	return err
 }
