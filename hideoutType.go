@@ -18,33 +18,33 @@ type HideoutTypeList struct {
 	Note string `sql:"note" json:"note" form:"note" query:"note"`
 }
 
-// HideoutTypeGet - get one hideoutType by id
-func HideoutTypeGet(id int64) (HideoutType, error) {
-	var hideoutType HideoutType
-	if id == 0 {
-		return hideoutType, nil
-	}
-	err := pool.QueryRow(context.Background(), &hideoutType).
-		Where("id = ?", id).
-		Select()
-	if err != nil {
-		errmsg("GetHideoutType select", err)
-	}
-	return hideoutType, err
-}
+// // HideoutTypeGet - get one hideoutType by id
+// func HideoutTypeGet(id int64) (HideoutType, error) {
+// 	var hideoutType HideoutType
+// 	if id == 0 {
+// 		return hideoutType, nil
+// 	}
+// 	err := pool.QueryRow(context.Background(), &hideoutType).
+// 		Where("id = ?", id).
+// 		Select()
+// 	if err != nil {
+// 		errmsg("GetHideoutType select", err)
+// 	}
+// 	return hideoutType, err
+// }
 
-// HideoutTypeListGet - get all hideoutType for list
-func HideoutTypeListGet() ([]HideoutTypeList, error) {
-	var hideoutTypes []HideoutTypeList
-	err := pool.QueryRow(context.Background(), &HideoutType{}).
-		Column("id", "name", "note").
-		Order("name ASC").
-		Select(&hideoutTypes)
-	if err != nil {
-		errmsg("GetHideoutTypeList select", err)
-	}
-	return hideoutTypes, err
-}
+// // HideoutTypeListGet - get all hideoutType for list
+// func HideoutTypeListGet() ([]HideoutTypeList, error) {
+// 	var hideoutTypes []HideoutTypeList
+// 	err := pool.QueryRow(context.Background(), &HideoutType{}).
+// 		Column("id", "name", "note").
+// 		Order("name ASC").
+// 		Select(&hideoutTypes)
+// 	if err != nil {
+// 		errmsg("GetHideoutTypeList select", err)
+// 	}
+// 	return hideoutTypes, err
+// }
 
 // HideoutTypeSelectGet - get all hideoutType for select
 func HideoutTypeSelectGet() ([]SelectItem, error) {
@@ -73,23 +73,23 @@ func HideoutTypeSelectGet() ([]SelectItem, error) {
 	return hideoutTypes, rows.Err()
 }
 
-// HideoutTypeInsert - create new hideoutType
-func HideoutTypeInsert(hideoutType HideoutType) (int64, error) {
-	err := pool.Insert(&hideoutType)
-	if err != nil {
-		errmsg("CreateHideoutType insert", err)
-	}
-	return hideoutType.ID, nil
-}
+// // HideoutTypeInsert - create new hideoutType
+// func HideoutTypeInsert(hideoutType HideoutType) (int64, error) {
+// 	err := pool.Insert(&hideoutType)
+// 	if err != nil {
+// 		errmsg("CreateHideoutType insert", err)
+// 	}
+// 	return hideoutType.ID, nil
+// }
 
-// HideoutTypeUpdate - save hideoutType changes
-func HideoutTypeUpdate(hideoutType HideoutType) error {
-	err := pool.Update(&hideoutType)
-	if err != nil {
-		errmsg("UpdateHideoutType update", err)
-	}
-	return err
-}
+// // HideoutTypeUpdate - save hideoutType changes
+// func HideoutTypeUpdate(hideoutType HideoutType) error {
+// 	err := pool.Update(&hideoutType)
+// 	if err != nil {
+// 		errmsg("UpdateHideoutType update", err)
+// 	}
+// 	return err
+// }
 
 // HideoutTypeDelete - delete hideoutType by id
 func HideoutTypeDelete(id int64) error {

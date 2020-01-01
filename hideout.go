@@ -89,69 +89,69 @@ type HideoutList struct {
 	Phones          []string `sql:"phones"            json:"phones"            form:"phones"            query:"phones"            pg:",array"`
 }
 
-// HideoutGet - get one hideout by id
-func HideoutGet(id int64) (Hideout, error) {
-	var hideout Hideout
-	if id == 0 {
-		return hideout, nil
-	}
-	err := pool.QueryRow(context.Background(), &hideout).
-		Where("id = ?", id).
-		Select()
-	if err != nil {
-		errmsg("GetHideout select", err)
-	}
-	return hideout, err
-}
+// // HideoutGet - get one hideout by id
+// func HideoutGet(id int64) (Hideout, error) {
+// 	var hideout Hideout
+// 	if id == 0 {
+// 		return hideout, nil
+// 	}
+// 	err := pool.QueryRow(context.Background(), &hideout).
+// 		Where("id = ?", id).
+// 		Select()
+// 	if err != nil {
+// 		errmsg("GetHideout select", err)
+// 	}
+// 	return hideout, err
+// }
 
-// HideoutListGet - get all hideout for list
-func HideoutListGet() ([]HideoutList, error) {
-	var hideouts []HideoutList
-	_, err := pool.Query(context.Background(), `
-		SELECT
-			s.id,
-			s.address,
-			t.name AS hideout_type_name,
-			c.name AS contact_name,
-			array_agg(DISTINCT ph.phone) AS phones
-        FROM
-			hideouts AS s
-		LEFT JOIN
-			hideout_types AS t ON s.type_id = t.id
-		LEFT JOIN
-			contacts AS c ON s.contact_id = c.id
-		LEFT JOIN
-			phones AS ph ON s.contact_id = ph.contact_id AND ph.fax = false
-		GROUP BY
-			s.id,
-			t.id,
-			c.id
-		ORDER BY
-			t.name ASC
-	`)
-	if err != nil {
-		errmsg("GetHideoutList Query", err)
-	}
-	return hideouts, err
-}
+// // HideoutListGet - get all hideout for list
+// func HideoutListGet() ([]HideoutList, error) {
+// 	var hideouts []HideoutList
+// 	_, err := pool.Query(context.Background(), `
+// 		SELECT
+// 			s.id,
+// 			s.address,
+// 			t.name AS hideout_type_name,
+// 			c.name AS contact_name,
+// 			array_agg(DISTINCT ph.phone) AS phones
+//         FROM
+// 			hideouts AS s
+// 		LEFT JOIN
+// 			hideout_types AS t ON s.type_id = t.id
+// 		LEFT JOIN
+// 			contacts AS c ON s.contact_id = c.id
+// 		LEFT JOIN
+// 			phones AS ph ON s.contact_id = ph.contact_id AND ph.fax = false
+// 		GROUP BY
+// 			s.id,
+// 			t.id,
+// 			c.id
+// 		ORDER BY
+// 			t.name ASC
+// 	`)
+// 	if err != nil {
+// 		errmsg("GetHideoutList Query", err)
+// 	}
+// 	return hideouts, err
+// }
 
-// HideoutInsert - create new hideout
-func HideoutInsert(hideout Hideout) (int64, error) {
-	err := pool.Insert(&hideout)
-	if err != nil {
-		errmsg("CreateHideout insert", err)
-	}
-	return hideout.ID, err
-}
+// // HideoutInsert - create new hideout
+// func HideoutInsert(hideout Hideout) (int64, error) {
+// 	err := pool.Insert(&hideout)
+// 	if err != nil {
+// 		errmsg("CreateHideout insert", err)
+// 	}
+// 	return hideout.ID, err
+// }
 
-// HideoutUpdate - save hideout changes
-func HideoutUpdate(hideout Hideout) error {
-	err := pool.Update(&hideout)
-	if err != nil {
-		errmsg("UpdateHideout update", err)
-	}
-	return err
-}
+// // HideoutUpdate - save hideout changes
+// func HideoutUpdate(hideout Hideout) error {
+// 	err := pool.Update(&hideout)
+// 	if err != nil {
+// 		errmsg("UpdateHideout update", err)
+// 	}
+// 	return err
+// }
 
 // HideoutDelete - delete hideout by id
 func HideoutDelete(id int64) error {
@@ -165,7 +165,7 @@ func HideoutDelete(id int64) error {
 			id = $1
 	`, id)
 	if err != nil {
-		errmsg("DeleteHideout Exec", err)
+		errmsg("HideoutDelete Exec", err)
 	}
 	return err
 }
