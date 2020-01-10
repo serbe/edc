@@ -8,14 +8,10 @@ import "context"
 // InvNum        - Инвентарный номер убежища
 // InvAdd        - дополнительный код инвентарного номера убежища
 // HideoutTypeID - номер типа защитного сооружения в базе данных
-// HideoutType   - тип защитного сооружения
 // Address       - Полный адрес места расположения убежища, с указанием строения, подъезда
 // OwnerID       - номер собственника в базе данных
-// Owner         - организация, собственник ЗС
 // DesignerID    - номер проектной организации в базе данных
-// Designer      - проектная организация
 // BuilderID     - номер строительной организации в базе данных
-// Builder       - строительная организация
 // Purpose       - назначение ЗС в мирное время
 // Commissioning - дата ввода в эксплуатацию
 // Readiness     - время приведения в готовность
@@ -35,49 +31,43 @@ import "context"
 // Sewerage      - система канализации
 // Implements    - оборудование (инструмент, инвентарь)
 // ContactID     - номер контактного лица в базе данных
-// Contact       - контактное лицо
 // Condition     - готовность к приему укрываемых
 // Note          - заметки
 // 	CreatedAt     - время создания записи в базе данных
 // 	UpdatedAt     - время изменения записи в базе данных
 type Hideout struct {
-	ID            int64       `sql:"id"              json:"id"              form:"id"              query:"id"`
-	Num           int64       `sql:"num"             json:"num"             form:"num"             query:"num"`
-	InvNum        int64       `sql:"inv_num"         json:"inv_num"         form:"inv_num"         query:"inv_num"`
-	InvAdd        int64       `sql:"inv_add"         json:"inv_add"         form:"inv_add"         query:"inv_add"`
-	HideoutTypeID int64       `sql:"hideout_type_id" json:"hideout_type_id" form:"hideout_type_id" query:"hideout_type_id"`
-	HideoutType   HideoutType `sql:"-"               json:"hideout_type"    form:"hideout_type"    query:"hideout_type"`
-	Address       string      `sql:"address"         json:"address"         form:"address"         query:"address"`
-	OwnerID       int64       `sql:"owner_id"        json:"owner_id"        form:"owner_id"        query:"owner_id"`
-	Owner         Company     `sql:"-"               json:"owner"           form:"owner"           query:"owner"`
-	DesignerID    int64       `sql:"designer_id"     json:"designer_id"     form:"designer_id"     query:"designer_id"`
-	Designer      Company     `sql:"-"               json:"designer"        form:"designer"        query:"designer"`
-	BuilderID     int64       `sql:"builder_id"      json:"builder_id"      form:"builder_id"      query:"builder_id"`
-	Builder       Company     `sql:"-"               json:"builder"         form:"builder"         query:"builder"`
-	Purpose       string      `sql:"purpose"         json:"purpose"         form:"purpose"         query:"purpose"`
-	Commissioning string      `sql:"commissioning"   json:"commissioning"   form:"commissioning"   query:"commissioning"`
-	Readiness     int64       `sql:"readiness"       json:"readiness"       form:"readiness"       query:"readiness"`
-	Capacity      int64       `sql:"capacity"        json:"capacity"        form:"capacity"        query:"capacity"`
-	Area          int64       `sql:"area"            json:"area"            form:"area"            query:"area"`
-	Size          int64       `sql:"size"            json:"size"            form:"size"            query:"size"`
-	Floors        int64       `sql:"floors"          json:"floors"          form:"floors"          query:"floors"`
-	Separate      bool        `sql:"separate"        json:"separate"        form:"separate"        query:"separate"`
-	Excavation    bool        `sql:"excavation"      json:"excavation"      form:"excavation"      query:"excavation"`
-	Inputs        int64       `sql:"inputs"          json:"inputs"          form:"inputs"          query:"inputs"`
-	Coefficient   int64       `sql:"coefficient"     json:"coefficient"     form:"coefficient"     query:"coefficient"`
-	Stress        int64       `sql:"stress"          json:"stress"          form:"stress"          query:"stress"`
-	Ventilation   string      `sql:"ventilation"     json:"ventilation"     form:"ventilation"     query:"ventilation"`
-	Heating       string      `sql:"heating"         json:"heating"         form:"heating"         query:"heating"`
-	Power         string      `sql:"power"           json:"power"           form:"power"           query:"power"`
-	Water         string      `sql:"water"           json:"water"           form:"water"           query:"water"`
-	Sewerage      string      `sql:"sewerage"        json:"sewerage"        form:"sewerage"        query:"sewerage"`
-	Implements    string      `sql:"implements"      json:"implements"      form:"implements"      query:"implements"`
-	ContactID     int64       `sql:"contact_id"      json:"contact_id"      form:"contact_id"      query:"contact_id"`
-	Contact       Contact     `sql:"-"               json:"contact"         form:"contact"         query:"contact"`
-	Condition     string      `sql:"condition"       json:"condition"       form:"condition"       query:"condition"`
-	Note          string      `sql:"note"            json:"note"            form:"note"            query:"note"`
-	CreatedAt     string      `sql:"created_at"      json:"-"`
-	UpdatedAt     string      `sql:"updated_at"      json:"-"`
+	ID            int64  `sql:"id"              json:"id"              form:"id"              query:"id"`
+	Num           int64  `sql:"num"             json:"num"             form:"num"             query:"num"`
+	InvNum        int64  `sql:"inv_num"         json:"inv_num"         form:"inv_num"         query:"inv_num"`
+	InvAdd        int64  `sql:"inv_add"         json:"inv_add"         form:"inv_add"         query:"inv_add"`
+	HideoutTypeID int64  `sql:"hideout_type_id" json:"hideout_type_id" form:"hideout_type_id" query:"hideout_type_id"`
+	Address       string `sql:"address"         json:"address"         form:"address"         query:"address"`
+	OwnerID       int64  `sql:"owner_id"        json:"owner_id"        form:"owner_id"        query:"owner_id"`
+	DesignerID    int64  `sql:"designer_id"     json:"designer_id"     form:"designer_id"     query:"designer_id"`
+	BuilderID     int64  `sql:"builder_id"      json:"builder_id"      form:"builder_id"      query:"builder_id"`
+	Purpose       string `sql:"purpose"         json:"purpose"         form:"purpose"         query:"purpose"`
+	Commissioning string `sql:"commissioning"   json:"commissioning"   form:"commissioning"   query:"commissioning"`
+	Readiness     int64  `sql:"readiness"       json:"readiness"       form:"readiness"       query:"readiness"`
+	Capacity      int64  `sql:"capacity"        json:"capacity"        form:"capacity"        query:"capacity"`
+	Area          int64  `sql:"area"            json:"area"            form:"area"            query:"area"`
+	Size          int64  `sql:"size"            json:"size"            form:"size"            query:"size"`
+	Floors        int64  `sql:"floors"          json:"floors"          form:"floors"          query:"floors"`
+	Separate      bool   `sql:"separate"        json:"separate"        form:"separate"        query:"separate"`
+	Excavation    bool   `sql:"excavation"      json:"excavation"      form:"excavation"      query:"excavation"`
+	Inputs        int64  `sql:"inputs"          json:"inputs"          form:"inputs"          query:"inputs"`
+	Coefficient   int64  `sql:"coefficient"     json:"coefficient"     form:"coefficient"     query:"coefficient"`
+	Stress        int64  `sql:"stress"          json:"stress"          form:"stress"          query:"stress"`
+	Ventilation   string `sql:"ventilation"     json:"ventilation"     form:"ventilation"     query:"ventilation"`
+	Heating       string `sql:"heating"         json:"heating"         form:"heating"         query:"heating"`
+	Power         string `sql:"power"           json:"power"           form:"power"           query:"power"`
+	Water         string `sql:"water"           json:"water"           form:"water"           query:"water"`
+	Sewerage      string `sql:"sewerage"        json:"sewerage"        form:"sewerage"        query:"sewerage"`
+	Implements    string `sql:"implements"      json:"implements"      form:"implements"      query:"implements"`
+	ContactID     int64  `sql:"contact_id"      json:"contact_id"      form:"contact_id"      query:"contact_id"`
+	Condition     string `sql:"condition"       json:"condition"       form:"condition"       query:"condition"`
+	Note          string `sql:"note"            json:"note"            form:"note"            query:"note"`
+	CreatedAt     string `sql:"created_at"      json:"-"`
+	UpdatedAt     string `sql:"updated_at"      json:"-"`
 }
 
 // HideoutList - struct for hideout list
@@ -104,36 +94,45 @@ type HideoutList struct {
 // 	return hideout, err
 // }
 
-// // HideoutListGet - get all hideout for list
-// func HideoutListGet() ([]HideoutList, error) {
-// 	var hideouts []HideoutList
-// 	_, err := pool.Query(context.Background(), `
-// 		SELECT
-// 			s.id,
-// 			s.address,
-// 			t.name AS hideout_type_name,
-// 			c.name AS contact_name,
-// 			array_agg(DISTINCT ph.phone) AS phones
-//         FROM
-// 			hideouts AS s
-// 		LEFT JOIN
-// 			hideout_types AS t ON s.type_id = t.id
-// 		LEFT JOIN
-// 			contacts AS c ON s.contact_id = c.id
-// 		LEFT JOIN
-// 			phones AS ph ON s.contact_id = ph.contact_id AND ph.fax = false
-// 		GROUP BY
-// 			s.id,
-// 			t.id,
-// 			c.id
-// 		ORDER BY
-// 			t.name ASC
-// 	`)
-// 	if err != nil {
-// 		errmsg("GetHideoutList Query", err)
-// 	}
-// 	return hideouts, err
-// }
+// HideoutListGet - get all hideout for list
+func HideoutListGet() ([]HideoutList, error) {
+	var hideouts []HideoutList
+	rows, err := pool.Query(context.Background(), `
+		SELECT
+			s.id,
+			s.address,
+			t.name AS hideout_type_name,
+			c.name AS contact_name,
+			array_agg(DISTINCT ph.phone) AS phones
+        FROM
+			hideouts AS s
+		LEFT JOIN
+			hideout_types AS t ON s.type_id = t.id
+		LEFT JOIN
+			contacts AS c ON s.contact_id = c.id
+		LEFT JOIN
+			phones AS ph ON s.contact_id = ph.contact_id AND ph.fax = false
+		GROUP BY
+			s.id,
+			t.id,
+			c.id
+		ORDER BY
+			t.name ASC
+	`)
+	if err != nil {
+		errmsg("HideoutListGet Query", err)
+	}
+	for rows.Next() {
+		var hideout HideoutList
+		err := rows.Scan(&hideout.ID, &hideout.Address, &hideout.HideoutTypeName, &hideout.ContactName, &hideout.Phones)
+		if err != nil {
+			errmsg("HideoutListGet Scan", err)
+			return hideouts, err
+		}
+		hideouts = append(hideouts, hideout)
+	}
+	return hideouts, rows.Err()
+}
 
 // // HideoutInsert - create new hideout
 // func HideoutInsert(hideout Hideout) (int64, error) {

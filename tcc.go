@@ -1,6 +1,9 @@
 package edc
 
-import "context"
+import (
+	"context"
+	"time"
+)
 
 // Tcc - struct for tcc
 type Tcc struct {
@@ -76,23 +79,53 @@ func TccListGet() ([]TccList, error) {
 	return tccs, rows.Err()
 }
 
-// // TccInsert - create new tcc
-// func TccInsert(tcc Tcc) (int64, error) {
-// 	err := pool.Insert(&tcc)
-// 	if err != nil {
-// 		errmsg("CreateTcc insert", err)
-// 	}
-// 	return tcc.ID, err
-// }
+// TccInsert - create new tcc
+func TccInsert(tcc Tcc) (int64, error) {
+	err := pool.QueryRow(context.Background(), `
+		INSERT INTO tccs
+		(
+			address,
+			contact_id,
+			company_id,
+			note,
+			created_at,
+			updated_at
+		)
+		VALUES
+		(
+			$1,
+			$2,
+			$3,
+			$4,
+			$5,
+			$6
+		)
+		RETURNING
+			id
+	`, tcc.Address, tcc.ContactID, tcc.CompanyID, tcc.Note, time.Now(), time.Now()).Scan(&tcc.ID)
+	if err != nil {
+		errmsg("CreateTcc insert", err)
+	}
+	return tcc.ID, err
+}
 
-// // TccUpdate - save tcc changes
-// func TccUpdate(tcc Tcc) error {
-// 	err := pool.Update(&tcc)
-// 	if err != nil {
-// 		errmsg("UpdateTcc update", err)
-// 	}
-// 	return err
-// }
+// TccUpdate - save tcc changes
+func TccUpdate(tcc Tcc) error {
+	_, err := pool.Exec(context.Background(), `
+		UPDATE tccs SET
+			address = $2,
+			contact_id = $3,
+			company_id = $4,
+			note = $5,
+			updated_at = $6
+		WHERE
+			id = $1
+	`, tcc.ID, tcc.Address, tcc.ContactID, tcc.CompanyID, tcc.Note, time.Now())
+	if err != nil {
+		errmsg("UpdateTcc update", err)
+	}
+	return err
+}
 
 // TccDelete - delete tcc by id
 func TccDelete(id int64) error {
