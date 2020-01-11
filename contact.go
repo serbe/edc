@@ -1,5 +1,10 @@
 package edc
 
+import (
+	"context"
+	"time"
+)
+
 // Contact is struct for contact
 type Contact struct {
 	ID           int64    `sql:"id"            json:"id"            form:"id"            query:"id"`
@@ -39,31 +44,56 @@ type ContactShort struct {
 	PostGOName     string `json:"post_go_name"    form:"post_go_name"    query:"post_go_name"`
 }
 
-// GetContact - get one contact by id
-func (e *Edb) GetContact(id int64) (Contact, error) {
+// ContactGet - get one contact by id
+func ContactGet(id int64) (Contact, error) {
 	var contact Contact
 	if id == 0 {
 		return contact, nil
 	}
-	err := e.db.Model(&contact).
-		Where("id = ?", id).
-		Select()
+	contact.ID = id
+	err := pool.QueryRow(context.Background(), `
+		SELECT
+			c.name,
+			c.company_id,
+			c.department_id,
+			c.post_id,
+			c.post_go_id,
+			c.rank_id,
+			c.birthday,
+			c.note,
+			c.created_at,
+			c.updated_at,
+			array_agg(DISTINCT e.email) AS emails,
+			array_agg(DISTINCT ph.phone) AS phones,
+			array_agg(DISTINCT f.phone) AS faxes,
+			array_agg(DISTINCT ed.start_date) AS educations
+		FROM
+			contacts AS c
+		LEFT JOIN
+			emails AS e ON c.id = e.contact_id
+		LEFT JOIN
+			phones AS ph ON c.id = ph.contact_id AND ph.fax = false
+		LEFT JOIN
+			phones AS f ON c.id = f.contact_id AND f.fax = true
+		LEFT JOIN
+			educations AS ed ON c.id = ed.contact_id
+		WHERE
+			c.id = $1
+		GROUP BY
+			c.id
+	`, id).Scan(&contact.Name, &contact.CompanyID, &contact.DepartmentID, &contact.PostID, &contact.PostGOID, &contact.RankID,
+		&contact.Birthday, &contact.Note, &contact.CreatedAt, &contact.UpdatedAt, &contact.Emails, &contact.Phones, &contact.Faxes, &contact.Educations)
 	if err != nil {
-		errmsg("GetContact select", err)
+		errmsg("GetContact QueryRow", err)
 		return contact, err
 	}
-	// contact.Educations, err = e.ContactEducations(contact.ID)
-	// if err != nil {
-	// 	errmsg("GetContact ContactEducations", err)
-	// 	return Contact{}, err
-	// }
 	return contact, err
 }
 
-// GetContactList - get all contacts for list
-func (e *Edb) GetContactList() ([]ContactList, error) {
+// ContactListGet - get all contacts for list
+func ContactListGet() ([]ContactList, error) {
 	var contacts []ContactList
-	_, err := e.db.Query(&contacts, `
+	rows, err := pool.Query(context.Background(), `
 		SELECT
 			c.id,
 			c.name,
@@ -90,44 +120,55 @@ func (e *Edb) GetContactList() ([]ContactList, error) {
 			name ASC
 	`)
 	if err != nil {
-		errmsg("GetContactList query", err)
+		errmsg("GetContactList Query", err)
 	}
-	return contacts, err
+	for rows.Next() {
+		var contact ContactList
+		err := rows.Scan(&contact.ID, &contact.Name, &contact.CompanyID, &contact.CompanyName,
+			&contact.PostName, &contact.Phones, &contact.Faxes)
+		if err != nil {
+			errmsg("GetContactList Scan", err)
+			return contacts, err
+		}
+		contacts = append(contacts, contact)
+	}
+	return contacts, rows.Err()
 }
 
-// GetContactSelect - get contact for select by id
-func (e *Edb) GetContactSelect(id int64) (SelectItem, error) {
-	var contact SelectItem
-	err := e.db.Model(&Contact{}).
-		Column("id", "name").
-		Where("id = ?", id).
-		Select(&contact)
-	if err != nil {
-		errmsg("GetContactSelect select", err)
-	}
-	return contact, err
-}
-
-// GetContactSelectAll - get all contacts for select
-func (e *Edb) GetContactSelectAll() ([]SelectItem, error) {
+// ContactSelectGet - get all contacts for select
+func ContactSelectGet() ([]SelectItem, error) {
 	var contacts []SelectItem
-	err := e.db.Model(&Contact{}).
-		Column("id", "name").
-		Order("name ASC").
-		Select(&contacts)
+	rows, err := pool.Query(context.Background(), `
+		SELECT
+			id,
+			name
+		FROM
+			contacts
+		ORDER BY
+			name ASC
+	`)
 	if err != nil {
-		errmsg("GetContactSelectAll select", err)
+		errmsg("ContactSelectGet Query", err)
 	}
-	return contacts, err
+	for rows.Next() {
+		var contact SelectItem
+		err := rows.Scan(&contact.ID, &contact.Name)
+		if err != nil {
+			errmsg("ContactSelectGet select", err)
+			return contacts, err
+		}
+		contacts = append(contacts, contact)
+	}
+	return contacts, rows.Err()
 }
 
-// GetContactCompany - get all contacts from company
-func (e *Edb) GetContactCompany(id int64) ([]ContactShort, error) {
+// ContactCompanyGet - get all contacts from company
+func ContactCompanyGet(id int64) ([]ContactShort, error) {
 	var contacts []ContactShort
 	if id == 0 {
 		return contacts, nil
 	}
-	_, err := e.db.Query(&contacts, `
+	rows, err := pool.Query(context.Background(), `
 		SELECT
 			c.id,
 			c.name,
@@ -147,57 +188,109 @@ func (e *Edb) GetContactCompany(id int64) ([]ContactShort, error) {
 	if err != nil {
 		errmsg("GetContactCompany query", err)
 	}
-	return contacts, err
+	for rows.Next() {
+		var contact ContactShort
+		err := rows.Scan(&contact.ID, &contact.Name, &contact.PostName, &contact.PostGOName)
+		if err != nil {
+			errmsg("GetCompanyList Scan", err)
+			return contacts, err
+		}
+		contacts = append(contacts, contact)
+	}
+	return contacts, rows.Err()
 }
 
-// CreateContact - create new contact
-func (e *Edb) CreateContact(contact Contact) (int64, error) {
-	err := e.db.Insert(&contact)
+// ContactInsert - create new contact
+func ContactInsert(contact Contact) (int64, error) {
+	err := pool.QueryRow(context.Background(), `
+		INSERT INTO contacts
+		(
+			name,
+			company_id,
+			department_id,
+			post_id,
+			post_go_id,
+			rank_id,
+			birthday,
+			note,
+			created_at,
+			updated_at
+		)
+		VALUES
+		(
+			$1,
+			$2,
+			$3,
+			$4,
+			$5,
+			$6,
+			$7,
+			$8,
+			$9,
+			$10
+		)
+		RETURNING
+			id
+	`, contact.Name, contact.CompanyID, contact.DepartmentID, contact.PostID, contact.PostGOID, contact.RankID, contact.Birthday, contact.Note,
+		time.Now(), time.Now()).Scan(&contact.ID)
 	if err != nil {
-		errmsg("CreateContact insert", err)
+		errmsg("ContactInsert QueryRow", err)
 		return 0, err
 	}
-	_ = e.UpdateContactEmails(contact)
-	_ = e.UpdateContactPhones(contact, false)
-	_ = e.UpdateContactPhones(contact, true)
-	// CreateContactEducations(contact)
+	_ = EmailContactUpdate(contact.ID, contact.Emails)
+	_ = PhoneContactUpdate(contact.ID, contact.Phones, false)
+	_ = PhoneContactUpdate(contact.ID, contact.Faxes, true)
 	return contact.ID, nil
 }
 
-// UpdateContact - save contact changes
-func (e *Edb) UpdateContact(contact Contact) error {
-	err := e.db.Update(&contact)
+// ContactUpdate - save contact changes
+func ContactUpdate(contact Contact) error {
+	_, err := pool.Exec(context.Background(), `
+		UPDATE contacts SET
+			name = $2,
+			company_id = $3,
+			department_id = $4,
+			post_id = $5,
+			post_go_id = $6,
+			rank_id = $7,
+			birthday = $8,
+			note = $9,
+			updated_at = $10
+		WHERE
+			id = $1
+	`, contact.ID, contact.Name, contact.CompanyID, contact.DepartmentID, contact.PostID, contact.PostGOID, contact.RankID, contact.Birthday,
+		contact.Note, time.Now())
 	if err != nil {
-		errmsg("UpdateContact update", err)
+		errmsg("ContactUpdate Exec", err)
 		return err
 	}
-	_ = e.UpdateContactEmails(contact)
-	_ = e.UpdateContactPhones(contact, false)
-	_ = e.UpdateContactPhones(contact, true)
-	// CreateContactEducations(contact)
+	_ = EmailContactUpdate(contact.ID, contact.Emails)
+	_ = PhoneContactUpdate(contact.ID, contact.Phones, false)
+	_ = PhoneContactUpdate(contact.ID, contact.Faxes, true)
 	return nil
 }
 
-// DeleteContact - delete contact by id
-func (e *Edb) DeleteContact(id int64) error {
+// ContactDelete - delete contact by id
+func ContactDelete(id int64) error {
 	if id == 0 {
 		return nil
 	}
-	err := e.DeleteAllContactPhones(id)
+	_ = EmailContactDelete(id)
+	_ = PhoneContactDelete(id, true)
+	_ = PhoneContactDelete(id, false)
+	_, err := pool.Exec(context.Background(), `
+		DELETE FROM
+			contacts
+		WHERE
+			id = $1
+	`, id)
 	if err != nil {
-		errmsg("DeleteContact DeleteAllContactPhones", err)
-		return err
-	}
-	_, err = e.db.Model(&Contact{}).
-		Where("id = ?", id).
-		Delete()
-	if err != nil {
-		errmsg("DeleteContact delete", err)
+		errmsg("ContactDelete Exec", err)
 	}
 	return err
 }
 
-func (e *Edb) contactCreateTable() error {
+func contactCreateTable() error {
 	str := `
 		CREATE TABLE IF NOT EXISTS
 			contacts (
@@ -215,7 +308,7 @@ func (e *Edb) contactCreateTable() error {
 				UNIQUE(name, birthday)
 			)
 	`
-	_, err := e.db.Exec(str)
+	_, err := pool.Exec(context.Background(), str)
 	if err != nil {
 		errmsg("contactCreateTable exec", err)
 	}

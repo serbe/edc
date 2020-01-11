@@ -1,5 +1,10 @@
 package edc
 
+import (
+	"context"
+	"time"
+)
+
 // Siren - struct for siren
 type Siren struct {
 	ID          int64  `sql:"id"            json:"id"            form:"id"            query:"id"`
@@ -29,25 +34,46 @@ type SirenList struct {
 	Phones        []string `sql:"phones"          json:"phones"          form:"phones"          query:"phones"          pg:",array"`
 }
 
-// GetSiren - get one siren by id
-func (e *Edb) GetSiren(id int64) (Siren, error) {
+// SirenGet - get one siren by id
+func SirenGet(id int64) (Siren, error) {
 	var siren Siren
 	if id == 0 {
 		return siren, nil
 	}
-	err := e.db.Model(&siren).
-		Where("id = ?", id).
-		Select()
+	siren.ID = id
+	err := pool.QueryRow(context.Background(), `
+		SELECT
+			num_id,
+			num_pass,
+			siren_type_id,
+			address,
+			radio,
+			desk,
+			contact_id,
+			company_id,
+			latitude,
+			longitude,
+			stage,
+			own,
+			note,
+			created_at,
+			updated_at
+		FROM
+			sirens
+		WHERE
+			id = $1
+	`, id).Scan(&siren.NumID, &siren.NumPass, &siren.SirenTypeID, &siren.Address, &siren.Radio, &siren.Desk, &siren.ContactID, &siren.CompanyID,
+		&siren.Latitude, &siren.Longitude, &siren.Stage, &siren.Own, &siren.Note, &siren.CreatedAt, &siren.UpdatedAt)
 	if err != nil {
-		errmsg("GetSiren select", err)
+		errmsg("SirenGet QueryRow", err)
 	}
 	return siren, err
 }
 
-// GetSirenList - get all siren for list
-func (e *Edb) GetSirenList() ([]SirenList, error) {
+// SirenListGet - get all siren for list
+func SirenListGet() ([]SirenList, error) {
 	var sirens []SirenList
-	_, err := e.db.Query(&sirens, `
+	rows, err := pool.Query(context.Background(), `
 		SELECT
 			s.id,
 			s.address,
@@ -70,44 +96,115 @@ func (e *Edb) GetSirenList() ([]SirenList, error) {
 			t.name ASC
 	`)
 	if err != nil {
-		errmsg("GetSirenList Query", err)
+		errmsg("SirenListGet Query", err)
 	}
-	return sirens, err
+	for rows.Next() {
+		var siren SirenList
+		err := rows.Scan(&siren.ID, &siren.Address, &siren.SirenTypeName, &siren.ContactName, &siren.Phones)
+		if err != nil {
+			errmsg("SirenListGet Scan", err)
+			return sirens, err
+		}
+		sirens = append(sirens, siren)
+	}
+	return sirens, rows.Err()
 }
 
-// CreateSiren - create new siren
-func (e *Edb) CreateSiren(siren Siren) (int64, error) {
-	err := e.db.Insert(&siren)
+// SirenInsert - create new siren
+func SirenInsert(siren Siren) (int64, error) {
+	err := pool.QueryRow(context.Background(), `
+		INSERT INTO sirens
+		(
+			num_id,
+			num_pass,
+			siren_type_id,
+			address,
+			radio,
+			desk,
+			contact_id,
+			company_id,
+			latitude,
+			longitude,
+			stage,
+			own,
+			note,
+			created_at,
+			updated_at
+		)
+		VALUES
+		(
+			$1,
+			$2,
+			$3,
+			$4,
+			$5,
+			$6,
+			$7,
+			$8,
+			$9,
+			$10,
+			$11,
+			$12,
+			$13,
+			$14,
+			$15
+		)
+		RETURNING
+			id
+	`, siren.NumID, siren.NumPass, siren.SirenTypeID, siren.Address, siren.Radio, siren.Desk, siren.ContactID, siren.CompanyID,
+		siren.Latitude, siren.Longitude, siren.Stage, siren.Own, siren.Note, time.Now(), time.Now()).Scan(&siren.ID)
 	if err != nil {
-		errmsg("CreateSiren insert", err)
+		errmsg("SirenInsert QueryRow", err)
 	}
 	return siren.ID, err
 }
 
-// UpdateSiren - save siren changes
-func (e *Edb) UpdateSiren(siren Siren) error {
-	err := e.db.Update(&siren)
+// SirenUpdate - save siren changes
+func SirenUpdate(siren Siren) error {
+	_, err := pool.Exec(context.Background(), `
+		UPDATE sirens SET
+			num_id = $2,
+			num_pass = $3,
+			siren_type_id = $4,
+			address = $5,
+			radio = $6,
+			desk = $7,
+			contact_id = $8,
+			company_id = $9,
+			latitude = $10,
+			longitude = $11,
+			stage = $12,
+			own = $13,
+			note = $14,
+			updated_at = $15
+		WHERE
+			id = $1
+	`, siren.ID, siren.NumID, siren.NumPass, siren.SirenTypeID, siren.Address, siren.Radio, siren.Desk, siren.ContactID, siren.CompanyID,
+		siren.Latitude, siren.Longitude, siren.Stage, siren.Own, siren.Note, time.Now())
 	if err != nil {
-		errmsg("UpdateSiren update", err)
+		errmsg("SirenUpdate Exec", err)
 	}
 	return err
 }
 
-// DeleteSiren - delete siren by id
-func (e *Edb) DeleteSiren(id int64) error {
+// SirenDelete - delete siren by id
+func SirenDelete(id int64) error {
 	if id == 0 {
 		return nil
 	}
-	_, err := e.db.Model(&Siren{}).
-		Where("id = ?", id).
-		Delete()
+	_, err := pool.Exec(context.Background(), `
+		DELETE FROM
+			sirens
+		WHERE
+			id = $1
+	`, id)
 	if err != nil {
-		errmsg("DeleteSiren delete", err)
+		errmsg("DeleteSiren Exec", err)
 	}
 	return err
 }
 
-func (e *Edb) sirenCreateTable() error {
+func sirenCreateTable() error {
 	str := `
 		CREATE TABLE IF NOT EXISTS
 			sirens (
@@ -130,7 +227,7 @@ func (e *Edb) sirenCreateTable() error {
 				UNIQUE(num_id, num_pass, type_id)
 			)
 	`
-	_, err := e.db.Exec(str)
+	_, err := pool.Exec(context.Background(), str)
 	if err != nil {
 		errmsg("sirenCreateTable exec", err)
 	}

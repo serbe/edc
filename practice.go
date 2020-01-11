@@ -1,5 +1,10 @@
 package edc
 
+import (
+	"context"
+	"time"
+)
+
 // Practice - struct for practice
 type Practice struct {
 	ID             int64  `sql:"id"               json:"id"               form:"id"               query:"id"`
@@ -35,70 +40,55 @@ type PracticeShort struct {
 	DateOfPractice string `sql:"date_of_practice" json:"date_of_practice" form:"date_of_practice" query:"date_of_practice"`
 }
 
-// GetPractice - get one practice by id
-func (e *Edb) GetPractice(id int64) (Practice, error) {
+// PracticeGet - get one practice by id
+func PracticeGet(id int64) (Practice, error) {
 	var practice Practice
 	if id == 0 {
 		return practice, nil
 	}
-	err := e.db.Model(&practice).
-		Where("id = ?", id).
-		Select()
+	practice.ID = id
+	err := pool.QueryRow(context.Background(), `
+		SELECT
+			company_id,
+			kind_id,
+			topic,
+			date_of_practice,
+			note,
+			created_at,
+			updated_at
+		FROM
+			practices
+		WHERE
+			id = $1
+	`, id).Scan(&practice.CompanyID, &practice.KindID, &practice.Topic, &practice.DateOfPractice, &practice.Note,
+		&practice.CreatedAt, &practice.UpdatedAt)
 	if err != nil {
-		errmsg("GetPractice select", err)
+		errmsg("PracticeGet QueryRow", err)
 		return practice, err
 	}
 	return practice, err
 }
 
-// GetPracticeList - get practice by id for list
-func (e *Edb) GetPracticeList(id int64) (PracticeList, error) {
-	var practice PracticeList
-	_, err := e.db.Query(practice, `
-	SELECT
-		p.id,
-		p.company_id,
-		c.name AS company_name,
-		p.kind_id,
-		k.name AS kind_name,
-		k.short_name AS kind_short_name,
-		p.date_of_practice,
-		p.topic
-	FROM
-		practices AS p
-	LEFT JOIN
-		companies AS c ON c.id = p.company_id
-	LEFT JOIN
-		kinds AS k ON k.id = p.kind_id
-	WHERE
-		id = ?`, id)
-	if err != nil {
-		errmsg("GetPracticeList query", err)
-	}
-	practice.DateStr = setStrMonth(practice.DateOfPractice)
-	return practice, err
-}
-
-// GetPracticeListAll - get all practices for list
-func (e *Edb) GetPracticeListAll() ([]PracticeList, error) {
+// PracticeListGet - get all practices for list
+func PracticeListGet() ([]PracticeList, error) {
 	var practices []PracticeList
-	_, err := e.db.Query(&practices, `
-	SELECT
-		p.id,
-		p.company_id,
-		c.name AS company_name,
-		k.name AS kind_name,
-		k.short_name AS kind_short_name,
-		p.date_of_practice,
-		p.topic
-	FROM
-		practices AS p
-	LEFT JOIN
-		companies AS c ON c.id = p.company_id
-	LEFT JOIN
-		kinds AS k ON k.id = p.kind_id
-	ORDER BY
-		date_of_practice DESC`)
+	_, err := pool.Query(context.Background(), `
+		SELECT
+			p.id,
+			p.company_id,
+			c.name AS company_name,
+			k.name AS kind_name,
+			k.short_name AS kind_short_name,
+			p.date_of_practice,
+			p.topic
+		FROM
+			practices AS p
+		LEFT JOIN
+			companies AS c ON c.id = p.company_id
+		LEFT JOIN
+			kinds AS k ON k.id = p.kind_id
+		ORDER BY
+			date_of_practice DESC`)
 	if err != nil {
 		errmsg("GetPracticeList query", err)
 	}
@@ -108,44 +98,55 @@ func (e *Edb) GetPracticeListAll() ([]PracticeList, error) {
 	return practices, err
 }
 
-// GetPracticeCompany - get all practices of company
-func (e *Edb) GetPracticeCompany(id int64) ([]PracticeList, error) {
+// PracticeCompanyGet - get all practices of company
+func PracticeCompanyGet(id int64) ([]PracticeList, error) {
 	var practices []PracticeList
 	if id == 0 {
 		return practices, nil
 	}
-	_, err := e.db.Query(&practices, `
-	SELECT
-		p.id,
-		p.company_id,
-		c.name AS company_name,
-		k.name AS kind_name,
-		k.short_name AS kind_short_name,
-		p.date_of_practice,
-		p.topic
-	FROM
-		practices AS p
-	LEFT JOIN
-		companies AS c ON c.id = p.company_id
-	LEFT JOIN
-		kinds AS k ON k.id = p.kind_id
-	WHERE
-		p.company_id = ?
-	ORDER BY
-		date_of_practice DESC`, id)
-	for i := range practices {
-		practices[i].DateStr = setStrMonth(practices[i].DateOfPractice)
-	}
+	rows, err := pool.Query(context.Background(), `
+		SELECT
+			p.id,
+			p.company_id,
+			c.name AS company_name,
+			p.kind_id,
+			k.name AS kind_name,
+			k.short_name AS kind_short_name,
+			p.date_of_practice,
+			p.topic
+		FROM
+			practices AS p
+		LEFT JOIN
+			companies AS c ON c.id = p.company_id
+		LEFT JOIN
+			kinds AS k ON k.id = p.kind_id
+		WHERE
+			p.company_id = $1
+		ORDER BY
+			date_of_practice DESC
+	`, id)
 	if err != nil {
-		errmsg("GetPracticeCompany select", err)
+		errmsg("GetPracticeCompany query", err)
+		return practices, err
 	}
-	return practices, err
+	for rows.Next() {
+		var practice PracticeList
+		err := rows.Scan(&practice.ID, &practice.CompanyID, &practice.CompanyName,
+			&practice.KindID, &practice.KindName, &practice.KindShortName, &practice.DateOfPractice, &practice.Topic)
+		if err != nil {
+			errmsg("GetPracticeCompany select", err)
+			return practices, err
+		}
+		practice.DateStr = setStrMonth(practice.DateOfPractice)
+		practices = append(practices, practice)
+	}
+	return practices, rows.Err()
 }
 
-// GetPracticeNear - get 10 nearest practices
-func (e *Edb) GetPracticeNear() ([]PracticeShort, error) {
+// PracticeNearGet - get 10 nearest practices
+func PracticeNearGet() ([]PracticeShort, error) {
 	var practices []PracticeShort
-	_, err := e.db.Query(&practices, `
+	_, err := pool.Query(context.Background(), `
 		SELECT
 			p.id,
 			p.company_id,
@@ -170,39 +171,77 @@ func (e *Edb) GetPracticeNear() ([]PracticeShort, error) {
 	return practices, err
 }
 
-// CreatePractice - create new practice
-func (e *Edb) CreatePractice(practice Practice) (int64, error) {
-	err := e.db.Insert(&practice)
+// PracticeInsert - create new practice
+func PracticeInsert(practice Practice) (int64, error) {
+	err := pool.QueryRow(context.Background(), `
+		INSERT INTO practices
+		(
+			company_id,
+			kind_id,
+			topic,
+			date_of_practice,
+			note,
+			created_at,
+			updated_at
+		)
+		VALUES
+		(
+			$1,
+			$2,
+			$3,
+			$4,
+			$5,
+			$6,
+			$7
+		)
+		RETURNING
+			id
+	`, practice.CompanyID, practice.KindID, practice.Topic, practice.DateOfPractice,
+		practice.Note, time.Now(), time.Now()).Scan(&practice.ID)
 	if err != nil {
-		errmsg("CreatePractice insert", err)
+		errmsg("PracticeInsert QueryRow", err)
 	}
 	return practice.ID, err
 }
 
-// UpdatePractice - save practice changes
-func (e *Edb) UpdatePractice(practice Practice) error {
-	err := e.db.Update(&practice)
+// PracticeUpdate - save practice changes
+func PracticeUpdate(practice Practice) error {
+	_, err := pool.Exec(context.Background(), `
+		UPDATE practices SET
+			company_id = $2,
+			kind_id = $3,
+			topic = $4,
+			date_of_practice = $5,
+			note = $6,
+			updated_at = $7
+		WHERE
+			id = $1
+	`, practice.ID, practice.CompanyID, practice.KindID, practice.Topic, practice.DateOfPractice,
+		practice.Note, time.Now())
 	if err != nil {
-		errmsg("UpdatePractice update", err)
+		errmsg("PracticeUpdate Exec", err)
 	}
 	return err
 }
 
-// DeletePractice - delete practice by id
-func (e *Edb) DeletePractice(id int64) error {
+// PracticeDelete - delete practice by id
+func PracticeDelete(id int64) error {
 	if id == 0 {
 		return nil
 	}
-	_, err := e.db.Model(&Practice{}).
-		Where("id = ?", id).
-		Delete()
+	_, err := pool.Exec(context.Background(), `
+		DELETE FROM
+			practices
+		WHERE
+			id = $1
+	`, id)
 	if err != nil {
-		errmsg("DeletePractice delete", err)
+		errmsg("DeletePractice Exec", err)
 	}
 	return err
 }
 
-func (e *Edb) practiceCreateTable() error {
+func practiceCreateTable() error {
 	str := `
 		CREATE TABLE IF NOT EXISTS
 			practices (
@@ -216,7 +255,7 @@ func (e *Edb) practiceCreateTable() error {
 				updated_at TIMESTAMP without time zone default now()
 			)
 	`
-	_, err := e.db.Exec(str)
+	_, err := pool.Exec(context.Background(), str)
 	if err != nil {
 		errmsg("practiceCreateTable exec", err)
 	}

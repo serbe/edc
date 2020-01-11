@@ -1,5 +1,9 @@
 package edc
 
+import "context"
+
+import "time"
+
 // Scope - struct for scope
 type Scope struct {
 	ID        int64  `sql:"id"         json:"id"   form:"id"   query:"id"`
@@ -16,109 +20,145 @@ type ScopeList struct {
 	Note string `sql:"note" json:"note" form:"note" query:"note"`
 }
 
-// GetScope - get one scope by id
-func (e *Edb) GetScope(id int64) (Scope, error) {
+// ScopeGet - get one scope by id
+func ScopeGet(id int64) (Scope, error) {
 	var scope Scope
 	if id == 0 {
 		return scope, nil
 	}
-	err := e.db.Model(&scope).
-		Where("id = ?", id).
-		Select()
+	scope.ID = id
+	err := pool.QueryRow(context.Background(), `
+		SELECT
+			name,
+			note,
+			created_at,
+			updated_at
+		FROM
+			scopes
+		WHERE
+			id = $1
+	`, id).Scan(scope.Name, scope.Note, scope.CreatedAt, scope.UpdatedAt)
 	if err != nil {
-		errmsg("GetScope select", err)
+		errmsg("ScopeGet QueryRow", err)
 	}
 	return scope, err
 }
 
-// GetScopeList - get scope for list by id
-func (e *Edb) GetScopeList(id int64) (ScopeList, error) {
-	var scope ScopeList
-	err := e.db.Model(&Scope{}).
-		Column("id", "name", "note").
-		Where("id = ?", id).
-		Select(&scope)
-	if err != nil {
-		errmsg("GetScopeList select", err)
-	}
-	return scope, err
-}
-
-// GetScopeListAll - get all scope for list
-func (e *Edb) GetScopeListAll() ([]ScopeList, error) {
+// ScopeListGet - get all scope for list
+func ScopeListGet() ([]ScopeList, error) {
 	var scopes []ScopeList
-	err := e.db.Model(&Scope{}).
-		Column("id", "name", "note").
-		Order("name ASC").
-		Select(&scopes)
+	rows, err := pool.Query(context.Background(), `
+		SELECT
+			id,
+			name,
+			note
+		FROM
+			scopes
+		ORDER BY
+			name ASC
+	`)
 	if err != nil {
-		errmsg("GetScopeListAll select", err)
+		errmsg("ScopeListGet Query", err)
 	}
-	return scopes, err
+	for rows.Next() {
+		var scope ScopeList
+		err := rows.Scan(&scope.ID, &scope.Name, &scope.Note)
+		if err != nil {
+			errmsg("ScopeListGet Scan", err)
+			return scopes, err
+		}
+		scopes = append(scopes, scope)
+	}
+	return scopes, rows.Err()
 }
 
-// GetScopeSelect - get scope for select
-func (e *Edb) GetScopeSelect(id int64) (SelectItem, error) {
-	var scope SelectItem
-	if id == 0 {
-		return scope, nil
-	}
-	err := e.db.Model(&Scope{}).
-		Column("id", "name").
-		Where("id = ?", id).
-		Select(&scope)
-	if err != nil {
-		errmsg("GetScopeSelect select", err)
-	}
-	return scope, err
-}
-
-// GetScopeSelectAll - get all scope for select
-func (e *Edb) GetScopeSelectAll() ([]SelectItem, error) {
+// ScopeSelectGet - get all scope for select
+func ScopeSelectGet() ([]SelectItem, error) {
 	var scopes []SelectItem
-	err := e.db.Model(&Scope{}).
-		Column("id", "name").
-		Order("name ASC").
-		Select(&scopes)
+	rows, err := pool.Query(context.Background(), `
+		SELECT
+			id,
+			name
+		FROM
+			scopes
+		ORDER BY
+			name ASC
+	`)
 	if err != nil {
-		errmsg("GetScopeSelectAll query", err)
+		errmsg("CompanySelectGet Query", err)
 	}
-	return scopes, err
+	for rows.Next() {
+		var scope SelectItem
+		err := rows.Scan(&scope.ID, &scope.Name)
+		if err != nil {
+			errmsg("ScopeSelectGet Scan", err)
+			return scopes, err
+		}
+		scopes = append(scopes, scope)
+	}
+	return scopes, rows.Err()
 }
 
-// CreateScope - create new scope
-func (e *Edb) CreateScope(scope Scope) (int64, error) {
-	err := e.db.Insert(&scope)
+// ScopeInsert - create new scope
+func ScopeInsert(scope Scope) (int64, error) {
+	err := pool.QueryRow(context.Background(), `
+		INSERT INTO scopes
+		(
+			name,
+			note,
+			created_at,
+			updated_at
+		)
+		VALUES
+		(
+			$1,
+			$2,
+			$3,
+			$4
+		)
+		RETURNING
+			id
+	`, scope.Name, scope.Note, time.Now(), time.Now()).Scan(&scope.ID)
 	if err != nil {
-		errmsg("CreateScope insert", err)
+		errmsg("ScopeInsert QueryRow", err)
 	}
 	return scope.ID, err
 }
 
-// UpdateScope - save scope changes
-func (e *Edb) UpdateScope(scope Scope) error {
-	err := e.db.Update(&scope)
+// ScopeUpdate - save scope changes
+func ScopeUpdate(scope Scope) error {
+	_, err := pool.Exec(context.Background(), `
+		UPDATE scopes SET
+			name = $2,
+			note = $3,
+			updated_at = $4
+		WHERE
+			id = $1
+	`, scope.ID, scope.Name, scope.Note, time.Now())
 	if err != nil {
-		errmsg("UpdateScope update", err)
+		errmsg("ScopeUpdate Exec", err)
 	}
 	return err
 }
 
-// DeleteScope - delete scope by id
-func (e *Edb) DeleteScope(id int64) error {
+// ScopeDelete - delete scope by id
+func ScopeDelete(id int64) error {
 	if id == 0 {
 		return nil
 	}
-	_, err := e.db.Model(&Scope{}).
-		Where("id = ?", id).
-		Delete()
+	_, err := pool.Exec(context.Background(), `
+		DELETE FROM
+			scopes
+		WHERE
+			id = $1
+	`, id)
 	if err != nil {
-		errmsg("DeleteScope delete", err)
+		errmsg("ScopeDelete Exec", err)
 	}
 	return err
 }
 
-func (e *Edb) scopeCreateTable() error {
+func scopeCreateTable() error {
 	str := `
 		CREATE TABLE IF NOT EXISTS
 			scopes (
@@ -130,9 +170,9 @@ func (e *Edb) scopeCreateTable() error {
 				UNIQUE (name)
 			)
 	`
-	_, err := e.db.Exec(str)
+	_, err := pool.Exec(context.Background(), str)
 	if err != nil {
-		errmsg("scopeCreateTable exec", err)
+		errmsg("scopeCreateTable Exec", err)
 	}
 	return err
 }

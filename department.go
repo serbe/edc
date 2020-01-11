@@ -1,5 +1,10 @@
 package edc
 
+import (
+	"context"
+	"time"
+)
+
 // Department - struct for department
 type Department struct {
 	ID        int64  `sql:"id"         json:"id"   form:"id"   query:"id"`
@@ -16,109 +21,145 @@ type DepartmentList struct {
 	Note string `sql:"note" json:"note" form:"note" query:"note"`
 }
 
-// GetDepartment - get one department by id
-func (e *Edb) GetDepartment(id int64) (Department, error) {
+// DepartmentGet - get one department by id
+func DepartmentGet(id int64) (Department, error) {
 	var department Department
 	if id == 0 {
 		return department, nil
 	}
-	err := e.db.Model(&department).
-		Where("id = ?", id).
-		Select()
+	department.ID = id
+	err := pool.QueryRow(context.Background(), `
+		SELECT
+			name,
+			note,
+			created_at,
+			updated_at
+		FROM
+			departments
+		WHERE
+			id = $1
+	`, id).Scan(&department.Name, &department.Note, time.Now(), time.Now())
 	if err != nil {
-		errmsg("GetDepartment select", err)
+		errmsg("DepartmentGet QueryRow", err)
 	}
 	return department, err
 }
 
-// GetDepartmentList - get department for list by id
-func (e *Edb) GetDepartmentList(id int64) (DepartmentList, error) {
-	var department DepartmentList
-	err := e.db.Model(&Department{}).
-		Column("id", "name", "note").
-		Where("id = ?", id).
-		Select(&department)
-	if err != nil {
-		errmsg("GetDepartmentList select", err)
-	}
-	return department, err
-}
-
-// GetDepartmentListAll - get all department for list
-func (e *Edb) GetDepartmentListAll() ([]DepartmentList, error) {
+// DepartmentListGet - get all department for list
+func DepartmentListGet() ([]DepartmentList, error) {
 	var departments []DepartmentList
-	err := e.db.Model(&Department{}).
-		Column("id", "name", "note").
-		Order("name ASC").
-		Select(&departments)
+	rows, err := pool.Query(context.Background(), `
+		SELECT
+			id,
+			name,
+			note
+		FROM
+			departments
+		ORDER BY
+			name ASC
+	`)
 	if err != nil {
-		errmsg("GetDepartmentList select", err)
+		errmsg("DepartmentListGet Query", err)
 	}
-	return departments, err
+	for rows.Next() {
+		var department DepartmentList
+		err := rows.Scan(&department.ID, &department.Name, &department.Note)
+		if err != nil {
+			errmsg("DepartmentListGet Scan", err)
+			return departments, err
+		}
+		departments = append(departments, department)
+	}
+	return departments, rows.Err()
 }
 
-// GetDepartmentSelect - get department for select
-func (e *Edb) GetDepartmentSelect(id int64) (SelectItem, error) {
-	var department SelectItem
-	if id == 0 {
-		return department, nil
-	}
-	err := e.db.Model(&Department{}).
-		Column("id", "name").
-		Where("id = ?", id).
-		Select(&department)
-	if err != nil {
-		errmsg("GetDepartmentSelect select", err)
-	}
-	return department, err
-}
-
-// GetDepartmentSelectAll - get all department for select
-func (e *Edb) GetDepartmentSelectAll() ([]SelectItem, error) {
+// DepartmentSelectGet - get all department for select
+func DepartmentSelectGet() ([]SelectItem, error) {
 	var departments []SelectItem
-	err := e.db.Model(&Department{}).
-		Column("id", "name").
-		Order("name ASC").
-		Select(&departments)
+	rows, err := pool.Query(context.Background(), `
+		SELECT
+			id,
+			name
+		FROM
+			departments
+		ORDER BY
+			name ASC
+	`)
 	if err != nil {
-		errmsg("GetDepartmentSelectAll select", err)
+		errmsg("CompanySelectGet Query", err)
 	}
-	return departments, err
+	for rows.Next() {
+		var department SelectItem
+		err := rows.Scan(&department.ID, &department.Name)
+		if err != nil {
+			errmsg("CompanySelectGet Scan", err)
+			return departments, err
+		}
+		departments = append(departments, department)
+	}
+	return departments, rows.Err()
 }
 
-// CreateDepartment - create new department
-func (e *Edb) CreateDepartment(department Department) (int64, error) {
-	err := e.db.Insert(&department)
+// DepartmentInsert - create new department
+func DepartmentInsert(department Department) (int64, error) {
+	err := pool.QueryRow(context.Background(), `
+		INSERT INTO departments
+		(
+			name,
+			note,
+			created_at,
+			updated_at
+		)
+		VALUES
+		(
+			$1,
+			$2,
+			$3,
+			$4
+		)
+		RETURNING
+			id
+	`, department.Name, department.Note, time.Now(), time.Now()).Scan(&department.ID)
 	if err != nil {
-		errmsg("CreateDepartment insert", err)
+		errmsg("DepartmentInsert QueryRow", err)
 	}
 	return department.ID, nil
 }
 
-// UpdateDepartment - save department changes
-func (e *Edb) UpdateDepartment(department Department) error {
-	err := e.db.Update(&department)
+// DepartmentUpdate - save department changes
+func DepartmentUpdate(department Department) error {
+	_, err := pool.Exec(context.Background(), `
+		UPDATE departments SET
+			name = $2,
+			note = $3,
+			updated_at = $4
+		WHERE
+			id = $1
+	`, department.ID, department.Name, department.Note, time.Now())
 	if err != nil {
-		errmsg("UpdateDepartment update", err)
+		errmsg("DepartmentUpdate Exec", err)
 	}
 	return err
 }
 
-// DeleteDepartment - delete department by id
-func (e *Edb) DeleteDepartment(id int64) error {
+// DepartmentDelete - delete department by id
+func DepartmentDelete(id int64) error {
 	if id == 0 {
 		return nil
 	}
-	_, err := e.db.Model(&Department{}).
-		Where("id = ?", id).
-		Delete()
+	_, err := pool.Exec(context.Background(), `
+		DELETE FROM
+			departments
+		WHERE
+			id = $1
+	`, id)
 	if err != nil {
-		errmsg("DeleteDepartment delete", err)
+		errmsg("DeleteDepartment Exec", err)
 	}
 	return err
 }
 
-func (e *Edb) departmentCreateTable() error {
+func departmentCreateTable() error {
 	str := `
 		CREATE TABLE IF NOT EXISTS
 			departments (
@@ -130,7 +171,7 @@ func (e *Edb) departmentCreateTable() error {
 				UNIQUE(name)
 			)
 	`
-	_, err := e.db.Exec(str)
+	_, err := pool.Exec(context.Background(), str)
 	if err != nil {
 		errmsg("departmentCreateTable exec", err)
 	}

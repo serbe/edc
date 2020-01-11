@@ -1,5 +1,10 @@
 package edc
 
+import (
+	"context"
+	"time"
+)
+
 // Rank - struct for rank
 type Rank struct {
 	ID        int64  `sql:"id"         json:"id"   form:"id"   query:"id"`
@@ -16,110 +21,145 @@ type RankList struct {
 	Note string `sql:"note" json:"note" form:"note" query:"note"`
 }
 
-// GetRank - get one rank by id
-func (e *Edb) GetRank(id int64) (Rank, error) {
+// RankGet - get one rank by id
+func RankGet(id int64) (Rank, error) {
 	var rank Rank
 	if id == 0 {
 		return rank, nil
 	}
-	err := e.db.Model(&rank).
-		Where("id = ?", id).
-		Select()
+	rank.ID = id
+	err := pool.QueryRow(context.Background(), `
+		SELECT
+			name,
+			note,
+			created_at,
+			updated_at
+		FROM
+			ranks
+		WHERE
+			id = $1
+	`, id).Scan(&rank.Name, &rank.Note, &rank.CreatedAt, &rank.UpdatedAt)
 	if err != nil {
-		errmsg("GetRank select", err)
+		errmsg("RankGet QueryRow", err)
 	}
 	return rank, err
 }
 
-// GetRankList - get rank for list by id
-func (e *Edb) GetRankList(id int64) (RankList, error) {
-	var rank RankList
-	err := e.db.Model(&Rank{}).
-		Column("id", "name", "note").
-		Where("id = ?", id).
-		Select(&rank)
-	if err != nil {
-		errmsg("GetRankList query", err)
-	}
-	return rank, err
-}
-
-// GetRankListAll - get all rank for list
-func (e *Edb) GetRankListAll() ([]RankList, error) {
+// RankListGet - get all rank for list
+func RankListGet() ([]RankList, error) {
 	var ranks []RankList
-	err := e.db.Model(&Rank{}).
-		Column("id", "name", "note").
-		Order("name ASC").
-		Select(&ranks)
+	rows, err := pool.Query(context.Background(), `
+		SELECT
+			id,
+			name,
+			note
+		FROM
+			ranks
+		ORDER BY
+			name ASC
+	`)
 	if err != nil {
-		errmsg("GetRankListAll query", err)
+		errmsg("RankListGet Query", err)
 	}
-	return ranks, err
+	for rows.Next() {
+		var rank RankList
+		err := rows.Scan(&rank.ID, &rank.Name, &rank.Note)
+		if err != nil {
+			errmsg("PostListGet Scan", err)
+			return ranks, err
+		}
+		ranks = append(ranks, rank)
+	}
+	return ranks, rows.Err()
 }
 
-// GetRankSelect - get all rank for select
-func (e *Edb) GetRankSelect(id int64) (SelectItem, error) {
-	var rank SelectItem
-	if id == 0 {
-		return rank, nil
-	}
-	err := e.db.Model(&Rank{}).
-		Column("id", "name").
-		Where("id = ?", id).
-		Order("name ASC").
-		Select(&rank)
-	if err != nil {
-		errmsg("GetRankSelect query", err)
-	}
-	return rank, err
-}
-
-// GetRankSelectAll - get all rank for select
-func (e *Edb) GetRankSelectAll() ([]SelectItem, error) {
+// RankSelectGet - get all rank for select
+func RankSelectGet() ([]SelectItem, error) {
 	var ranks []SelectItem
-	err := e.db.Model(&Rank{}).
-		Column("id", "name").
-		Order("name ASC").
-		Select(&ranks)
+	rows, err := pool.Query(context.Background(), `
+		SELECT
+			id,
+			name
+		FROM
+			ranks
+		ORDER BY
+			name ASC
+	`)
 	if err != nil {
-		errmsg("GetRankSelectAll query", err)
+		errmsg("RankSelectGet Query", err)
 	}
-	return ranks, err
+	for rows.Next() {
+		var rank SelectItem
+		err := rows.Scan(&rank.ID, &rank.Name)
+		if err != nil {
+			errmsg("RankSelectGet Scan", err)
+			return ranks, err
+		}
+		ranks = append(ranks, rank)
+	}
+	return ranks, rows.Err()
 }
 
-// CreateRank - create new rank
-func (e *Edb) CreateRank(rank Rank) (int64, error) {
-	err := e.db.Insert(&rank)
+// RankInsert - create new rank
+func RankInsert(rank Rank) (int64, error) {
+	err := pool.QueryRow(context.Background(), `
+		INSERT INTO ranks
+		(
+			name,
+			note,
+			created_at,
+			updated_at
+		)
+		VALUES
+		(
+			$1,
+			$2,
+			$3,
+			$4
+		)
+		RETURNING
+			id
+	`, rank.Name, rank.Note, time.Now(), time.Now()).Scan(&rank.ID)
 	if err != nil {
-		errmsg("CreateRank insert", err)
+		errmsg("RankInsert QueryRow", err)
 	}
 	return rank.ID, err
 }
 
-// UpdateRank - save rank changes
-func (e *Edb) UpdateRank(rank Rank) error {
-	err := e.db.Update(&rank)
+// RankUpdate - save rank changes
+func RankUpdate(rank Rank) error {
+	_, err := pool.Exec(context.Background(), `
+		UPDATE ranks SET
+			name = $2,
+			note = $3,
+			updated_at = $4
+		WHERE
+			id = $1
+	`, rank.ID, rank.Name, rank.Note, time.Now())
 	if err != nil {
 		errmsg("UpdateRank update", err)
 	}
 	return err
 }
 
-// DeleteRank - delete rank by id
-func (e *Edb) DeleteRank(id int64) error {
+// RankDelete - delete rank by id
+func RankDelete(id int64) error {
 	if id == 0 {
 		return nil
 	}
-	_, err := e.db.Model(&Rank{}).
-		Where("id = ?", id).
-		Delete()
+	_, err := pool.Exec(context.Background(), `
+		DELETE FROM
+			ranks
+		WHERE
+			id = $1
+	`, id)
 	if err != nil {
-		errmsg("DeleteRank delete", err)
+		errmsg("DeleteRank Exec", err)
 	}
 	return err
 }
 
-func (e *Edb) rankCreateTable() error {
+func rankCreateTable() error {
 	str := `
 		CREATE TABLE IF NOT EXISTS
 			ranks (
@@ -131,7 +171,7 @@ func (e *Edb) rankCreateTable() error {
 				UNIQUE (name)
 			)
 	`
-	_, err := e.db.Exec(str)
+	_, err := pool.Exec(context.Background(), str)
 	if err != nil {
 		errmsg("rankCreateTable exec", err)
 	}

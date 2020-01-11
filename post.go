@@ -1,5 +1,10 @@
 package edc
 
+import (
+	"context"
+	"time"
+)
+
 // Post - struct for post
 type Post struct {
 	ID        int64  `sql:"id"         json:"id"   form:"id"   query:"id"`
@@ -18,128 +23,152 @@ type PostList struct {
 	Note string `sql:"note" json:"note" form:"note" query:"note"`
 }
 
-// GetPost - get one post by id
-func (e *Edb) GetPost(id int64) (Post, error) {
+// PostGet - get one post by id
+func PostGet(id int64) (Post, error) {
 	var post Post
 	if id == 0 {
 		return post, nil
 	}
-	err := e.db.Model(&post).
-		Where("id = ?", id).
-		Select()
+	post.ID = id
+	err := pool.QueryRow(context.Background(), `
+		SELECT
+			name,
+			go,
+			note,
+			created_at,
+			updated_at
+		FROM
+			kinds
+		WHERE
+			id = $1
+	`, id).Scan(&post.Name, &post.GO, &post.Note, &post.CreatedAt, &post.UpdatedAt)
 	if err != nil {
-		errmsg("GetPost select", err)
+		errmsg("PostGet QueryRow", err)
 	}
 	return post, nil
 }
 
-// GetPostList - get post for list by id
-func (e *Edb) GetPostList(id int64) (PostList, error) {
-	var post PostList
-	err := e.db.Model(&Post{}).
-		Column("id", "name", "go", "note").
-		Where("id = ?", id).
-		Select(&post)
-	if err != nil {
-		errmsg("GetPostList select", err)
-	}
-	return post, nil
-}
-
-// GetPostListAll - get all post for list
-func (e *Edb) GetPostListAll() ([]PostList, error) {
+// PostListGet - get all post for list
+func PostListGet() ([]PostList, error) {
 	var posts []PostList
-	err := e.db.Model(&Post{}).
-		Column("id", "name", "go", "note").
-		Order("name ASC").
-		Select(&posts)
+	rows, err := pool.Query(context.Background(), `
+		SELECT
+			id,
+			name,
+			go,
+			note
+		FROM
+			kinds
+		ORDER BY
+			name ASC
+	`)
 	if err != nil {
-		errmsg("GetPostListAll select", err)
+		errmsg("PostListGet Query", err)
 	}
-	return posts, nil
+	for rows.Next() {
+		var post PostList
+		err := rows.Scan(&post.ID, &post.Name, &post.GO, &post.Note)
+		if err != nil {
+			errmsg("PostListGet Scan", err)
+			return posts, err
+		}
+		posts = append(posts, post)
+	}
+	return posts, rows.Err()
 }
 
-// GetPostSelect - get post for select
-func (e *Edb) GetPostSelect(id int64) (SelectItem, error) {
-	var post SelectItem
-	if id == 0 {
-		return post, nil
-	}
-	err := e.db.Model(&Post{}).
-		Column("id", "name").
-		Where("go = false AND id = ?", id).
-		Order("name ASC").
-		Select(&post)
-	if err != nil {
-		errmsg("GetPostSelect query", err)
-	}
-	return post, nil
-}
-
-// GetPostGOSelect - get post go for select
-func (e *Edb) GetPostGOSelect(id int64) (SelectItem, error) {
-	var post SelectItem
-	if id == 0 {
-		return post, nil
-	}
-	err := e.db.Model(&Post{}).
-		Column("id", "name").
-		Where("go = true AND id = ?", id).
-		Order("name ASC").
-		Select(&post)
-	if err != nil {
-		errmsg("GetPostGOSelect query", err)
-	}
-	return post, nil
-}
-
-// GetPostSelectAll - get all post for select
-func (e *Edb) GetPostSelectAll(g bool) ([]SelectItem, error) {
+// PostSelectGet - get all post for select
+func PostSelectGet(g bool) ([]SelectItem, error) {
 	var posts []SelectItem
-	err := e.db.Model(&Post{}).
-		Column("id", "name").
-		Where("go = ?", g).
-		Order("name ASC").
-		Select(&posts)
+	rows, err := pool.Query(context.Background(), `
+		SELECT
+			id,
+			name
+		FROM
+			posts
+		WHERE
+			go = $1
+		ORDER BY
+			name ASC
+	`, g)
 	if err != nil {
-		errmsg("GetPostSelectAll query", err)
+		errmsg("PostSelectGet Query", err)
 	}
-	return posts, nil
+	for rows.Next() {
+		var post SelectItem
+		err := rows.Scan(&post.ID, &post.Name)
+		if err != nil {
+			errmsg("PostSelectGet Scan", err)
+			return posts, err
+		}
+		posts = append(posts, post)
+	}
+	return posts, rows.Err()
 }
 
-// CreatePost - create new post
-func (e *Edb) CreatePost(post Post) (int64, error) {
-	err := e.db.Insert(&post)
+// PostInsert - create new post
+func PostInsert(post Post) (int64, error) {
+	err := pool.QueryRow(context.Background(), `
+		INSERT INTO posts
+		(
+			name,
+			go,
+			note,
+			created_at,
+			updated_at
+		)
+		VALUES
+		(
+			$1,
+			$2,
+			$3,
+			$4,
+			$5
+		)
+		RETURNING
+			id
+	`, post.Name, post.GO, post.Note, time.Now(), time.Now()).Scan(&post.ID)
 	if err != nil {
-		errmsg("CreatePost insert", err)
+		errmsg("PostInsert QueryRow", err)
 	}
 	return post.ID, nil
 }
 
-// UpdatePost - save post changes
-func (e *Edb) UpdatePost(post Post) error {
-	err := e.db.Update(&post)
+// PostUpdate - save post changes
+func PostUpdate(post Post) error {
+	_, err := pool.Exec(context.Background(), `
+		UPDATE posts SET
+			name = $2,
+			go = $3,
+			note = $4,
+			updated_at = $5
+		WHERE
+			id = $1
+	`, post.ID, post.Name, post.GO, post.Note, time.Now())
 	if err != nil {
 		errmsg("UpdatePost update", err)
 	}
 	return err
 }
 
-// DeletePost - delete post by id
-func (e *Edb) DeletePost(id int64) error {
+// PostDelete - delete post by id
+func PostDelete(id int64) error {
 	if id == 0 {
 		return nil
 	}
-	_, err := e.db.Model(&Post{}).
-		Where("id = ?", id).
-		Delete()
+	_, err := pool.Exec(context.Background(), `
+		DELETE FROM
+			posts
+		WHERE
+			id = $1
+	`, id)
 	if err != nil {
-		errmsg("DeletePost delete", err)
+		errmsg("DeletePost Exec", err)
 	}
 	return err
 }
 
-func (e *Edb) postCreateTable() error {
+func postCreateTable() error {
 	str := `
 		CREATE TABLE IF NOT EXISTS
 			posts (
@@ -152,7 +181,7 @@ func (e *Edb) postCreateTable() error {
 				UNIQUE (name, go)
 			)
 	`
-	_, err := e.db.Exec(str)
+	_, err := pool.Exec(context.Background(), str)
 	if err != nil {
 		errmsg("postCreateTable exec", err)
 	}

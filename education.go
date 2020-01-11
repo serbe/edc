@@ -1,5 +1,10 @@
 package edc
 
+import (
+	"context"
+	"time"
+)
+
 // Education - struct for education
 type Education struct {
 	ID        int64  `sql:"id"         json:"id"         form:"id"         query:"id" `
@@ -34,25 +39,37 @@ type EducationShort struct {
 	StartDate   string `sql:"start_date"   json:"start_date"   form:"start_date"   query:"start_date"`
 }
 
-// GetEducation - get education by id
-func (e *Edb) GetEducation(id int64) (Education, error) {
+// EducationGet - get education by id
+func EducationGet(id int64) (Education, error) {
 	var education Education
 	if id == 0 {
 		return education, nil
 	}
-	err := e.db.Model(&education).
-		Where("id = ?", id).
-		Select()
+	education.ID = id
+	err := pool.QueryRow(context.Background(), `
+		SELECT
+			contact_id,
+			start_date,
+			end_date,
+			post_id,
+			note,
+			created_at,
+			updated_at
+		FROM
+			educations
+		WHERE
+			id = $1
+	`, id).Scan(&education.ContactID, &education.StartDate, &education.EndDate, &education.PostID, &education.Note, &education.CreatedAt, &education.UpdatedAt)
 	if err != nil {
-		errmsg("GetEducation select", err)
+		errmsg("EducationGet QueryRow", err)
 	}
 	return education, err
 }
 
-// GetEducationListAll - get all education for list
-func (e *Edb) GetEducationListAll() ([]EducationList, error) {
+// EducationListGet - get all education for list
+func EducationListGet() ([]EducationList, error) {
 	var educations []EducationList
-	_, err := e.db.Query(&educations, `
+	rows, err := pool.Query(context.Background(), `
 		SELECT
 			e.id,
 			e.contact_id,
@@ -71,17 +88,31 @@ func (e *Edb) GetEducationListAll() ([]EducationList, error) {
 		ORDER BY
 			start_date DESC
 	`)
-	for i := range educations {
-		educations[i].StartStr = setStrMonth(educations[i].StartDate)
-		educations[i].EndStr = setStrMonth(educations[i].EndDate)
+	if err != nil {
+		errmsg("EducationListGet Query", err)
+		return educations, err
 	}
-	return educations, err
+	for rows.Next() {
+		var education EducationList
+		err := rows.Scan(&education.ID, &education.ContactID, &education.ContactName, &education.StartDate,
+			&education.EndDate, &education.PostID, &education.PostName, &education.Note)
+		if err != nil {
+			errmsg("EducationListGet Scan", err)
+			return educations, err
+		}
+		educations = append(educations, education)
+	}
+	// for i := range educations {
+	// 	educations[i].StartStr = setStrMonth(educations[i].StartDate)
+	// 	educations[i].EndStr = setStrMonth(educations[i].EndDate)
+	// }
+	return educations, rows.Err()
 }
 
-// GetEducationNear - get 10 nearest educations
-func (e *Edb) GetEducationNear() ([]EducationShort, error) {
+// EducationNearGet - get 10 nearest educations
+func EducationNearGet() ([]EducationShort, error) {
 	var educations []EducationShort
-	_, err := e.db.Query(&educations, `
+	rows, err := pool.Query(context.Background(), `
 		SELECT
 			e.id,
 			e.contact_id,
@@ -98,62 +129,90 @@ func (e *Edb) GetEducationNear() ([]EducationShort, error) {
 		LIMIT 10
 	`)
 	if err != nil {
-		errmsg("GetEducationNear query", err)
+		errmsg("EducationNearGet Query", err)
 	}
-	return educations, err
+	for rows.Next() {
+		var education EducationShort
+		err := rows.Scan(&education.ID, &education.ContactID, &education.ContactName, &education.StartDate)
+		if err != nil {
+			errmsg("EducationNearGet Scan", err)
+			return educations, err
+		}
+		educations = append(educations, education)
+	}
+	return educations, rows.Err()
 }
 
-// // GetEducationSelectAll - get all education for select
-// func (e *Edb) GetEducationSelectAll() ([]Education, error) {
-// 	var educations []Education
-// 	err := e.db.Model(&educations).
-// 		C("id", "start_date", "end_date").
-// 		Order("start_date").
-// 		Select()
-// 	if err != nil {
-// 		errmsg("GetEducationSelectAll select", err)
-// 		return educations, err
-// 	}
-// 	for i := range educations {
-// 		educations[i].StartStr = setStrMonth(educations[i].StartDate)
-// 		educations[i].EndStr = setStrMonth(educations[i].EndDate)
-// 	}
-// 	return educations, err
-// }
-
-// CreateEducation - create new education
-func (e *Edb) CreateEducation(education Education) (int64, error) {
-	err := e.db.Insert(&education)
+// EducationInsert - create new education
+func EducationInsert(education Education) (int64, error) {
+	err := pool.QueryRow(context.Background(), `
+		INSERT INTO educations
+		(
+			contact_id,
+			start_date,
+			end_date,
+			post_id,
+			note,
+			created_at,
+			updated_at
+		)
+		VALUES
+		(
+			$1,
+			$2,
+			$3,
+			$4,
+			$5,
+			$6,
+			$7
+		)
+		RETURNING
+			id
+	`, education.ContactID, education.StartDate, education.EndDate, education.PostID,
+		education.Note, time.Now(), time.Now()).Scan(&education.ID)
 	if err != nil {
-		errmsg("CreateEducation insert", err)
+		errmsg("EducationInsert QueryRow", err)
 	}
 	return education.ID, err
 }
 
-// UpdateEducation - save changes to education
-func (e *Edb) UpdateEducation(education Education) error {
-	err := e.db.Update(&education)
+// EducationUpdate - save changes to education
+func EducationUpdate(education Education) error {
+	_, err := pool.Exec(context.Background(), `
+		UPDATE educations SET
+			contact_id = $2,
+			start_date = $3,
+			end_date = $4,
+			post_id = $5,
+			note = $6,
+			updated_at = $7
+		WHERE
+			id = $1
+	`, education.ID, education.ContactID, education.StartDate, education.EndDate, education.PostID, education.Note, time.Now())
 	if err != nil {
-		errmsg("UpdateEducation update", err)
+		errmsg("EducationUpdate update", err)
 	}
 	return err
 }
 
-// DeleteEducation - delete education by id
-func (e *Edb) DeleteEducation(id int64) error {
+// EducationDelete - delete education by id
+func EducationDelete(id int64) error {
 	if id == 0 {
 		return nil
 	}
-	_, err := e.db.Model(&Education{}).
-		Where("id = ?", id).
-		Delete()
+	_, err := pool.Exec(context.Background(), `
+		DELETE FROM
+			educations
+		WHERE
+			id = $1
+	`, id)
 	if err != nil {
-		errmsg("DeleteEducation delete", err)
+		errmsg("EducationDelete Exec", err)
 	}
 	return err
 }
 
-func (e *Edb) educationCreateTable() error {
+func educationCreateTable() error {
 	str := `
 		CREATE TABLE IF NOT EXISTS
 			educations (
@@ -166,7 +225,7 @@ func (e *Edb) educationCreateTable() error {
 				updated_at TIMESTAMP without time zone default now()
 			)
 	`
-	_, err := e.db.Exec(str)
+	_, err := pool.Exec(context.Background(), str)
 	if err != nil {
 		errmsg("educationCreateTable exec", err)
 	}

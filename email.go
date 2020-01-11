@@ -1,5 +1,10 @@
 package edc
 
+import (
+	"context"
+	"time"
+)
+
 // Email - struct for email
 type Email struct {
 	ID        int64  `sql:"id"            json:"id"         form:"id"         query:"id"`
@@ -10,170 +15,108 @@ type Email struct {
 	UpdatedAt string `sql:"updated_at"    json:"-"`
 }
 
-// // GetEmail - get one email by id
-// func (e *Edb) GetEmail(id int64) (Email, error) {
-// 	var email Email
-// 	if id == 0 {
-// 		return email, nil
-// 	}
-// 	err := e.db.Model(&email).
-// 		Where("id = ?", id).
-// 		Select()
-// 	if err != nil {
-// 		errmsg("GetEmail select", err)
-// 	}
-// 	return email, nil
-// }
-
-// // GetEmails - get all emails for list
-// func (e *Edb) GetEmails() ([]Email, error) {
-// 	var emails []Email
-// 	err := e.db.Model(&emails).
-// 		Column("id", "email").
-// 		Order("email ASC").
-// 		Select()
-// 	if err != nil {
-// 		errmsg("GetEmailList select", err)
-// 	}
-// 	return emails, err
-// }
-
-// // GetCompanyEmails - get all emails by company id
-// func (e *Edb) GetCompanyEmails(id int64) ([]Email, error) {
-// 	var emails []Email
-// 	if id == 0 {
-// 		return emails, nil
-// 	}
-// 	err := e.db.Model(&emails).
-// 		Column("id", "email").
-// 		Order("email ASC").
-// 		Where("company_id = ?", id).
-// 		Select()
-// 	if err != nil {
-// 		errmsg("GetCompanyEmails select", err)
-// 	}
-// 	return emails, err
-// }
-
-// // GetContactEmails - get all emails by contact id
-// func (e *Edb) GetContactEmails(id int64) ([]Email, error) {
-// 	var emails []Email
-// 	if id == 0 {
-// 		return emails, nil
-// 	}
-// 	err := e.db.Model(&emails).
-// 		Column("id", "email").
-// 		Order("email ASC").
-// 		Where("contact_id = ?", id).
-// 		Select()
-// 	if err != nil {
-// 		errmsg("GetContactEmails select", err)
-// 	}
-// 	return emails, err
-// }
-
-// CreateEmail - create new email
-func (e *Edb) CreateEmail(email Email) (int64, error) {
+// EmailInsert - create new email
+func EmailInsert(email Email) (int64, error) {
 	email.ID = 0
-	err := e.db.Insert(&email)
+	err := pool.QueryRow(context.Background(), `
+		INSERT INTO emails
+		(
+			company_id,
+			contact_id,
+			email,
+			created_at,
+			updated_at
+		)
+		VALUES
+		(
+			$1,
+			$2,
+			$3,
+			$4,
+			$5
+		)
+	`, email.CompanyID, email.ContactID, email.Email, time.Now(), time.Now()).Scan(&email.ID)
 	if err != nil {
-		errmsg("CreateEmail insert", err)
+		errmsg("EmailInsert QueryRow", err)
 	}
 	return email.ID, nil
 }
 
-// UpdateCompanyEmails - update company emails
-func (e *Edb) UpdateCompanyEmails(company Company) error {
-	err := e.DeleteCompanyEmails(company.ID)
+// EmailCompanyUpdate - update company emails
+func EmailCompanyUpdate(id int64, emails []string) error {
+	err := EmailCompanyDelete(id)
 	if err != nil {
-		errmsg("UpdateCompanyEmails DeleteCompanyEmails", err)
+		errmsg("EmailCompanyUpdate DeleteCompanyEmails", err)
 		return err
 	}
-	for i := range company.Emails {
+	for i := range emails {
 		var email Email
-		email.CompanyID = company.ID
-		email.Email = company.Emails[i]
-		_, err = e.CreateEmail(email)
+		email.CompanyID = id
+		email.Email = emails[i]
+		_, err = EmailInsert(email)
 		if err != nil {
-			errmsg("UpdateCompanyEmails CreateEmail", err)
+			errmsg("EmailCompanyUpdate EmailInsert", err)
 			return err
 		}
 	}
 	return nil
 }
 
-// UpdateContactEmails - update contact emails
-func (e *Edb) UpdateContactEmails(contact Contact) error {
-	err := e.DeleteContactEmails(contact.ID)
+// EmailContactUpdate - update contact emails
+func EmailContactUpdate(id int64, emails []string) error {
+	err := EmailContactDelete(id)
 	if err != nil {
-		errmsg("UpdateContactEmails DeleteContactEmails", err)
+		errmsg("EmailContactUpdate EmailsContactDelete", err)
 		return err
 	}
-	for i := range contact.Emails {
+	for i := range emails {
 		var email Email
-		email.ContactID = contact.ID
-		email.Email = contact.Emails[i]
-		_, err = e.CreateEmail(email)
+		email.ContactID = id
+		email.Email = emails[i]
+		_, err = EmailInsert(email)
 		if err != nil {
-			errmsg("UpdateContactEmails CreateEmail", err)
+			errmsg("EmailContactUpdate EmailInsert", err)
 			return err
 		}
 	}
 	return nil
 }
 
-// UpdateEmail - save email changes
-func (e *Edb) UpdateEmail(email Email) error {
-	err := e.db.Update(&email)
-	if err != nil {
-		errmsg("UpdateEmail update", err)
-	}
-	return err
-}
-
-// DeleteEmail - delete email by id
-func (e *Edb) DeleteEmail(id int64) error {
+// EmailCompanyDelete - delete all emails by company id
+func EmailCompanyDelete(id int64) error {
 	if id == 0 {
 		return nil
 	}
-	_, err := e.db.Model(&Email{}).
-		Where("id = ?", id).
-		Delete()
+	_, err := pool.Exec(context.Background(), `
+		DELETE FROM
+			emails
+		WHERE
+			company_id = $1
+	`, id)
 	if err != nil {
-		errmsg("DeleteEmail delete", err)
+		errmsg("EmailCompanyDelete Exec", err)
 	}
 	return err
 }
 
-// DeleteCompanyEmails - delete all emails by company id
-func (e *Edb) DeleteCompanyEmails(id int64) error {
+// EmailContactDelete - delete all emails by contact id
+func EmailContactDelete(id int64) error {
 	if id == 0 {
 		return nil
 	}
-	_, err := e.db.Model(&Email{}).
-		Where("company_id = ?", id).
-		Delete()
+	_, err := pool.Exec(context.Background(), `
+		DELETE FROM
+			emails
+		WHERE
+			contact_id = $1
+	`, id)
 	if err != nil {
-		errmsg("DeleteCompanyEmails delete", err)
+		errmsg("EmailContactDelete Exec", err)
 	}
 	return err
 }
 
-// DeleteContactEmails - delete all emails by contact id
-func (e *Edb) DeleteContactEmails(id int64) error {
-	if id == 0 {
-		return nil
-	}
-	_, err := e.db.Model(&Email{}).
-		Where("contact_id = ?", id).
-		Delete()
-	if err != nil {
-		errmsg("DeleteContactEmails delete", err)
-	}
-	return err
-}
-
-func (e *Edb) emailCreateTable() error {
+func emailCreateTable() error {
 	str := `
 		CREATE TABLE IF NOT EXISTS
 			emails (
@@ -185,9 +128,9 @@ func (e *Edb) emailCreateTable() error {
 				updated_at timestamp without time zone default now()
 			)
 	`
-	_, err := e.db.Exec(str)
+	_, err := pool.Exec(context.Background(), str)
 	if err != nil {
-		errmsg("emailCreateTable exec", err)
+		errmsg("emailCreateTable Exec", err)
 	}
 	return err
 }
